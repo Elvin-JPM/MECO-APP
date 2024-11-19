@@ -1,0 +1,17 @@
+# Node.js (Backend)
+Backend/node_modules/
+Backend/.env
+Backend/logs/
+Backend/*.log
+
+# React (Frontend with Vite)
+Frontend/node_modules/
+Frontend/dist/
+Frontend/.env
+Frontend/.vite/
+
+# General
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
