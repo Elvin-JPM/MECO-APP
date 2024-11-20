@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const { initOracleDb } = require("./db");
 const exampleRoutes = require("./routes/example");
 
@@ -10,6 +11,26 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Accept",
+      "Cache-Control",
+      "X-Requested-With",
+      "User-Agent",
+      "Origin",
+      "X-CSRF-Token",
+      "headers",
+    ],
+    credentials: true,
+    maxAge: 3600, // Value is in seconds
+  })
+);
 
 // Routes
 app.use("/api", exampleRoutes);

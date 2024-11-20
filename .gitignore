@@ -8,6 +8,7 @@ Backend/*.log
 Frontend/node_modules/
 Frontend/dist/
 Frontend/.env
+Frontend/.env.production
 Frontend/.vite/
 
 # General

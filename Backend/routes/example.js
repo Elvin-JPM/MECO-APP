@@ -2,12 +2,15 @@ const express = require("express");
 const { getConnection } = require("../db");
 const router = express.Router();
 
-router.get("/data", async (req, res) => {
+router.get("/meters", async (req, res) => {
   let connection;
   try {
     connection = await getConnection();
     const result = await connection.execute(
-      "SELECT * FROM MCAM_PUNTOS_MEDICION"
+      "SELECT ID_PUNTO, NOMBRE_PLANTA, IP, NOMBRE_PUNTO, SUBESTACION, SERIE \
+      FROM MCAM_METERS_OWNERS \
+      ORDER BY NOMBRE_PLANTA, IP \
+      FETCH FIRST 20 ROWS ONLY"
     );
     res.json(result.rows);
   } catch (error) {
