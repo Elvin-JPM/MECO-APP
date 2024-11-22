@@ -35,15 +35,19 @@ const Column = styled.div`
 `;
 
 function MeterRow({ meter }) {
+  const {id, id_punto, nombre_planta, ip, nombre_punto, subestacion, serie } =
+    meter;
   return (
     <TableRow role="row">
       <div></div>
-      <Column>{meter[1]}</Column>
-      <Column>{meter[2]}</Column>
-      <Column>{meter[0]}</Column>
-      <Column>{meter[4]}</Column>
-      <Column>{meter[5]}</Column>
-      <Button variation={"secondary"} size={"small"}>Edit</Button>
+      <Column>{nombre_planta}</Column>
+      <Column>{ip}</Column>
+      <Column>{id_punto}</Column>
+      <Column>{subestacion}</Column>
+      <Column>{serie}</Column>
+      <Button variation={"secondary"} size={"small"}>
+        Edit
+      </Button>
     </TableRow>
   );
 }

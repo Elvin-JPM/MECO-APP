@@ -6,6 +6,7 @@ import MeterRow from "./MeterRow";
 import Button from "../../ui/Button";
 import { FaDownload } from "react-icons/fa6";
 import * as XLSX from "xlsx";
+import { getMeters } from "../../services/getRequests";
 
 const Table = styled.div`
   border: 1px solid var(--color-grey-200);
@@ -30,11 +31,6 @@ const TableHeader = styled.header`
   padding: 1.6rem 2.4rem;
 `;
 
-async function getMeters() {
-  const response = await getData("/meters");
-  return response;
-}
-
 function MetersTable() {
   const {
     isLoading,
@@ -53,11 +49,11 @@ function MetersTable() {
     // Create a worksheet from the data
     const worksheet = XLSX.utils.json_to_sheet(
       meters.map((meter) => ({
-        Plant: meter[1],
-        IP: meter[2],
-        Code: meter[0],
-        Substation: meter[4],
-        Series: meter[5],
+        Plant: meter.nombre_planta,
+        IP: meter.ip,
+        Code: meter.id_punto,
+        Substation: meter.subestacion,
+        Series: meter.serie,
       }))
     );
 
@@ -83,7 +79,7 @@ function MetersTable() {
         </Button>
       </TableHeader>
       {meters.map((meter) => (
-        <MeterRow meter={meter} key={meter[0]}></MeterRow>
+        <MeterRow meter={meter} key={meter.id}></MeterRow>
       ))}
     </Table>
   );

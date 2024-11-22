@@ -1,7 +1,12 @@
 const express = require("express");
 const cors = require("cors");
 const { initOracleDb } = require("./db");
-const exampleRoutes = require("./routes/example");
+const getMetersRoute = require("./routes/getMetersRoute");
+const getSubstationsRoute = require("./routes/getSubstationsRoute");
+const getPowerPlantsRoute = require("./routes/getPowerPlantsRoute");
+const getPlantsAndSubstationsRoute = require("./routes/getPlantAndSubstationsRoute");
+const getMetersModelsRoute = require("./routes/getMetersModelsRoute");
+const insertNewMeterRoute = require("./routes/insertNewMeterRoute");
 
 require("dotenv").config();
 
@@ -33,7 +38,12 @@ app.use(
 );
 
 // Routes
-app.use("/api", exampleRoutes);
+app.use("/api", getMetersRoute);
+app.use("/api", getSubstationsRoute);
+app.use("/api", getPowerPlantsRoute);
+app.use("/api", getPlantsAndSubstationsRoute);
+app.use("/api", getMetersModelsRoute);
+app.use("/api", insertNewMeterRoute);
 
 // Start the server
 (async () => {
