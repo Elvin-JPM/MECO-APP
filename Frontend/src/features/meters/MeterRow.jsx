@@ -1,5 +1,7 @@
 import styled from "styled-components";
 import Button from "../../ui/Button";
+import { useState } from "react";
+import CreateMeterForm from "./CreateMeterForm";
 
 const TableRow = styled.div`
   display: grid;
@@ -35,9 +37,11 @@ const Column = styled.div`
 `;
 
 function MeterRow({ meter }) {
-  const {id, id_punto, nombre_planta, ip, nombre_punto, subestacion, serie } =
+  const [showForm, setShowForm] = useState(false);
+  const { id, id_punto, nombre_planta, ip, nombre_punto, subestacion, serie } =
     meter;
-  return (
+    return (
+      <>        
     <TableRow role="row">
       <div></div>
       <Column>{nombre_planta}</Column>
@@ -45,10 +49,16 @@ function MeterRow({ meter }) {
       <Column>{id_punto}</Column>
       <Column>{subestacion}</Column>
       <Column>{serie}</Column>
-      <Button variation={"secondary"} size={"small"}>
+      <Button
+        onClick={() => setShowForm((show) => !show)}
+        variation={"secondary"}
+        size={"small"}
+      >
         Edit
       </Button>
-    </TableRow>
+      </TableRow>
+      {showForm && <CreateMeterForm meterToEdit={meter}></CreateMeterForm>}
+      </>
   );
 }
 

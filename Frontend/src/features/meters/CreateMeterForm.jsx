@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Input from "../../ui/Input";
 import Form from "../../ui/Form";
@@ -18,8 +19,24 @@ import { useState } from "react";
 import { postData } from "../../services/api";
 import { createMeter } from "../../services/postRequests";
 
-function CreateMeterForm() {
-  const { register, handleSubmit, reset, getValues, formState } = useForm();
+function CreateMeterForm({ meterToEdit = {} }) {
+  const { id: editId, ...editValues } = meterToEdit;
+  console.log("Edit values: ", editValues);
+  const isEditSession = Boolean(editId);
+
+  const { register, handleSubmit, reset, formState } = useForm({
+    defaultValues: {}, // Start with empty defaults
+  });
+
+  // Update the form's default values when `meterToEdit` changes
+  useEffect(() => {
+    if (isEditSession) {
+      reset(editValues); // Populate the form with the edit values
+    } else {
+      reset({}); // Clear the form if not editing
+    }
+  }, [meterToEdit, reset, isEditSession]);
+
   const { errors } = formState;
   const queryClient = useQueryClient();
   const { mutate, isCreating } = useMutation({
