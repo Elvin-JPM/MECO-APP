@@ -2,6 +2,9 @@ import styled from "styled-components";
 import Button from "../../ui/Button";
 import { useState } from "react";
 import CreateMeterForm from "./CreateMeterForm";
+import Spinner from "../../ui/Spinner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getMeter } from "../../services/getRequests";
 
 const TableRow = styled.div`
   display: grid;
@@ -40,25 +43,34 @@ function MeterRow({ meter }) {
   const [showForm, setShowForm] = useState(false);
   const { id, id_punto, nombre_planta, ip, nombre_punto, subestacion, serie } =
     meter;
-    return (
-      <>        
-    <TableRow role="row">
-      <div></div>
-      <Column>{nombre_planta}</Column>
-      <Column>{ip}</Column>
-      <Column>{id_punto}</Column>
-      <Column>{subestacion}</Column>
-      <Column>{serie}</Column>
-      <Button
-        onClick={() => setShowForm((show) => !show)}
-        variation={"secondary"}
-        size={"small"}
-      >
-        Edit
-      </Button>
+
+  
+  return (
+    <>
+      <TableRow role="row">
+        <div></div>
+        <Column>{nombre_planta}</Column>
+        <Column>{ip}</Column>
+        <Column>{id_punto}</Column>
+        <Column>{subestacion}</Column>
+        <Column>{serie}</Column>
+        <Button
+          onClick={() => setShowForm((show) => !show)}
+          variation="secondary"
+          size="small"
+        >
+          Edit
+        </Button>
       </TableRow>
-      {showForm && <CreateMeterForm meterToEdit={meter}></CreateMeterForm>}
-      </>
+
+      {showForm && (
+        <CreateMeterForm
+          //meterToEdit={meterToEdit[0]}
+          meterId={id}
+          nombrePlanta={nombre_planta}
+        />
+      )}
+    </>
   );
 }
 

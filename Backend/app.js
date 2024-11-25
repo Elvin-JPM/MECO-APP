@@ -7,6 +7,7 @@ const getPowerPlantsRoute = require("./routes/getPowerPlantsRoute");
 const getPlantsAndSubstationsRoute = require("./routes/getPlantAndSubstationsRoute");
 const getMetersModelsRoute = require("./routes/getMetersModelsRoute");
 const insertNewMeterRoute = require("./routes/insertNewMeterRoute");
+const getMeterRoute = require("./routes/getMeterRoute");
 
 require("dotenv").config();
 
@@ -44,6 +45,7 @@ app.use("/api", getPowerPlantsRoute);
 app.use("/api", getPlantsAndSubstationsRoute);
 app.use("/api", getMetersModelsRoute);
 app.use("/api", insertNewMeterRoute);
+app.use("/api", getMeterRoute);
 
 // Start the server
 (async () => {

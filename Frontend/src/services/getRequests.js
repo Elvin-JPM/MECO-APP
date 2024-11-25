@@ -5,6 +5,11 @@ export async function getMeters() {
   return response;
 }
 
+export async function getMeter(id) {
+  const response = await getData(`/meters/${id}`);
+  return response;
+}
+
 export async function getPlantsAndSubstations() {
   const response = await getData("/plantssubs");
   return response;

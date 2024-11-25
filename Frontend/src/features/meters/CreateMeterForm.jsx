@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Input from "../../ui/Input";
 import Form from "../../ui/Form";
@@ -14,40 +13,17 @@ import { toast } from "react-hot-toast";
 import {
   getPlantsAndSubstations,
   getMeterModels,
+  getMeter,
 } from "../../services/getRequests";
+import { useEffect } from "react";
+import Spinner from "../../ui/Spinner";
 import { useState } from "react";
 import { postData } from "../../services/api";
 import { createMeter } from "../../services/postRequests";
 
-function CreateMeterForm({ meterToEdit = {} }) {
-  const { id: editId, ...editValues } = meterToEdit;
-  console.log("Edit values: ", editValues);
-  const isEditSession = Boolean(editId);
-
-  const { register, handleSubmit, reset, formState } = useForm({
-    defaultValues: {}, // Start with empty defaults
-  });
-
-  // Update the form's default values when `meterToEdit` changes
-  useEffect(() => {
-    if (isEditSession) {
-      reset(editValues); // Populate the form with the edit values
-    } else {
-      reset({}); // Clear the form if not editing
-    }
-  }, [meterToEdit, reset, isEditSession]);
-
-  const { errors } = formState;
-  const queryClient = useQueryClient();
-  const { mutate, isCreating } = useMutation({
-    mutationFn: createMeter,
-    onSuccess: () => {
-      toast.success("Medidor creado exitosamente!");
-      queryClient.invalidateQueries({ queryKey: ["meters"] });
-      reset();
-    },
-    onError: (err) => toast.error(err.message),
-  });
+function CreateMeterForm({ meterId, nombrePlanta }) {
+  //const { id: editId, ...editValues } = meterToEdit;
+  //console.log("Edit values: ", editValues);
 
   const {
     isLoadingPlantsSubs,
@@ -65,6 +41,67 @@ function CreateMeterForm({ meterToEdit = {} }) {
   } = useQuery({
     queryKey: ["meterModels"],
     queryFn: getMeterModels,
+  });
+
+  const {
+    isLoadingMeter,
+    data: meterToEdit,
+    // error,
+  } = useQuery({
+    queryKey: ["meter", meterId],
+    queryFn: () => getMeter(meterId),
+    enabled: !!meterId,
+  });
+
+  console.log("meter to edit at form:", meterToEdit);
+  const isEditSession = Boolean(meterToEdit);
+
+  const { register, handleSubmit, reset, getValues, formState } = useForm({
+    defaultValues: {
+      plantssub: "",
+      idPunto: "",
+      ip: "",
+      serie: "",
+      modelo: "",
+      puerto: "",
+      fuenteExterna: "",
+      integrado: "",
+      activo: "",
+    },
+  });
+  const { errors } = formState;
+
+  function getMeterModelFromId(id) {
+    const meterModel = meterModels?.find((item) => item.id === id); // Use .find() to get a single object
+    return meterModel ? meterModel.modelo : ""; // Return the modelo if it exists, otherwise return an empty string
+  }
+
+  // Populate form values once meterToEdit is available
+  useEffect(() => {
+    if (meterToEdit && meterModels) {
+      reset({
+        plantssub: nombrePlanta || "",
+        idPunto: meterToEdit[0].id_punto_medicion || "",
+        ip: meterToEdit[0].ip || "",
+        serie: meterToEdit[0].serie || "",
+        modelo: meterToEdit[0].id_modelo || "",
+        puerto: meterToEdit[0].numero_puerto || "",
+        fuenteExterna: meterToEdit[0].fuente_externa === 1 ? "Si" : "No",
+        integrado: meterToEdit[0].integrado === 1 ? "Si" : "No",
+        activo: meterToEdit[0].activo === 1 ? "Si" : "No",
+      });
+    }
+  }, [meterToEdit, meterModels, reset]);
+
+  const queryClient = useQueryClient();
+  const { mutate, isCreating } = useMutation({
+    mutationFn: createMeter,
+    onSuccess: () => {
+      toast.success("Medidor creado exitosamente!");
+      queryClient.invalidateQueries({ queryKey: ["meters"] });
+      reset();
+    },
+    onError: (err) => toast.error(err.message),
   });
 
   const [imagePreview, setImagePreview] = useState(null);
@@ -88,6 +125,8 @@ function CreateMeterForm({ meterToEdit = {} }) {
     const file = getValues("foto")[0]; // react-hook-form stores files as an array
     if (file) {
       formData.append("foto", file); // Ensure "foto" matches the backend field
+    } else if (isEditSession && meterToEdit[0]?.foto) {
+      formData.append("foto", meterToEdit[0].foto); // Use existing URL or data
     }
 
     // Append other fields
@@ -109,10 +148,19 @@ function CreateMeterForm({ meterToEdit = {} }) {
     mutate(formData);
   }
 
+  if (isLoadingMeter) {
+    return <Spinner />;
+  }
+
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
       <FormRow label="Planta/Subestación" error={errors?.plantssub?.message}>
-        <Select id="plantssub" disabled={isCreating} {...register("plantssub")}>
+        <Select
+          id="plantssub"
+          disabled={isCreating}
+          {...register("plantssub")}
+          //   defaultValue={isEditSession && nombrePlanta}
+        >
           <option value="">Seleccione una opción</option>
           {plantsandsubs?.map((plansub) => (
             <option key={plantsandsubs.indexOf(plansub)} value={plansub}>
@@ -128,6 +176,7 @@ function CreateMeterForm({ meterToEdit = {} }) {
           min="100000"
           id="idPunto"
           disabled={isCreating}
+          //   defaultValue={isEditSession && meterToEdit[0]?.id_punto_medicion}
           {...register("idPunto", {
             required: "Este campo es obligatorio",
             min: {
@@ -144,6 +193,7 @@ function CreateMeterForm({ meterToEdit = {} }) {
           maxLength="15"
           id="ip"
           disabled={isCreating}
+          //   defaultValue={isEditSession && meterToEdit[0]?.ip}
           {...register("ip", {
             required: "Este campo es obligatorio",
             pattern: {
@@ -160,6 +210,7 @@ function CreateMeterForm({ meterToEdit = {} }) {
           type="text"
           id="serie"
           disabled={isCreating}
+          //   defaultValue={isEditSession && meterToEdit[0]?.serie}
           {...register("serie", {
             required: "Este campo es obligatorio",
           })}
@@ -170,6 +221,9 @@ function CreateMeterForm({ meterToEdit = {} }) {
         <Select
           id="modelo"
           disabled={isCreating}
+          //   defaultValue={
+          //     isEditSession && getMeterModelFromId(meterToEdit[0]?.id_modelo)
+          //   }
           {...register("modelo", {
             required: "Este campo es obligatorio",
           })}
@@ -190,12 +244,23 @@ function CreateMeterForm({ meterToEdit = {} }) {
           max="65335"
           id="puerto"
           disabled={isCreating}
+          //   defaultValue={isEditSession && meterToEdit[0]?.numero_puerto}
           {...register("puerto", {
             required: "Este campo es obligatorio",
           })}
         />
       </FormRow>
 
+      {isEditSession && meterToEdit[0]?.foto && !imagePreview && (
+        <div>
+          <p>Imagen actual:</p>
+          <img
+            src={meterToEdit[0].foto} // Assuming this is a URL or base64 string
+            alt="Current meter image"
+            style={{ maxWidth: "200px", maxHeight: "200px" }}
+          />
+        </div>
+      )}
       <FormRow label="Foto" error={errors?.foto?.message}>
         <FileInput
           accept="image/*"
@@ -222,6 +287,9 @@ function CreateMeterForm({ meterToEdit = {} }) {
       <FormRow label="Fuente Externa" error={errors?.fuenteExterna?.message}>
         <Select
           id="fuenteExterna"
+          //   defaultValue={
+          //     isEditSession && meterToEdit[0]?.fuente_externa === 1 ? "Si" : "No"
+          //   }
           disabled={isCreating}
           {...register("fuenteExterna", {
             required: "Este campo es obligatorio",
@@ -237,6 +305,9 @@ function CreateMeterForm({ meterToEdit = {} }) {
         <Select
           id="integrado"
           disabled={isCreating}
+          //   defaultValue={
+          //     isEditSession && meterToEdit[0]?.integrado === 1 ? "Si" : "No"
+          //   }
           {...register("integrado", {
             required: "Este campo es obligatorio",
           })}
@@ -251,6 +322,9 @@ function CreateMeterForm({ meterToEdit = {} }) {
         <Select
           id="activo"
           disabled={isCreating}
+          //   defaultValue={
+          //     isEditSession && meterToEdit[0]?.activo === 1 ? "Si" : "No"
+          //   }
           {...register("activo", {
             required: "Este campo es obligatorio",
           })}
