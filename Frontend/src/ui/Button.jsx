@@ -2,19 +2,19 @@ import styled, { css } from "styled-components";
 
 const sizes = {
   small: css`
-    font-size: 1.2rem;
-    padding: 0.4rem 0.8rem;
+    font-size: 1.4rem;
+    padding: 0.4rem 0.6rem;
     text-transform: uppercase;
     font-weight: 600;
     text-align: center;
   `,
   medium: css`
-    font-size: 1.4rem;
+    font-size: 1.6rem;
     padding: 1.2rem 1.6rem;
     font-weight: 600;
   `,
   large: css`
-    font-size: 1.6rem;
+    font-size: 1.8rem;
     padding: 1.2rem 2.4rem;
     font-weight: 500;
   `,
@@ -48,12 +48,39 @@ const variations = {
   `,
 };
 
-const Button = styled.button`
+const Button = styled.button.attrs((props) => ({
+  title: props.tooltip, // Adds the tooltip text as a `title` attribute (optional)
+}))`
   border: none;
   border-radius: var(--border-radius-sm);
   box-shadow: var(--shadow-sm);
+  position: relative; // Required for positioning the tooltip
   ${(props) => sizes[props.size]}
   ${(props) => variations[props.variation]}
+
+  /* Tooltip styles */
+  &::after {
+    content: attr(data-tooltip); 
+    position: absolute;
+    bottom: calc(100% + 8px); /* Position the tooltip above the button */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--color-grey-800);
+    color: var(--color-white);
+    padding: 0.4rem 0.8rem;
+    font-size: 1.2rem;
+    border-radius: var(--border-radius-sm);
+    box-shadow: var(--shadow-sm);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  &:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-4px); /* Slight upward animation */
+  }
 `;
 
 Button.defaultProps = {

@@ -9,6 +9,8 @@ import {
   HiOutlineCog6Tooth,
   HiOutlineHomeModern,
 } from "react-icons/hi2";
+import { HiOutlineDocumentReport } from "react-icons/hi";
+import { FaRegFolderOpen } from "react-icons/fa";
 
 const NavList = styled.ul`
   display: flex;
@@ -62,13 +64,25 @@ function MainNav() {
         <li>
           <StyledNavLink to="/dashboard">
             <HiOutlineHome />
-            <span>Home</span>
+            <span>Inicio</span>
           </StyledNavLink>
         </li>
         <li>
           <StyledNavLink to="/meters">
             <MdOutlineElectricMeter />
-            <span>Meters</span>
+            <span>Medidores</span>
+          </StyledNavLink>
+        </li>
+        <li>
+          <StyledNavLink to="/reports">
+            <HiOutlineDocumentReport />
+            <span>Informes</span>
+          </StyledNavLink>
+        </li>
+        <li>
+          <StyledNavLink to="/acts">
+            <FaRegFolderOpen />
+            <span>Actas</span>
           </StyledNavLink>
         </li>
         <li>
@@ -80,19 +94,19 @@ function MainNav() {
         <li>
           <StyledNavLink to="/users">
             <HiOutlineUsers />
-            <span>Users</span>
+            <span>Usuarios</span>
           </StyledNavLink>
         </li>
         <li>
           <StyledNavLink to="/Locations">
             <SlLocationPin />
-            <span>Locations</span>
+            <span>Ubicaciones</span>
           </StyledNavLink>
         </li>
         <li>
           <StyledNavLink to="/settings">
             <HiOutlineCog6Tooth />
-            <span>Settings</span>
+            <span>Configuración</span>
           </StyledNavLink>
         </li>
       </NavList>

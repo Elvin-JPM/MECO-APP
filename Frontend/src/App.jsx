@@ -14,6 +14,7 @@ import Users from "./pages/Users";
 import Settings from "./pages/Settings";
 import Locations from "./pages/Locations";
 import { Toaster } from "react-hot-toast";
+import Reports from "./pages/Reports";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,6 +38,7 @@ function App() {
             <Route path="communications" element={<Communications />} />
             <Route path="users" element={<Users />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="reports" element={<Reports />} />
           </Route>
           <Route path="locations" element={<Locations />} />
 

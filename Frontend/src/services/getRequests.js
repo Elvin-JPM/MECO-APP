@@ -20,3 +20,15 @@ export async function getMeterModels() {
   console.log(response);
   return response;
 }
+
+export async function getIntegratedMeters() {
+  const response = await getData("/integratedMeters");
+  return response;
+}
+
+export async function getMeasures(params) {
+  console.log("Params at get measures: ", params);
+  const response = await getData("/measures", {}, params);
+  console.log(response);
+  return response;
+}

@@ -1,15 +1,13 @@
-import styled from "styled-components";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import Input from "../../ui/Input";
 import Form from "../../ui/Form";
+import Textarea from "../../ui/Textarea";
 import Button from "../../ui/Button";
 import FileInput from "../../ui/FileInput";
-import Textarea from "../../ui/Textarea";
 import Select from "../../ui/Select";
 import Option from "../../ui/Option";
 import FormRow from "../../ui/FormRow";
 import { useForm } from "react-hook-form";
-import { toast } from "react-hot-toast";
 import {
   getPlantsAndSubstations,
   getMeterModels,
@@ -18,12 +16,20 @@ import {
 import { useEffect } from "react";
 import Spinner from "../../ui/Spinner";
 import { useState } from "react";
-import { postData } from "../../services/api";
-import { createMeter } from "../../services/postRequests";
+import useCreateMeter from "./useCreateMeter";
+import useUpdateMeter from "./useUpdateMeter";
+import base64ToFile from "../../utils/base64ToFile";
 
-function CreateMeterForm({ meterId, nombrePlanta }) {
-  //const { id: editId, ...editValues } = meterToEdit;
-  //console.log("Edit values: ", editValues);
+function CreateMeterForm({
+  meterId,
+  nombrePlanta,
+  handleShowForm,
+  onCloseModal,
+}) {
+  const { isCreating, createMeter } = useCreateMeter();
+  const { isUpdating, updateMeter } = useUpdateMeter();
+
+  const [imagePreview, setImagePreview] = useState(null);
 
   const {
     isLoadingPlantsSubs,
@@ -52,9 +58,9 @@ function CreateMeterForm({ meterId, nombrePlanta }) {
     queryFn: () => getMeter(meterId),
     enabled: !!meterId,
   });
+  const isEditSession = Boolean(meterToEdit);
 
   console.log("meter to edit at form:", meterToEdit);
-  const isEditSession = Boolean(meterToEdit);
 
   const { register, handleSubmit, reset, getValues, formState } = useForm({
     defaultValues: {
@@ -67,14 +73,11 @@ function CreateMeterForm({ meterId, nombrePlanta }) {
       fuenteExterna: "",
       integrado: "",
       activo: "",
+      tipo: "",
+      description: "",
     },
   });
   const { errors } = formState;
-
-  function getMeterModelFromId(id) {
-    const meterModel = meterModels?.find((item) => item.id === id); // Use .find() to get a single object
-    return meterModel ? meterModel.modelo : ""; // Return the modelo if it exists, otherwise return an empty string
-  }
 
   // Populate form values once meterToEdit is available
   useEffect(() => {
@@ -89,22 +92,12 @@ function CreateMeterForm({ meterId, nombrePlanta }) {
         fuenteExterna: meterToEdit[0].fuente_externa === 1 ? "Si" : "No",
         integrado: meterToEdit[0].integrado === 1 ? "Si" : "No",
         activo: meterToEdit[0].activo === 1 ? "Si" : "No",
+        tipo: meterToEdit[0].tipo || "",
+        description: meterToEdit[0].description || "",
       });
     }
   }, [meterToEdit, meterModels, reset]);
 
-  const queryClient = useQueryClient();
-  const { mutate, isCreating } = useMutation({
-    mutationFn: createMeter,
-    onSuccess: () => {
-      toast.success("Medidor creado exitosamente!");
-      queryClient.invalidateQueries({ queryKey: ["meters"] });
-      reset();
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const [imagePreview, setImagePreview] = useState(null);
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -120,13 +113,14 @@ function CreateMeterForm({ meterId, nombrePlanta }) {
 
   async function onSubmit(data) {
     const formData = new FormData();
-
     // Append file
     const file = getValues("foto")[0]; // react-hook-form stores files as an array
     if (file) {
       formData.append("foto", file); // Ensure "foto" matches the backend field
-    } else if (isEditSession && meterToEdit[0]?.foto) {
-      formData.append("foto", meterToEdit[0].foto); // Use existing URL or data
+    } else if (isEditSession) {
+      const fileFromBase64 = base64ToFile(meterToEdit[0]?.foto, "foto"); // Use existing URL or data
+      console.log("imaged converted", fileFromBase64);
+      formData.append("foto", fileFromBase64);
     }
 
     // Append other fields
@@ -139,13 +133,30 @@ function CreateMeterForm({ meterId, nombrePlanta }) {
     formData.append("fuenteExterna", data.fuenteExterna === "Si" ? 1 : 0);
     formData.append("integrado", data.integrado === "Si" ? 1 : 0);
     formData.append("activo", data.activo === "Si" ? 1 : 0);
+    formData.append("tipo", data.tipo);
+    formData.append("description", data.description);
+    isEditSession && formData.append("id", meterToEdit[0].id);
 
-    for (const [key, value] of formData.entries()) {
-      console.log(key, value);
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}: ${value}`);
     }
-
+    console.log("Data for insert: ", formData);
     // Mutate with FormData
-    mutate(formData);
+    if (isEditSession) {
+      updateMeter(formData, {
+        onSuccess: () => {
+          reset();
+          handleShowForm?.() || onCloseModal?.();
+        },
+      });
+    } else {
+      createMeter(formData, {
+        onSuccess: () => {
+          reset();
+          handleShowForm?.() || onCloseModal?.();
+        },
+      });
+    }
   }
 
   if (isLoadingMeter) {
@@ -153,196 +164,210 @@ function CreateMeterForm({ meterId, nombrePlanta }) {
   }
 
   return (
-    <Form onSubmit={handleSubmit(onSubmit)}>
-      <FormRow label="Planta/Subestación" error={errors?.plantssub?.message}>
-        <Select
-          id="plantssub"
-          disabled={isCreating}
-          {...register("plantssub")}
-          //   defaultValue={isEditSession && nombrePlanta}
-        >
-          <option value="">Seleccione una opción</option>
-          {plantsandsubs?.map((plansub) => (
-            <option key={plantsandsubs.indexOf(plansub)} value={plansub}>
-              {plansub}
-            </option>
-          ))}
-        </Select>
-      </FormRow>
+    <>
+      {isEditSession ? <h1>Editar medidor</h1> : <h1>Crear nuevo medidor</h1>}
+      <Form onSubmit={handleSubmit(onSubmit)}>
+        <FormRow label="Planta/Subestación" error={errors?.plantssub?.message}>
+          <Select
+            id="plantssub"
+            disabled={isCreating}
+            {...register("plantssub")}
+          >
+            <option value="">Seleccione una opción</option>
+            {plantsandsubs?.map((plansub) => (
+              <option key={plantsandsubs.indexOf(plansub)} value={plansub}>
+                {plansub}
+              </option>
+            ))}
+          </Select>
+        </FormRow>
 
-      <FormRow label="ID punto" error={errors?.idPunto?.message}>
-        <Input
-          type="number"
-          min="100000"
-          id="idPunto"
-          disabled={isCreating}
-          //   defaultValue={isEditSession && meterToEdit[0]?.id_punto_medicion}
-          {...register("idPunto", {
-            required: "Este campo es obligatorio",
-            min: {
-              value: 100000,
-              message: "El número debe ser mayor o igual que 100000",
-            },
-          })}
-        />
-      </FormRow>
-
-      <FormRow label="IP" error={errors?.ip?.message}>
-        <Input
-          type="text"
-          maxLength="15"
-          id="ip"
-          disabled={isCreating}
-          //   defaultValue={isEditSession && meterToEdit[0]?.ip}
-          {...register("ip", {
-            required: "Este campo es obligatorio",
-            pattern: {
-              value:
-                /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/,
-              message: "Por favor ingrese una dirección IPV4 válida",
-            },
-          })}
-        />
-      </FormRow>
-
-      <FormRow label="Serie" error={errors?.serie?.message}>
-        <Input
-          type="text"
-          id="serie"
-          disabled={isCreating}
-          //   defaultValue={isEditSession && meterToEdit[0]?.serie}
-          {...register("serie", {
-            required: "Este campo es obligatorio",
-          })}
-        />
-      </FormRow>
-
-      <FormRow label="Modelo" error={errors?.modelo?.message}>
-        <Select
-          id="modelo"
-          disabled={isCreating}
-          //   defaultValue={
-          //     isEditSession && getMeterModelFromId(meterToEdit[0]?.id_modelo)
-          //   }
-          {...register("modelo", {
-            required: "Este campo es obligatorio",
-          })}
-        >
-          <Option value="">Seleccione un modelo</Option>
-          {meterModels?.map((meterModel) => (
-            <Option key={meterModel.id} value={meterModel.id}>
-              {meterModel.modelo}
-            </Option>
-          ))}
-        </Select>
-      </FormRow>
-
-      <FormRow label="Puerto" error={errors?.puerto?.message}>
-        <Input
-          type="number"
-          min="1"
-          max="65335"
-          id="puerto"
-          disabled={isCreating}
-          //   defaultValue={isEditSession && meterToEdit[0]?.numero_puerto}
-          {...register("puerto", {
-            required: "Este campo es obligatorio",
-          })}
-        />
-      </FormRow>
-
-      {isEditSession && meterToEdit[0]?.foto && !imagePreview && (
-        <div>
-          <p>Imagen actual:</p>
-          <img
-            src={meterToEdit[0].foto} // Assuming this is a URL or base64 string
-            alt="Current meter image"
-            style={{ maxWidth: "200px", maxHeight: "200px" }}
+        <FormRow label="ID punto" error={errors?.idPunto?.message}>
+          <Input
+            type="number"
+            min="100000"
+            id="idPunto"
+            disabled={isCreating}
+            {...register("idPunto", {
+              required: "Este campo es obligatorio",
+              min: {
+                value: 100000,
+                message: "El número debe ser mayor o igual que 100000",
+              },
+            })}
           />
-        </div>
-      )}
-      <FormRow label="Foto" error={errors?.foto?.message}>
-        <FileInput
-          accept="image/*"
-          id="foto"
-          name="foto"
-          {...register("foto")}
-          onChange={(e) => {
-            handleFileChange(e); // Your file preview logic
-            register("foto").onChange(e); // Ensure `react-hook-form` handles the input too
-          }}
-        />
-      </FormRow>
-      {imagePreview && (
-        <div>
-          <p>Vista previa:</p>
-          <img
-            src={imagePreview}
-            alt="Selected preview"
-            style={{ maxWidth: "200px", maxHeight: "200px" }}
+        </FormRow>
+
+        <FormRow label="IP" error={errors?.ip?.message}>
+          <Input
+            type="text"
+            maxLength="15"
+            id="ip"
+            disabled={isCreating}
+            {...register("ip", {
+              required: "Este campo es obligatorio",
+              pattern: {
+                value:
+                  /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/,
+                message: "Por favor ingrese una dirección IPV4 válida",
+              },
+            })}
           />
-        </div>
-      )}
+        </FormRow>
 
-      <FormRow label="Fuente Externa" error={errors?.fuenteExterna?.message}>
-        <Select
-          id="fuenteExterna"
-          //   defaultValue={
-          //     isEditSession && meterToEdit[0]?.fuente_externa === 1 ? "Si" : "No"
-          //   }
-          disabled={isCreating}
-          {...register("fuenteExterna", {
-            required: "Este campo es obligatorio",
-          })}
-        >
-          <option value="">Select an option</option>
-          <option value="Si">Si</option>
-          <option value="No">No</option>
-        </Select>
-      </FormRow>
+        <FormRow label="Serie" error={errors?.serie?.message}>
+          <Input
+            type="text"
+            id="serie"
+            disabled={isCreating}
+            {...register("serie", {
+              required: "Este campo es obligatorio",
+            })}
+          />
+        </FormRow>
 
-      <FormRow label="Integrado" error={errors?.integrado?.message}>
-        <Select
-          id="integrado"
-          disabled={isCreating}
-          //   defaultValue={
-          //     isEditSession && meterToEdit[0]?.integrado === 1 ? "Si" : "No"
-          //   }
-          {...register("integrado", {
-            required: "Este campo es obligatorio",
-          })}
-        >
-          <option value="">Select an option</option>
-          <option value="Si">Si</option>
-          <option value="No">No</option>
-        </Select>
-      </FormRow>
+        <FormRow label="Modelo" error={errors?.modelo?.message}>
+          <Select
+            id="modelo"
+            disabled={isCreating}
+            {...register("modelo", {
+              required: "Este campo es obligatorio",
+            })}
+          >
+            <Option value="">Seleccione un modelo</Option>
+            {meterModels?.map((meterModel) => (
+              <Option key={meterModel.id} value={meterModel.id}>
+                {meterModel.modelo}
+              </Option>
+            ))}
+          </Select>
+        </FormRow>
 
-      <FormRow label="Activo" error={errors?.activo?.message}>
-        <Select
-          id="activo"
-          disabled={isCreating}
-          //   defaultValue={
-          //     isEditSession && meterToEdit[0]?.activo === 1 ? "Si" : "No"
-          //   }
-          {...register("activo", {
-            required: "Este campo es obligatorio",
-          })}
-        >
-          <option value="">Select an option</option>
-          <option value="Si">Si</option>
-          <option value="No">No</option>
-        </Select>
-      </FormRow>
+        <FormRow label="Puerto" error={errors?.puerto?.message}>
+          <Input
+            type="number"
+            min="1"
+            max="65335"
+            id="puerto"
+            disabled={isCreating}
+            {...register("puerto", {
+              required: "Este campo es obligatorio",
+            })}
+          />
+        </FormRow>
+        <FormRow label="Tipo" error={errors?.tipo?.message}>
+          <Select
+            id="tipo"
+            disabled={isCreating}
+            {...register("tipo", {
+              required: "Este campo es obligatorio",
+            })}
+          >
+            <option value="">Select an option</option>
+            <option value="Principal">Principal</option>
+            <option value="Respaldo">Respaldo</option>
+          </Select>
+        </FormRow>
 
-      <FormRow>
-        {/* type is an HTML attribute! */}
-        <Button variation="secondary" type="reset">
-          Cancel
-        </Button>
-        <Button disabled={isCreating}>Create meter</Button>
-      </FormRow>
-    </Form>
+        <FormRow label="Descripción" error={errors?.description?.message}>
+          <Textarea
+            id="description"
+            disabled={isCreating}
+            {...register("description", {
+              required: "Este campo es obligatorio",
+            })}
+          ></Textarea>
+        </FormRow>
+
+        {isEditSession && meterToEdit[0]?.foto && !imagePreview && (
+          <div>
+            <p>Imagen actual:</p>
+            <img
+              src={`data:image/jpeg;base64,${meterToEdit[0].foto}`} // Assuming this is a URL or base64 string
+              alt="Current meter image"
+              style={{ maxWidth: "200px", maxHeight: "200px" }}
+            />
+          </div>
+        )}
+        <FormRow label="Foto" error={errors?.foto?.message}>
+          <FileInput
+            accept="image/*"
+            id="foto"
+            name="foto"
+            {...register("foto")}
+            onChange={(e) => {
+              handleFileChange(e);
+              register("foto").onChange(e);
+            }}
+          />
+        </FormRow>
+        {imagePreview && (
+          <div>
+            <p>Vista previa:</p>
+            <img
+              src={imagePreview}
+              alt="Selected preview"
+              style={{ maxWidth: "200px", maxHeight: "200px" }}
+            />
+          </div>
+        )}
+
+        <FormRow label="Fuente Externa" error={errors?.fuenteExterna?.message}>
+          <Select
+            id="fuenteExterna"
+            disabled={isCreating}
+            {...register("fuenteExterna", {
+              required: "Este campo es obligatorio",
+            })}
+          >
+            <option value="">Select an option</option>
+            <option value="Si">Si</option>
+            <option value="No">No</option>
+          </Select>
+        </FormRow>
+
+        <FormRow label="Integrado" error={errors?.integrado?.message}>
+          <Select
+            id="integrado"
+            disabled={isCreating}
+            {...register("integrado", {
+              required: "Este campo es obligatorio",
+            })}
+          >
+            <option value="">Select an option</option>
+            <option value="Si">Si</option>
+            <option value="No">No</option>
+          </Select>
+        </FormRow>
+
+        <FormRow label="Activo" error={errors?.activo?.message}>
+          <Select
+            id="activo"
+            disabled={isCreating}
+            {...register("activo", {
+              required: "Este campo es obligatorio",
+            })}
+          >
+            <option value="">Select an option</option>
+            <option value="Si">Si</option>
+            <option value="No">No</option>
+          </Select>
+        </FormRow>
+
+        <FormRow>
+          <Button
+            variation="secondary"
+            type="button"
+            onClick={() => handleShowForm?.() || onCloseModal?.()}
+          >
+            Cancel
+          </Button>
+          <Button disabled={isCreating} type="submit">
+            {isEditSession ? "Editar medidor" : "Crear medidor"}
+          </Button>
+        </FormRow>
+      </Form>
+    </>
   );
 }
 

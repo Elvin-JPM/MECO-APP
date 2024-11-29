@@ -1,16 +1,15 @@
 import styled from "styled-components";
 import { useState } from "react";
 import Button from "../../ui/Button";
-import CreateMeterForm from "./CreateMeterForm";
 import { MdEdit } from "react-icons/md";
 import Modal from "../../ui/Modal";
 import { FaPlus } from "react-icons/fa6";
 import ButtonArray from "../../ui/ButtonArray";
-import AddMeter from "./AddMeter";
+//import AddMeter from "./AddMeter";
 
 const TableRow = styled.div`
   display: grid;
-  grid-template-columns: 0.3fr 1fr 1fr 1fr 1fr 1fr 0.35fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 0.3fr;
   column-gap: 2.4rem;
   align-items: center;
   padding: 1.4rem 2.4rem;
@@ -20,14 +19,14 @@ const TableRow = styled.div`
   }
 `;
 
-const Img = styled.img`
-  display: block;
-  width: 3rem;
-  aspect-ratio: 3/2;
-  object-fit: cover;
-  object-position: center;
-  transform: scale(1.5) translateX(-7px);
-`;
+// const Img = styled.img`
+//   display: block;
+//   width: 3rem;
+//   aspect-ratio: 3/2;
+//   object-fit: cover;
+//   object-position: center;
+//   transform: scale(1.5) translateX(-7px);
+// `;
 
 // const Meter = styled.div`
 //   font-size: 1.6rem;
@@ -41,47 +40,31 @@ const Column = styled.div`
   --color: var(--color-green-700);
 `;
 
-function MeterRow({ meter }) {
+function MeasureRow({ measure }) {
   const [showForm, setShowForm] = useState(false);
-  const {
-    id,
-    id_punto,
-    nombre_planta,
-    ip,
-    nombre_punto,
-    subestacion,
-    serie,
-    foto,
-  } = meter;
+  const { fecha, EAG_MP, EAC_MP, EAG_MR, EAC_MR } = measure;
 
   function handleShowForm() {
     setShowForm((show) => !show);
   }
+  //   console.log(eag_mp);
 
   return (
     <>
       <TableRow role="row">
-        <Img
-          src={
-            foto
-              ? `data:image/jpeg;base64,${foto}`
-              : "https://memt.com.br/wp-content/uploads/2024/09/ION8650-4.jpg"
-          }
-        ></Img>
-        <Column>{nombre_planta}</Column>
-        <Column>{ip}</Column>
-        <Column>{id_punto}</Column>
-        <Column>{subestacion}</Column>
-        <Column>{serie}</Column>
-        <ButtonArray>
+        <Column>{fecha}</Column>
+        <Column>{EAG_MP}</Column>
+        <Column>{EAC_MP}</Column>
+        <Column>{EAG_MR}</Column>
+        <Column>{EAC_MR}</Column>
+        {/* <ButtonArray>
           <Button onClick={handleShowForm} variation="secondary" size="small">
             <MdEdit />
           </Button>
-          <AddMeter />
-        </ButtonArray>
+        </ButtonArray> */}
       </TableRow>
 
-      {showForm && (
+      {/* {showForm && (
         <Modal onClose={handleShowForm}>
           <CreateMeterForm
             handleShowForm={handleShowForm}
@@ -89,9 +72,9 @@ function MeterRow({ meter }) {
             nombrePlanta={nombre_planta}
           />
         </Modal>
-      )}
+      )} */}
     </>
   );
 }
 
-export default MeterRow;
+export default MeasureRow;

@@ -1,18 +1,21 @@
 const express = require("express");
 const { getConnection } = require("../db");
 const router = express.Router();
+const oracledb = require("oracledb");
 
 router.get("/meters", async (req, res) => {
   let connection;
   try {
     connection = await getConnection();
     const result = await connection.execute(
-      "SELECT ID, ID_PUNTO, NOMBRE_PLANTA, IP, NOMBRE_PUNTO, SUBESTACION, SERIE \
+      "SELECT ID, ID_PUNTO, NOMBRE_PLANTA, IP, NOMBRE_PUNTO, SUBESTACION, SERIE, FOTO \
       FROM MCAM_METERS_OWNERS \
       ORDER BY NOMBRE_PLANTA, IP \
-      FETCH FIRST 20 ROWS ONLY"
+      FETCH FIRST 20 ROWS ONLY",
+      [],
+      { fetchInfo: { FOTO: { type: oracledb.BUFFER } } }
     );
-    const substations = result.rows.map(
+    const meters = result.rows.map(
       ([
         id,
         id_punto,
@@ -21,6 +24,7 @@ router.get("/meters", async (req, res) => {
         nombre_punto,
         subestacion,
         serie,
+        foto,
       ]) => ({
         id,
         id_punto,
@@ -29,18 +33,19 @@ router.get("/meters", async (req, res) => {
         nombre_punto,
         subestacion,
         serie,
+        foto: foto && Buffer.isBuffer(foto) ? foto.toString("base64") : null,
       })
     );
-    res.json(substations);
+    res.json(meters);
   } catch (error) {
-    console.error("Database query error: ", error);
+    console.error("Database query error:", error.message || "Unknown error");
     res.status(500).json({ error: "Failed to fetch meters" });
   } finally {
     if (connection) {
       try {
         await connection.close();
       } catch (error) {
-        console.error("Error closing connection: ", err);
+        console.error("Error closing connection: ", err.message || error);
       }
     }
   }

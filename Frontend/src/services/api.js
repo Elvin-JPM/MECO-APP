@@ -14,12 +14,16 @@ export async function postData(endpoint, requestBody, headers) {
   }
 }
 
-export async function getData(endpoint, requestHeaders) {
+export async function getData(endpoint, requestHeaders, queryParams = {}) {
   try {
-    const response = await axios.get(BASE_URL + endpoint, requestHeaders);
+    const response = await axios.get(BASE_URL + endpoint, {
+      headers: requestHeaders,
+      params: queryParams, // Add the query parameters here
+    });
     return response.data;
   } catch (error) {
     console.error("Error getting data:", error);
+    throw error;
   }
 }
 
@@ -36,7 +40,7 @@ export async function deleteData(endpoint, requestHeaders) {
   }
 }
 
-export async function putData(endpoint, requestBody, requestHeaders) {
+export async function putData(endpoint, requestBody, requestHeaders={}) {
   try {
     const response = await axios.put(BASE_URL + endpoint, requestBody, {
       headers: requestHeaders,

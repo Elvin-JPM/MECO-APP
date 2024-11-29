@@ -1,13 +1,15 @@
 const express = require("express");
 const { getConnection } = require("../db");
-const router = express.Router();
 const multer = require("multer");
+
+const router = express.Router();
 
 // Multer setup
 const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } });
 
-router.post("/newMeter", upload.single("foto"), async (req, res) => {
+router.put("/updateMeter/:id", upload.single("foto"), async (req, res) => {
+  const { id } = req.params; // Extract the meter ID from the route parameter
   const {
     plantssub,
     idPunto,
@@ -32,15 +34,26 @@ router.post("/newMeter", upload.single("foto"), async (req, res) => {
   try {
     connection = await getConnection();
     const query = `
-      INSERT INTO MCAM_MEDIDORES
-        (SERIE, ID_MODELO, ID_PUNTO_MEDICION, FUENTE_EXTERNA, FOTO, IP, INTEGRADO, ACTIVO, NUMERO_PUERTO, TIPO, DESCRIPTION)
-      VALUES
-        (:serie, :modelo, :idPunto, :fuenteExterna, :foto, :ip, :integrado, :activo, :puerto, :tipo, :description)
+      UPDATE MCAM_MEDIDORES
+      SET 
+        SERIE = :serie,
+        ID_MODELO = :modelo,
+        ID_PUNTO_MEDICION = :idPunto,
+        FUENTE_EXTERNA = :fuenteExterna,
+        FOTO = :foto,
+        IP = :ip,
+        INTEGRADO = :integrado,
+        ACTIVO = :activo,
+        NUMERO_PUERTO = :puerto,
+        TIPO = :tipo,
+        DESCRIPTION = :description
+      WHERE ID = :id
     `;
 
     await connection.execute(
       query,
       {
+        id,
         serie,
         modelo,
         idPunto,
@@ -56,10 +69,10 @@ router.post("/newMeter", upload.single("foto"), async (req, res) => {
       { autoCommit: true }
     );
 
-    res.status(200).json({ message: "Meter added successfully" });
+    res.status(200).json({ message: "Meter updated successfully" });
   } catch (error) {
-    console.error("Error inserting data:", error);
-    res.status(500).json({ error: "Failed to insert data" });
+    console.error("Error updating data:", error);
+    res.status(500).json({ error: "Failed to update data" });
   }
 });
 

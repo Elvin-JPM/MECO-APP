@@ -12,6 +12,7 @@ Frontend/.env.production
 Frontend/.vite/
 
 # General
+/node_modules/
 .DS_Store
 Thumbs.db
 *.swp
