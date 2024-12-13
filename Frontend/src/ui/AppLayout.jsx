@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import styled from "styled-components";
+import Heading from "./Heading";
 
 const Main = styled.main`
   background-color: var(--color-grey-50);
@@ -19,7 +20,9 @@ const StyledAppLayout = styled.div`
 function AppLayout() {
   return (
     <StyledAppLayout>
-      <Header />
+      <Header>
+        <Heading>VALIDACIONES Y SUSTITUCIONES</Heading>
+      </Header>
       <Sidebar />
       <Main>
         <Outlet />

@@ -1,5 +1,5 @@
+import React, { useState } from "react";
 import styled from "styled-components";
-import { getData } from "../../services/api";
 import { useQuery } from "@tanstack/react-query";
 import Spinner from "../../ui/Spinner";
 import MeterRow from "./MeterRow";
@@ -7,8 +7,7 @@ import Button from "../../ui/Button";
 import { FaDownload } from "react-icons/fa6";
 import * as XLSX from "xlsx";
 import { getMeters } from "../../services/getRequests";
-import AddMeter from "./AddMeter";
-import ButtonArray from "../../ui/ButtonArray";
+import PaginationWrapper from "../../ui/PaginationWrapper";
 
 const Table = styled.div`
   border: 1px solid var(--color-grey-200);
@@ -34,23 +33,51 @@ const TableHeader = styled.header`
 `;
 
 function MetersTable() {
-  const {
-    isLoading,
-    data: meters,
-    // error,
-  } = useQuery({
-    queryKey: ["meters"],
-    queryFn: getMeters,
+  const [pageNumber, setPageNumber] = useState(1);
+  const [inputValue, setInputValue] = useState(1); // Separate state for the input value
+
+  // Use pageNumber in query function
+  const { isLoading, data: meters } = useQuery({
+    queryKey: ["meters", pageNumber],
+    queryFn: () => getMeters(pageNumber),
+    keepPreviousData: true,
   });
 
   if (isLoading) return <Spinner />;
-  console.log(meters);
+
+  const metersArray = meters?.data || [];
+  const totalPages = meters?.totalPages || 1;
+
+  // Function to change the page
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPageNumber(newPage);
+      setInputValue(newPage); // Sync the input value with the selected page
+    }
+  };
+
+  // Handle changes in the input field
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    if (/^\d*$/.test(value)) {
+      setInputValue(value); // Allow only numbers
+    }
+  };
+
+  // Handle input submission
+  const handleInputSubmit = () => {
+    const newPage = parseInt(inputValue, 10);
+    if (!isNaN(newPage)) {
+      handlePageChange(newPage);
+    } else {
+      setInputValue(pageNumber); // Reset to the current page if input is invalid
+    }
+  };
 
   // Function to export the meters data to Excel
   const exportToExcel = () => {
-    // Create a worksheet from the data
     const worksheet = XLSX.utils.json_to_sheet(
-      meters.map((meter) => ({
+      metersArray.map((meter) => ({
         Plant: meter.nombre_planta,
         IP: meter.ip,
         Code: meter.id_punto,
@@ -59,16 +86,22 @@ function MetersTable() {
       }))
     );
 
-    // Create a workbook and append the worksheet
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Meters");
-
-    // Generate Excel file and trigger download
     XLSX.writeFile(workbook, "Meters.xlsx");
   };
 
   return (
     <Table role="table">
+      <PaginationWrapper
+        handleInputChange={handleInputChange}
+        handlePageChange={handlePageChange}
+        handleInputSubmit={handleInputSubmit}
+        pageNumber={pageNumber}
+        totalPages={totalPages}
+        inputValue={inputValue}
+      ></PaginationWrapper>
+
       <TableHeader role="row">
         <div></div>
         <div>PLANTA/SUBESTACION</div>
@@ -76,13 +109,11 @@ function MetersTable() {
         <div>CODIGO DEL PUNTO</div>
         <div>SUBESTACION</div>
         <div>SERIE</div>
-        <ButtonArray>
-          <Button onClick={exportToExcel}>
-            <FaDownload />
-          </Button>
-        </ButtonArray>
+        <Button onClick={exportToExcel}>
+          <FaDownload />
+        </Button>
       </TableHeader>
-      {meters.map((meter) => (
+      {metersArray.map((meter) => (
         <MeterRow meter={meter} key={meter.id}></MeterRow>
       ))}
     </Table>

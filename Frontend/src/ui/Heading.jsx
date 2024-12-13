@@ -5,7 +5,8 @@ import styled, { css } from "styled-components";
 //   ${10 > 5 && "background-color: yellow;"}
 // `;
 
-const Heading = styled.h1`
+const StyledHeading = styled.h1`
+  color: var(--color-brand-900);
   ${(props) =>
     props.as === "h1" &&
     css`
@@ -27,5 +28,15 @@ const Heading = styled.h1`
       font-weight: 500;
     `}
 `;
+
+
+function Heading({children}) {
+  return (
+    <div>
+      <StyledHeading>{ children}</StyledHeading>
+    </div>
+  )
+}
+
 
 export default Heading;

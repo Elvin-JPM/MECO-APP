@@ -17,3 +17,6 @@ Frontend/.vite/
 Thumbs.db
 *.swp
 *.swo
+
+# python files
+/Data Loading/

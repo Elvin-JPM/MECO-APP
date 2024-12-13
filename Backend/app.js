@@ -9,9 +9,11 @@ const getPlantsAndSubstationsRoute = require("./routes/getPlantAndSubstationsRou
 const getMetersModelsRoute = require("./routes/getMetersModelsRoute");
 const insertNewMeterRoute = require("./routes/insertNewMeterRoute");
 const getMeterRoute = require("./routes/getMeterRoute");
-const updateMeterRoute = require("./routes/updateMeterRoute");
 const getIntegratedMetersRoute = require("./routes/getIntegratedMetersRoute");
 const getMeterMesasuresRoute = require("./routes/getMeterMeasuresRoute");
+
+const updateMeterRoute = require("./routes/updateMeterRoute");
+const updateMeasuresRoute = require("./routes/updateMeasuresRoute");
 
 require("dotenv").config();
 
@@ -53,6 +55,7 @@ app.use("/api", getMeterRoute);
 app.use("/api", updateMeterRoute);
 app.use("/api", getIntegratedMetersRoute);
 app.use("/api", getMeterMesasuresRoute);
+app.use("/api", updateMeasuresRoute);
 
 // Start the server
 (async () => {

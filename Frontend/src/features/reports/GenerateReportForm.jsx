@@ -1,24 +1,64 @@
-import React from "react";
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 import Input from "../../ui/Input"; // Your custom Input component
 import Form from "../../ui/Form";
 import FormRow from "../../ui/FormRow";
-import Button from "@mui/material/Button";
+import Button from "../../ui/Button";
 import { useQuery } from "@tanstack/react-query";
-import { getIntegratedMeters } from "../../services/getRequests";
+import {
+  getIntegratedMeters,
+  getPlantsAndSubstations,
+} from "../../services/getRequests";
 import Select from "../../ui/Select";
 
 function GenerateReportForm({ handleShowReportTable, handleReportData }) {
-  const { register, handleSubmit, reset, getValues, formState } = useForm();
+  const { register, handleSubmit, formState, setValue, watch } = useForm();
   const { errors } = formState;
 
+  const selectedPlantaSub = watch("plantaSubestacion");
+
   const {
-    isLoading: isLoadingIntegratedMeters,
+    isLoadingPlantsSubs,
+    data: plantsandsubs,
+    // error,
+  } = useQuery({
+    queryKey: ["plantsandsubs"],
+    queryFn: getPlantsAndSubstations,
+  });
+
+  // console.log(plantsandsubs);
+
+  // Helper to format dates for datetime-local inputs
+  const formatDateForInput = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  useEffect(() => {
+    // Default values for controlled inputs
+    setValue("fechaInicial", formatDateForInput(yesterday));
+    setValue("fechaFinal", formatDateForInput(today));
+  }, []);
+
+  // Calculate default values
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Set time to 00:00
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1); // Subtract 1 day
+
+  const {
+    //isLoading: isLoadingIntegratedMeters,
     data: integratedMeters,
     // error,
   } = useQuery({
-    queryKey: ["integratedMeters"],
-    queryFn: getIntegratedMeters,
+    queryKey: ["integratedMeters", selectedPlantaSub],
+    queryFn: () => getIntegratedMeters(selectedPlantaSub),
+    enabled: !!selectedPlantaSub,
   });
 
   async function onSubmit(data) {
@@ -28,6 +68,8 @@ function GenerateReportForm({ handleShowReportTable, handleReportData }) {
       (meter) => Number(meter.id_punto_medicion) === Number(data?.puntoMedicion)
     );
 
+    console.log("ionDataIds: ", ionDataIds);
+
     const medidorPrincipal = ionDataIds.find(
       (medidor) => medidor.tipo === "PRINCIPAL"
     );
@@ -36,8 +78,8 @@ function GenerateReportForm({ handleShowReportTable, handleReportData }) {
     );
 
     const queryParams = {
-      medidorPrincipal: medidorPrincipal?.id_ion_data,
-      medidorRespaldo: medidorRespaldo?.id_ion_data,
+      medidorPrincipal: medidorPrincipal?.id,
+      medidorRespaldo: medidorRespaldo?.id,
       fechaInicial: data?.fechaInicial,
       fechaFinal: data?.fechaFinal,
     };
@@ -55,11 +97,35 @@ function GenerateReportForm({ handleShowReportTable, handleReportData }) {
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
       {/* Punto de medición field */}
+
+      <FormRow
+        label="Planta/Subestación"
+        error={errors?.integratedMeters?.message}
+      >
+        <Select
+          id="plantaSubestacion"
+          {...register("plantaSubestacion", {
+            required: "Este campo es obligatorio",
+          })}
+        >
+          <option value="">Seleccione una opción</option>
+          {plantsandsubs?.map((plansub) => (
+            <option key={plansub.id} value={plansub.id}>
+              {plansub.nombre}
+            </option>
+          ))}
+        </Select>
+      </FormRow>
       <FormRow
         label="Punto de medición"
         error={errors?.integratedMeters?.message}
       >
-        <Select id="puntoMedicion" {...register("puntoMedicion")}>
+        <Select
+          id="puntoMedicion"
+          {...register("puntoMedicion", {
+            required: "Este campo es obligatorio",
+          })}
+        >
           <option value="">Seleccione una opción</option>
           {uniqueMeters?.map((meter) => (
             <option key={meter.id_ion_data} value={meter.id_punto_medicion}>
@@ -74,6 +140,7 @@ function GenerateReportForm({ handleShowReportTable, handleReportData }) {
         <Input
           type="datetime-local"
           id="fechaInicial"
+          defaultValue={formatDateForInput(yesterday)}
           {...register("fechaInicial", {
             required: "Este campo es obligatorio",
           })}
@@ -85,14 +152,15 @@ function GenerateReportForm({ handleShowReportTable, handleReportData }) {
         <Input
           type="datetime-local"
           id="fechaFinal"
+          defaultValue={formatDateForInput(today)}
           {...register("fechaFinal", {
             required: "Este campo es obligatorio",
           })}
         />
       </FormRow>
 
-      <Button type="submit" variant="contained">
-        Generate Report
+      <Button type="submit" size="small">
+        Generar Reporte
       </Button>
     </Form>
   );

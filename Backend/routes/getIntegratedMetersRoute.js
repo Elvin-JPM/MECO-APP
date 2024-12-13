@@ -3,18 +3,37 @@ const { getConnection } = require("../db");
 const router = express.Router();
 const oracledb = require("oracledb");
 
-router.get("/integratedMeters", async (req, res) => {
+router.get("/integratedMeters/:plantSubId", async (req, res) => {
   let connection;
+  const puntoMedicion = req.params.plantSubId.split("-"); // parametro de la forma '34-PLANTA'
+  const idPuntoMedicion = puntoMedicion[0];
+  const tipoPuntoMedicion = puntoMedicion[1]; // Puede ser PLANTA o SUBESTACION
+  console.log("id punto: ", puntoMedicion);
   try {
     connection = await getConnection();
-    const result = await connection.execute(
-      `SELECT DESCRIPTION, ID_ION_DATA, ID_PUNTO_MEDICION, TIPO 
-         FROM MCAM_MEDIDORES WHERE INTEGRADO = 1 ORDER BY DESCRIPTION`,
-      [],
-      { fetchInfo: { FOTO: { type: oracledb.BUFFER } } }
-    );
+    const result =
+      tipoPuntoMedicion === "SUBESTACION"
+        ? await connection.execute(
+            `SELECT A.ID, A.DESCRIPTION, A.ID_ION_DATA, A.ID_PUNTO_MEDICION, A.TIPO FROM MCAM_MEDIDORES A
+        INNER JOIN MCAM_PUNTOS_MEDICION B
+        ON A.ID_PUNTO_MEDICION = B.ID
+        WHERE ID_SUBESTACION = ${idPuntoMedicion}
+        AND A.INTEGRADO = 1`,
+            [],
+            { fetchInfo: { FOTO: { type: oracledb.BUFFER } } }
+          )
+        : await connection.execute(
+            `SELECT A.ID, A.DESCRIPTION, A.ID_ION_DATA, A.ID_PUNTO_MEDICION, A.TIPO FROM MCAM_MEDIDORES A
+        INNER JOIN MCAM_PUNTOS_MEDICION B
+        ON A.ID_PUNTO_MEDICION = B.ID
+        WHERE ID_PLANTA = ${idPuntoMedicion}`,
+            [],
+            { fetchInfo: { FOTO: { type: oracledb.BUFFER } } }
+          );
+
     const integratedMeters = result.rows.map(
-      ([DESCRIPTION, ID_ION_DATA, ID_PUNTO_MEDICION, TIPO]) => ({
+      ([ID, DESCRIPTION, ID_ION_DATA, ID_PUNTO_MEDICION, TIPO]) => ({
+        id: ID,
         description: DESCRIPTION,
         id_ion_data: ID_ION_DATA,
         id_punto_medicion: ID_PUNTO_MEDICION,

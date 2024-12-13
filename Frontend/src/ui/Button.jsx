@@ -54,16 +54,17 @@ const Button = styled.button.attrs((props) => ({
   border: none;
   border-radius: var(--border-radius-sm);
   box-shadow: var(--shadow-sm);
+  transition: opacity 0.2s ease, transform 0.2s ease;
   position: relative; // Required for positioning the tooltip
   ${(props) => sizes[props.size]}
   ${(props) => variations[props.variation]}
 
   /* Tooltip styles */
-  &::after {
+  /* &::after {
     content: attr(data-tooltip); 
     position: absolute;
     bottom: calc(100% + 8px); /* Position the tooltip above the button */
-    left: 50%;
+    /* left: 50%;
     transform: translateX(-50%);
     background-color: var(--color-grey-800);
     color: var(--color-white);
@@ -75,10 +76,10 @@ const Button = styled.button.attrs((props) => ({
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease, transform 0.2s ease;
-  }
+  } */ */
 
-  &:hover::after {
-    opacity: 1;
+  &:hover {
+    opacity: 0.5;
     transform: translateX(-50%) translateY(-4px); /* Slight upward animation */
   }
 `;

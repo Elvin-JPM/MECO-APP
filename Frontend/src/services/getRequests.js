@@ -1,7 +1,7 @@
 import { getData } from "./api";
 
-export async function getMeters() {
-  const response = await getData("/meters");
+export async function getMeters(page) {
+  const response = await getData(`/meters?page=${page}`);
   return response;
 }
 
@@ -21,14 +21,12 @@ export async function getMeterModels() {
   return response;
 }
 
-export async function getIntegratedMeters() {
-  const response = await getData("/integratedMeters");
+export async function getIntegratedMeters(puntoMedicionId) {
+  const response = await getData(`/integratedMeters/${puntoMedicionId}`);
   return response;
 }
 
-export async function getMeasures(params) {
-  console.log("Params at get measures: ", params);
-  const response = await getData("/measures", {}, params);
-  console.log(response);
+export async function getMeasures(params, page) {
+  const response = await getData(`/measures?page=${page}`, {}, params);
   return response;
 }

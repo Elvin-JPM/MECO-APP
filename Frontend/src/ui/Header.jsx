@@ -18,8 +18,8 @@ const StyledHeader = styled.header`
 //   z-index: 1000; /* Ensure it appears above other elements */
 // `;
 
-function Header() {
-  return <StyledHeader>Header</StyledHeader>;
+function Header({children}) {
+  return <StyledHeader>{ children}</StyledHeader>;
 }
 
 export default Header;

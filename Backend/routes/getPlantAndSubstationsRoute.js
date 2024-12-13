@@ -7,14 +7,29 @@ router.get("/plantssubs", async (req, res) => {
   try {
     connection = await getConnection();
     const result = await connection.execute(
-      "SELECT NOMBRE FROM ( \
-            SELECT NOMBRE_PLANTA AS NOMBRE FROM ODS_DEV.BTR_PLANTAS \
-            UNION \
-            SELECT SUBESTACION AS NOMBRE FROM ODS_DEV.BTR_SUBESTACIONES\
-            ) \
-       ORDER BY NOMBRE"
+      `
+        SELECT 
+    MIN(ID) AS ID, -- Pick one ID (e.g., the smallest) for each unique name
+    NOMBRE
+FROM (
+    SELECT 
+        ID_PLANTA || '-PLANTA' AS ID, 
+        NOMBRE_PLANTA AS NOMBRE 
+    FROM ODS_DEV.BTR_PLANTAS 
+    UNION 
+    SELECT 
+        ID_SUBESTACION || '-SUBESTACION' AS ID, 
+        SUBESTACION AS NOMBRE 
+    FROM ODS_DEV.BTR_SUBESTACIONES
+)
+GROUP BY NOMBRE
+ORDER BY NOMBRE
+      `
     );
-    const plantsAndSubstations = result.rows.map(([nombre]) => nombre);
+    const plantsAndSubstations = result.rows.map(([id, nombre]) => {
+      return { id, nombre }; // Returning an object for each row
+    });
+
     res.json(plantsAndSubstations);
   } catch (error) {
     console.error("Database query error: ", error);

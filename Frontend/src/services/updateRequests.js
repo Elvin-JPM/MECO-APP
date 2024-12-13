@@ -14,3 +14,18 @@ export async function updateMeter(meterToUpdate) {
   );
   return response;
 }
+
+export async function updateMeasures(measuresToUpdate) {
+  console.log("Rows to edit received at updateRequests.js: ", measuresToUpdate);
+  // console.log("Meters id: ", meterToUpdate.get("id"));
+  const response = await putData(
+    `/updateMeasures`,
+    measuresToUpdate
+
+    // {
+    // Authorization: `${token}`,
+    //"Content-Type": "multipart/form-data",
+    //}
+  );
+  return response;
+}

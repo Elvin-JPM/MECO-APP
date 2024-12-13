@@ -175,7 +175,7 @@ function CreateMeterForm({
           >
             <option value="">Seleccione una opción</option>
             {plantsandsubs?.map((plansub) => (
-              <option key={plantsandsubs.indexOf(plansub)} value={plansub}>
+              <option key={plansub.id} value={plansub.id}>
                 {plansub}
               </option>
             ))}

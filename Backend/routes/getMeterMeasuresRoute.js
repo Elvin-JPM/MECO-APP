@@ -1,138 +1,133 @@
 const express = require("express");
-const { getSqlServerConnection } = require("../sqlServerConnection"); // Import your SQL Server connection
+const { getConnection } = require("../db");
 const router = express.Router();
-const sql = require("mssql");
+const oracledb = require("oracledb");
+
+///////////////////////////////////////////////////
 
 router.get("/measures", async (req, res) => {
-  let pool;
+  let connection;
   try {
-    console.log(req.query);
-    const { medidorPrincipal, medidorRespaldo, fechaInicial, fechaFinal } =
-      req.query;
+    const {
+      medidorPrincipal,
+      medidorRespaldo,
+      fechaInicial,
+      fechaFinal,
+      page = 1,
+      limit = 30,
+    } = req.query;
 
-    if (!medidorPrincipal || !medidorRespaldo || !fechaInicial || !fechaFinal) {
-      return res.status(400).json({ error: "Missing required parameters" });
+    const fechaInicialFormatted = fechaInicial.replace("T", " ").slice(0, 16);
+    const fechaFinalFormatted = fechaFinal.replace("T", " ").slice(0, 16);
+
+
+    // Input validation
+    if (
+      !medidorPrincipal ||
+      !medidorRespaldo ||
+      !fechaInicial ||
+      !fechaFinal ||
+      isNaN(page) ||
+      isNaN(limit)
+    ) {
+      return res.status(422).json({ error: "Invalid or missing parameters" });
     }
-    // Get the SQL Server connection pool
-    pool = await getSqlServerConnection();
 
-    // Execute the query
-    const result = await pool
-      .request()
-      .input("medidorPrincipal", sql.Int, medidorPrincipal)
-      .input("medidorRespaldo", sql.Int, medidorRespaldo)
-      .input(
-        "fechaInicial",
-        sql.DateTime,
-        new Date(`${fechaInicial}:00.000Z`).toISOString()
-      )
-      .input(
-        "fechaFinal",
-        sql.DateTime,
-        new Date(`${fechaFinal}:00.000Z`).toISOString()
-      )
-      .query(
-        `SELECT FECHA, EAG_MP, EAC_MP, EAG_MR, EAC_MR 
-FROM (
-    SELECT 
-        FORMAT(MEDIDOR_PRINCIPAL.CONVERTED_DATE, 'dd-MM-yyyy HH:mm') AS FECHA,
-        DATEPART(HOUR, MEDIDOR_PRINCIPAL.NON_FORMAT_DATE) AS HORA,
-        MEDIDOR_PRINCIPAL.EAG AS EAG_MP,
-        MEDIDOR_PRINCIPAL.EAC AS EAC_MP,
-        FORMAT(MEDIDOR_RESPALDO.CONVERTED_DATE, 'dd-MM-yyyy HH:mm') AS RESPALDO_FECHA,
-        DATEPART(HOUR, MEDIDOR_RESPALDO.NON_FORMAT_DATE) AS RESPALDO_HORA,
-        MEDIDOR_RESPALDO.EAG AS EAG_MR,
-        MEDIDOR_RESPALDO.EAC AS EAC_MR
-    FROM (
-        SELECT 
-            DATEADD(HOUR, -6, EAG_MP.TimestampUTC) AS CONVERTED_DATE,
-            DATEADD(HOUR, -6, EAG_MP.TimestampUTC) AS NON_FORMAT_DATE,
-            EAG_MP.DisplayName AS MEDIDOR, 
-            EAG_MP.[Energia Activa Generada] AS EAG, 
-            EAC_MP.[Energia Activa Consumida] AS EAC 
+    const offset = (page - 1) * parseInt(limit);
+    connection = await getConnection();
+
+    // Total count query
+    const countQuery = `
+      SELECT COUNT(*) AS TOTAL_COUNT
+      FROM (
+        SELECT TO_CHAR(FECHA, 'DD-MM-YYYY HH24:MI') AS FECHA
+        FROM MCAM_MEDICIONES
+        WHERE ID_MEDIDOR = :medidorPrincipal
+          AND FECHA BETWEEN TO_DATE(:fechaInicial, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinal, 'YYYY-MM-DD HH24:MI')
+      ) MP
+      INNER JOIN (
+        SELECT TO_CHAR(FECHA, 'DD-MM-YYYY HH24:MI') AS FECHA
+        FROM MCAM_MEDICIONES
+        WHERE ID_MEDIDOR = :medidorRespaldo
+          AND FECHA BETWEEN TO_DATE(:fechaInicial, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinal, 'YYYY-MM-DD HH24:MI')
+      ) MR 
+      ON MP.FECHA = MR.FECHA
+    `;
+    const countResult = await connection.execute(countQuery, {
+      medidorPrincipal,
+      medidorRespaldo,
+      fechaInicial: fechaInicialFormatted,
+      fechaFinal: fechaFinalFormatted,
+    });
+    const totalCount = countResult.rows[0][0];
+
+    // Paginated query
+    const paginatedQuery = `
+      SELECT FECHA, KWH_DEL_MP, KWH_REC_MP, KVARH_DEL_MP, KVARH_REC_MP, KWH_DEL_MR, KWH_REC_MR, KVARH_DEL_MR, KVARH_REC_MR
+      FROM (
+        SELECT MP.FECHA, MP.KWH_DEL AS KWH_DEL_MP, MP.KWH_REC AS KWH_REC_MP, MP.KVARH_DEL AS KVARH_DEL_MP,
+               MP.KVARH_REC AS KVARH_REC_MP, MR.KWH_DEL AS KWH_DEL_MR, MR.KWH_REC AS KWH_REC_MR,
+               MR.KVARH_DEL AS KVARH_DEL_MR, MR.KVARH_REC AS KVARH_REC_MR
         FROM (
-            SELECT 
-                A.TimestampUTC, 
-                B.DisplayName, 
-                A.Value AS 'Energia Activa Generada' 
-            FROM dbo.DataLog2 A
-            INNER JOIN dbo.Source B  
-                ON A.SOURCEID = B.ID
-            WHERE 
-                SourceID = @medidorPrincipal -- ID DEL MEDIDOR
-                AND QuantityID IN (129) -- ID DE ENERGIA ACTIVA GENERADA
-        ) AS EAG_MP
+          SELECT TO_CHAR(FECHA, 'DD-MM-YYYY HH24:MI') AS FECHA, KWH_DEL, KWH_REC, KVARH_DEL, KVARH_REC
+          FROM MCAM_MEDICIONES
+          WHERE ID_MEDIDOR = :medidorPrincipal
+            AND FECHA BETWEEN TO_DATE(:fechaInicial, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinal, 'YYYY-MM-DD HH24:MI')
+        ) MP
         INNER JOIN (
-            SELECT 
-                A.TimestampUTC,
-                A.Value AS 'Energia Activa Consumida', 
-                SourceID 
-            FROM dbo.DataLog2 A
-            INNER JOIN dbo.Source B  
-                ON A.SOURCEID = B.ID
-            WHERE 
-                SourceID = @medidorPrincipal -- ID DEL MEDIDDOR
-                AND QuantityID = 139 -- ID DE ENERGIA ACTIVA CONSUMIDA
-        ) AS EAC_MP
-        ON EAG_MP.TimestampUTC = EAC_MP.TimestampUTC
-        WHERE 
-            DATEADD(HOUR, -6, EAG_MP.TimestampUTC) BETWEEN @fechaInicial AND @fechaFinal
-    ) AS MEDIDOR_PRINCIPAL
-    INNER JOIN (
-        SELECT 
-            DATEADD(HOUR, -6, EAG_MR.TimestampUTC) AS CONVERTED_DATE,
-            DATEADD(HOUR, -6, EAG_MR.TimestampUTC) AS NON_FORMAT_DATE,
-            EAG_MR.DisplayName AS MEDIDOR, 
-            EAG_MR.[Energia Activa Generada] AS EAG, 
-            EAC_MR.[Energia Activa Consumida] AS EAC 
-        FROM (
-            SELECT 
-                A.TimestampUTC, 
-                B.DisplayName, 
-                A.Value AS 'Energia Activa Generada' 
-            FROM dbo.DataLog2 A
-            INNER JOIN dbo.Source B  
-                ON A.SOURCEID = B.ID
-            WHERE 
-                SourceID = @medidorRespaldo -- ID DEL MEDIDOR
-                AND QuantityID IN (129) -- ID DE ENERGIA ACTIVA GENERADA
-            ) AS EAG_MR
-        INNER JOIN (
-            SELECT 
-                A.TimestampUTC,
-                A.Value AS 'Energia Activa Consumida', 
-                SourceID 
-            FROM dbo.DataLog2 A
-            INNER JOIN dbo.Source B  
-                ON A.SOURCEID = B.ID
-            WHERE 
-                SourceID = @medidorRespaldo -- ID DEL MEDIDDOR
-                AND QuantityID = 139 -- ID DE ENERGIA ACTIVA CONSUMIDA
-            ) AS EAC_MR
-        ON EAG_MR.TimestampUTC = EAC_MR.TimestampUTC
-        WHERE 
-            DATEADD(HOUR, -6, EAG_MR.TimestampUTC) BETWEEN @fechaInicial AND @fechaFinal
-    ) AS MEDIDOR_RESPALDO
-    ON 
-        FORMAT(MEDIDOR_PRINCIPAL.CONVERTED_DATE, 'dd-MM-yyyy HH:mm') = FORMAT(MEDIDOR_RESPALDO.CONVERTED_DATE, 'dd-MM-yyyy HH:mm')
-) AS FINAL_RESULT
-`
-      );
+          SELECT TO_CHAR(FECHA, 'DD-MM-YYYY HH24:MI') AS FECHA, KWH_DEL, KWH_REC, KVARH_DEL, KVARH_REC
+          FROM MCAM_MEDICIONES
+          WHERE ID_MEDIDOR = :medidorRespaldo
+            AND FECHA BETWEEN TO_DATE(:fechaInicial, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinal, 'YYYY-MM-DD HH24:MI')
+        ) MR 
+        ON MP.FECHA = MR.FECHA
+      )
+      OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
+    `;
+    const result = await connection.execute(paginatedQuery, {
+      medidorPrincipal,
+      medidorRespaldo,
+      fechaInicial: fechaInicialFormatted,
+      fechaFinal: fechaFinalFormatted,
+      offset,
+      limit: parseInt(limit),
+    });
 
-    // Map the rows into the desired structure
-    const integratedMeters = result.recordset.map((row) => ({
-      fecha: row.FECHA,
-      EAG_MP: row.EAG_MP,
-      EAC_MP: row.EAC_MP,
-      EAG_MR: row.EAG_MR,
-      EAC_MR: row.EAC_MR,
-    }));
+    const measures = result.rows.map(
+      ([
+        FECHA,
+        KWH_DEL_MP,
+        KWH_REC_MP,
+        KVARH_DEL_MP,
+        KVARH_REC_MP,
+        KWH_DEL_MR,
+        KWH_REC_MR,
+        KVARH_DEL_MR,
+        KVARH_REC_MR,
+      ]) => ({
+        fecha: FECHA,
+        kwh_del_mp: KWH_DEL_MP,
+        kwh_rec_mp: KWH_REC_MP,
+        kvarh_del_mp: KVARH_DEL_MP,
+        kvarh_rec_mp: KVARH_REC_MP,
+        kwh_del_mr: KWH_DEL_MR,
+        kwh_rec_mr: KWH_REC_MR,
+        kvarh_del_mr: KVARH_DEL_MR,
+        kvarh_rec_mr: KVARH_REC_MR,
+      })
+    );
 
-    // Send the response
-    res.status(200).json(integratedMeters);
+    res.json({
+      data: measures,
+      currentPage: parseInt(page),
+      totalItems: totalCount,
+      totalPages: Math.ceil(totalCount / limit),
+    });
   } catch (error) {
-    console.error("Database query error: ", error);
+    console.error("Database query error:", error.message);
     res.status(500).json({ error: "Failed to fetch measures" });
+  } finally {
+    if (connection) await connection.close();
   }
 });
 
