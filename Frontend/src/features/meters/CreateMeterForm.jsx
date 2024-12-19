@@ -124,7 +124,7 @@ function CreateMeterForm({
     }
 
     // Append other fields
-    formData.append("plantssub", data.plantssub);
+    formData.append("plantssub", data.plantssub.nombre);
     formData.append("idPunto", Number(data.idPunto));
     formData.append("ip", data.ip);
     formData.append("serie", data.serie.toUpperCase());
@@ -176,7 +176,7 @@ function CreateMeterForm({
             <option value="">Seleccione una opción</option>
             {plantsandsubs?.map((plansub) => (
               <option key={plansub.id} value={plansub.id}>
-                {plansub}
+                {plansub.nombre}
               </option>
             ))}
           </Select>

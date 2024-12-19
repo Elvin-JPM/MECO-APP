@@ -5,6 +5,10 @@ import Input from "../../ui/Input";
 import { FaPlus } from "react-icons/fa6";
 import { MdEdit } from "react-icons/md";
 import ButtonArray from "../../ui/ButtonArray";
+import { formatDate } from "../../utils/dateFunctions";
+import { formatDateInput } from "../../utils/dateFunctions";
+import toast from "react-hot-toast";
+import { IoWarning } from "react-icons/io5";
 
 const TableRow = styled.div`
   display: grid;
@@ -20,6 +24,8 @@ const TableRow = styled.div`
 
 const Column = styled.div.attrs((props) => ({
   contentEditable: props.contentEditable,
+  // activeRow: props.activeRow,
+  // rowKey: props.rowKey,
 }))`
   font-family: "Sono";
   font-weight: 500;
@@ -36,6 +42,12 @@ const Column = styled.div.attrs((props) => ({
     props.contentEditable ? "var(--color-brand-900)" : "inherit"};
   transition: background-color 0.3s ease, box-shadow 0.3s ease,
     padding 0.3s ease;
+  background-color: ${(props) =>
+    Array.isArray(props.modifiedRows) &&
+    props.modifiedRows.includes(props.rowKey) &&
+    props.rowKey !== props.activeRow
+      ? "var(--color-red-100)"
+      : "blue"};
 
   &:focus {
     outline-color: var(--color-brand-700);
@@ -45,82 +57,150 @@ const Column = styled.div.attrs((props) => ({
 function MeasureRow({
   measure,
   onInsertRow,
-  rowNum,
   handleRowChange,
   reportData,
+  handleIsEditableRow,
+  isEditableRow,
+  tipoMedicion,
+  rowKey,
+  modifiedRows,
+  activeRow,
 }) {
-  const [isEditable, setIsEditable] = useState(false);
+  //const [isEditable, setIsEditable] = useState(false);
   const [additionalRows, setAdditionalRows] = useState([]);
-  const { fecha, kwh_del_mp, kwh_rec_mp, kwh_del_mr, kwh_rec_mr } = measure;
-  const { fechaOrig, kwh_del_mp_orig, kwh_rec_mp_orig, kwh_del_mr_orig, kwh_rec_mr_orig } = measure;
+  const [editableInputs, setEditableInputs] = useState({});
+  const {
+    fecha,
+    kwh_del_mp,
+    kwh_rec_mp,
+    kwh_del_mr,
+    kwh_rec_mr,
+    kwh_del_int_mp,
+    kwh_rec_int_mp,
+    kwh_del_int_mr,
+    kwh_rec_int_mr,
+    kvarh_del_mp,
+    kvarh_rec_mp,
+    kvarh_del_mr,
+    kvarh_rec_mr,
+    kvarh_del_int_mp,
+    kvarh_rec_int_mp,
+    kvarh_del_int_mr,
+    kvarh_rec_int_mr,
+  } = measure;
 
   let fechaRef = useRef(null);
-  let kwhDelMpRef = useRef(null);
-  let kwhRecMpRef = useRef(null);
-  let kwhDelMrRef = useRef(null);
-  let kwhRecMrRef = useRef(null);
+  let energiaDelMpRef = useRef(null);
+  let energiaRecMpRef = useRef(null);
+  let energiaDelMrRef = useRef(null);
+  let energiaRecMrRef = useRef(null);
 
   // Collect values from each ref
-  const handleEditableDivInput = () => {
+  const handleEditableDivInput = (e) => {
+    // Check if the event is triggered from a contentEditable element
+    if (e && e.target && e.target.isContentEditable) {
+      const currentText = e.target.innerText;
+
+      // Filter out non-numeric characters
+      const numericText = currentText.replace(/[^0-9.]/g, ""); // Allows numbers and decimals
+
+      // Update the content if it doesn't match the sanitized input
+      if (currentText !== numericText) {
+        e.target.innerText = numericText;
+
+        // Reset the caret position to the end of the content
+        const range = document.createRange();
+        const sel = window.getSelection();
+        range.selectNodeContents(e.target);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    }
+
     // Collect values from each ref
     const updatedValues = {
       fecha: fechaRef.current?.innerText,
-      kwh_del_mp: kwhDelMpRef.current?.innerText,
-      kwh_rec_mp: kwhRecMpRef.current?.innerText,
-      kwh_del_mr: kwhDelMrRef.current?.innerText,
-      kwh_rec_mr: kwhRecMrRef.current?.innerText,
-      key: rowNum,
+      energia_del_mp: energiaDelMpRef.current?.innerText,
+      energia_rec_mp: energiaRecMpRef.current?.innerText,
+      energia_del_mr: energiaDelMrRef.current?.innerText,
+      energia_rec_mr: energiaRecMrRef.current?.innerText,
+      key: rowKey,
       idPrincipal: reportData.medidorPrincipal,
       idRespaldo: reportData.medidorRespaldo,
+      tipoMedicion,
     };
 
     console.log("Updated Values:", updatedValues);
+
+    // Check if any value has changed and trigger the update function
     if (
       updatedValues.fecha !== fecha ||
-      updatedValues.kwh_del_mp !== kwh_del_mp ||
-      updatedValues.kwh_rec_mp !== kwh_rec_mp ||
-      updatedValues.kwh_del_mr !== kwh_del_mr ||
-      updatedValues.kwh_rec_mr !== kwh_rec_mr
+      updatedValues.energia_del_mp !== kwh_del_mp ||
+      updatedValues.energia_rec_mp !== kwh_rec_mp ||
+      updatedValues.energia_del_mr !== kwh_del_mr ||
+      updatedValues.energia_rec_mr !== kwh_rec_mr
     ) {
       handleRowChange(updatedValues);
     }
   };
 
-  const [editableInputs, setEditableInputs] = useState({});
-
   const allRows = [{ fecha }, ...additionalRows];
 
-  // Helper function to format date as "DD-MM-YYYY HH:mm"
-  function formatDate(date) {
-    const d = new Date(date);
-    const dd = String(d.getDate()).padStart(2, "0");
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const yyyy = d.getFullYear();
-    const hh = String(d.getHours()).padStart(2, "0");
-    const min = String(d.getMinutes()).padStart(2, "0");
-    return `${dd}-${mm}-${yyyy} ${hh}:${min}`;
-  }
+  const handleEditRow = (buttonValue) => {
+    if (buttonValue === "Cancelar") {
+      const mapping = {
+        energiaActivaIntervalo: {
+          energiaDelMpRef: Intl.NumberFormat("en-US").format(kwh_del_int_mp),
+          energiaRecMpRef: Intl.NumberFormat("en-US").format(kwh_rec_int_mp),
+          energiaDelMrRef: Intl.NumberFormat("en-US").format(kwh_del_int_mr),
+          energiaRecMrRef: Intl.NumberFormat("en-US").format(kwh_rec_int_mr),
+        },
+        energiaActivaAcumulada: {
+          energiaDelMpRef: Intl.NumberFormat("en-US").format(kwh_del_mp),
+          energiaRecMpRef: Intl.NumberFormat("en-US").format(kwh_rec_mp),
+          energiaDelMrRef: Intl.NumberFormat("en-US").format(kwh_del_mr),
+          energiaRecMrRef: Intl.NumberFormat("en-US").format(kwh_rec_mr),
+        },
+        energiaReactivaAcumulada: {
+          energiaDelMpRef: Intl.NumberFormat("en-US").format(kvarh_del_mp),
+          energiaRecMpRef: Intl.NumberFormat("en-US").format(kvarh_rec_mp),
+          energiaDelMrRef: Intl.NumberFormat("en-US").format(kvarh_del_mr),
+          energiaRecMrRef: Intl.NumberFormat("en-US").format(kvarh_rec_mr),
+        },
+        default: {
+          energiaDelMpRef: Intl.NumberFormat("en-US").format(kvarh_del_int_mp),
+          energiaRecMpRef: Intl.NumberFormat("en-US").format(kvarh_rec_int_mp),
+          energiaDelMrRef: Intl.NumberFormat("en-US").format(kvarh_del_int_mr),
+          energiaRecMrRef: Intl.NumberFormat("en-US").format(kvarh_rec_int_mr),
+        },
+      };
 
-  function formatDateInput(date) {
-    const d = new Date(date);
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    const hh = String(d.getHours()).padStart(2, "0");
-    const min = String(d.getMinutes()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
-  }
+      const refs = {
+        fechaRef, // Include this in case you need it
+        energiaDelMpRef,
+        energiaRecMpRef,
+        energiaDelMrRef,
+        energiaRecMrRef,
+      };
 
-  const handleEditRow = () => {
-    if (isEditable === true) {
-      kwhDelMpRef = kwh_del_mp;
-      kwhRecMpRef = kwh_rec_mp;
-      kwhDelMrRef = kwh_del_mr;
-      kwhRecMrRef = kwh_rec_mr;
+      const selectedMapping = mapping[tipoMedicion] || mapping.default;
+
+      Object.entries(selectedMapping).forEach(([refKey, value]) => {
+        const ref = refs[refKey];
+        if (ref?.current) {
+          ref.current.innerText = value;
+        }
+      });
+
+      // Optionally handle fechaRef specifically if needed
+      // if (fechaRef?.current) {
+      //   fechaRef.current.innerText = "Updated Date Value"; // Customize this as necessary
+      // }
     }
-    setIsEditable((editable) => {
-      return !editable;
-    });
+
+    // Toggle edit mode
+    handleIsEditableRow(!isEditableRow, rowKey, buttonValue);
   };
 
   // Calculate a new date 15 minutes ahead
@@ -205,34 +285,68 @@ function MeasureRow({
           {fecha}
         </Column>
         <Column
-          ref={kwhDelMpRef}
-          contentEditable={isEditable}
+          ref={energiaDelMpRef}
+          contentEditable={isEditableRow}
+          modifiedRows={modifiedRows}
+          activeRow={activeRow}
+          rowKey={rowKey}
           onInput={handleEditableDivInput}
         >
-          {isEditable
+          {tipoMedicion === "energiaActivaAcumulada"
             ? new Intl.NumberFormat("en-US").format(kwh_del_mp)
-            : new Intl.NumberFormat("en-US").format(kwh_del_mp_orig)}
+            : tipoMedicion === "energiaActivaIntervalo"
+            ? new Intl.NumberFormat("en-US").format(kwh_del_int_mp)
+            : tipoMedicion === "energiaReactivaAcumulada"
+            ? new Intl.NumberFormat("en-US").format(kvarh_del_mp)
+            : new Intl.NumberFormat("en-US").format(kvarh_del_int_mp)}
         </Column>
         <Column
-          ref={kwhRecMpRef}
-          contentEditable={isEditable}
+          ref={energiaRecMpRef}
+          contentEditable={isEditableRow}
           onInput={handleEditableDivInput}
+          modifiedRows={modifiedRows}
+          activeRow={activeRow}
+          rowKey={rowKey}
         >
-          {new Intl.NumberFormat("en-US").format(kwh_rec_mp)}
+          {tipoMedicion === "energiaActivaAcumulada"
+            ? new Intl.NumberFormat("en-US").format(kwh_rec_mp)
+            : tipoMedicion === "energiaActivaIntervalo"
+            ? new Intl.NumberFormat("en-US").format(kwh_rec_int_mp)
+            : tipoMedicion === "energiaReactivaAcumulada"
+            ? new Intl.NumberFormat("en-US").format(kvarh_rec_mp)
+            : new Intl.NumberFormat("en-US").format(kvarh_rec_int_mp)}
         </Column>
         <Column
-          ref={kwhDelMrRef}
-          contentEditable={isEditable}
+          ref={energiaDelMrRef}
+          contentEditable={isEditableRow}
           onInput={handleEditableDivInput}
+          modifiedRows={modifiedRows}
+          activeRow={activeRow}
+          rowKey={rowKey}
         >
-          {new Intl.NumberFormat("en-US").format(kwh_del_mr)}
+          {tipoMedicion === "energiaActivaAcumulada"
+            ? new Intl.NumberFormat("en-US").format(kwh_del_mr)
+            : tipoMedicion === "energiaActivaIntervalo"
+            ? new Intl.NumberFormat("en-US").format(kwh_del_int_mr)
+            : tipoMedicion === "energiaReactivaAcumulada"
+            ? new Intl.NumberFormat("en-US").format(kvarh_del_mr)
+            : new Intl.NumberFormat("en-US").format(kvarh_del_int_mr)}
         </Column>
         <Column
-          ref={kwhRecMrRef}
-          contentEditable={isEditable}
+          ref={energiaRecMrRef}
+          contentEditable={isEditableRow}
           onInput={handleEditableDivInput}
+          modifiedRows={modifiedRows}
+          activeRow={activeRow}
+          rowKey={rowKey}
         >
-          {new Intl.NumberFormat("en-US").format(kwh_rec_mr)}
+          {tipoMedicion === "energiaActivaAcumulada"
+            ? new Intl.NumberFormat("en-US").format(kwh_rec_mr)
+            : tipoMedicion === "energiaActivaIntervalo"
+            ? new Intl.NumberFormat("en-US").format(kwh_rec_int_mr)
+            : tipoMedicion === "energiaReactivaAcumulada"
+            ? new Intl.NumberFormat("en-US").format(kvarh_rec_mr)
+            : new Intl.NumberFormat("en-US").format(kvarh_rec_int_mr)}
         </Column>
         <Column>
           <ButtonArray>
@@ -241,16 +355,20 @@ function MeasureRow({
               variation="secondary"
               size="small"
               disabled={!canAddRow(fecha, -1)}
+              tooltip="Agregar fila"
             >
               <FaPlus />
             </Button>
             <Button
-              onClick={handleEditRow}
+              onClick={() => {
+                handleEditRow(isEditableRow ? "Cancelar" : "Editar");
+              }}
               variation="secondary"
               size="small"
+              tooltip={!isEditableRow ? "Editar" : "Cancelar"}
               // disabled={!canAddRow(fecha, -1)}
             >
-              {isEditable ? "Cancel" : <MdEdit />}
+              {isEditableRow ? "Cancel" : <MdEdit />}
             </Button>
           </ButtonArray>
         </Column>

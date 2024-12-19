@@ -36,57 +36,83 @@ const TableHeader = styled.header`
   padding: 1.6rem 2.4rem;
 `;
 
-function ReportTable({ reportData }) {
+function ReportTable({
+  reportData,
+  energyTags = ["KWH DEL MP", "KWH REC MP", "KWH DEL MR", "KWH REC MR"],
+  tipoMedicion,
+  //reportPageNumber,
+}) {
   const [pageNumber, setPageNumber] = useState(1);
   const [inputValue, setInputValue] = useState(1);
   const [rowsToEdit, setRowsToEdit] = useState([]);
+  const [isEditableRow, setIsEditableRow] = useState(false);
+  const [editableRowKey, setEditableRowKey] = useState(null);
+  const [activeRow, setActiveRow] = useState(null);
+  const [modifiedRows, setModifiedRows] = useState([]);
   const { isUpdating, updateMeasures } = useUpdateMeasures(
     pageNumber,
     reportData
   );
 
-  const {
-    isLoading: isLoadingMeasures,
-    data: measures,
-    // error,
-  } = useQuery({
+  console.log(modifiedRows);
+
+  const { isLoading: isLoadingMeasures, data: measures } = useQuery({
     queryKey: ["measures", pageNumber, reportData],
     queryFn: () => getMeasures(reportData, pageNumber),
     keepPreviousData: true,
   });
 
-  const handleInsertRow = (rowData) => {
-    console.log("Row submitted:", rowData);
-    // Add database insertion logic here
-  };
-
   const measuresArray = measures?.data || [];
   const totalPages = measures?.totalPages || 1;
   console.log(reportData);
 
-  // Function to change the page
+  // useEffect(() => {
+  //   // Sync the local pageNumber state with the prop
+  //   setPageNumber(reportPageNumber);
+  //   setInputValue(reportPageNumber); // Update the input value as well
+  // }, [reportPageNumber]);
+
+  const handleInsertRow = (rowData) => {
+    console.log("Row submitted:", rowData);
+  };
+
+  const handleModifiedRows = () => {
+    const modifiedRowsList = rowsToEdit.map((item) => item.key);
+    setModifiedRows(modifiedRowsList);
+  };
+
+  const handleIsEditableRow = (isEditable, rowKey, buttonValue) => {
+    if (buttonValue === "Cancelar") {
+      const editableRows = rowsToEdit.filter((item) => item.key !== rowKey);
+      setRowsToEdit(editableRows);
+    }
+    setIsEditableRow(isEditable);
+    setEditableRowKey(rowKey);
+
+    const modifiedRowsList = rowsToEdit.map((item) => item.key);
+    setModifiedRows(modifiedRowsList);
+  };
+
   const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
+    if (newPage >= 1 && newPage <= (measures?.totalPages || 1)) {
       setPageNumber(newPage);
-      setInputValue(newPage); // Sync the input value with the selected page
+      setInputValue(newPage);
     }
   };
 
-  // Handle changes in the input field
   const handleInputChange = (e) => {
     const value = e.target.value;
     if (/^\d*$/.test(value)) {
-      setInputValue(value); // Allow only numbers
+      setInputValue(value);
     }
   };
 
-  // Handle input submission
   const handleInputSubmit = () => {
     const newPage = parseInt(inputValue, 10);
     if (!isNaN(newPage)) {
       handlePageChange(newPage);
     } else {
-      setInputValue(pageNumber); // Reset to the current page if input is invalid
+      setInputValue(pageNumber);
     }
   };
 
@@ -111,15 +137,14 @@ function ReportTable({ reportData }) {
         updatedRows = [...prevRows, newRow];
       }
 
-      console.log("Updated rowsToEdit:", updatedRows); // Log the updated rows here
+      console.log("Updated rowsToEdit:", updatedRows);
       return updatedRows;
     });
   }, []);
 
   if (isLoadingMeasures) return <Spinner />;
-  // Function to export the meters data to Excel
+
   const exportToExcel = () => {
-    // Create a worksheet from the data
     const worksheet = XLSX.utils.json_to_sheet(
       measuresArray?.map((measure) => ({
         Fecha: measure.fecha,
@@ -130,11 +155,8 @@ function ReportTable({ reportData }) {
       }))
     );
 
-    // Create a workbook and append the worksheet
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Measures");
-
-    // Generate Excel file and trigger download
     XLSX.writeFile(workbook, "Measures.xlsx");
   };
 
@@ -146,15 +168,16 @@ function ReportTable({ reportData }) {
     } else {
       console.log("hello");
     }
+    setIsEditableRow(false);
   };
 
   return (
     <Table role="table">
       {rowsToEdit?.length > 0 ? (
-        <Button onClick={onUpdateMeasures}>SAVE CHANGES</Button>
-      ) : (
-        ""
-      )}
+        <Button onClick={onUpdateMeasures} tooltip="Guardar cambios">
+          GUARDAR CAMBIOS
+        </Button>
+      ) : null}
       <PaginationWrapper
         handleInputChange={handleInputChange}
         handlePageChange={handlePageChange}
@@ -162,13 +185,12 @@ function ReportTable({ reportData }) {
         pageNumber={pageNumber}
         totalPages={totalPages}
         inputValue={inputValue}
-      ></PaginationWrapper>
+      />
       <TableHeader role="row">
         <div>FECHA</div>
-        <div>KWH GENERADOS MP</div>
-        <div>KWH RECIBIDOS MP</div>
-        <div>KWH GENERADOS MR</div>
-        <div>KWH RECIBIDOS MR</div>
+        {energyTags?.map((energyTag) => (
+          <div key={energyTag}>{energyTag}</div>
+        ))}
         <ButtonArray>
           <Button onClick={exportToExcel} tooltip="Descargar perfil">
             <FaDownload />
@@ -179,11 +201,21 @@ function ReportTable({ reportData }) {
         <MeasureRow
           measure={measure}
           key={measuresArray.indexOf(measure)}
-          onInsertRow={handleInsertRow}
-          rowNum={measuresArray.indexOf(measure)}
-          handleRowChange={handleRowChange}
+          rowKey={measuresArray.indexOf(measure)}
           reportData={reportData}
-        ></MeasureRow>
+          onInsertRow={handleInsertRow}
+          handleRowChange={handleRowChange}
+          handleIsEditableRow={handleIsEditableRow}
+          handleModifiedRows={handleModifiedRows}
+          isEditableRow={
+            editableRowKey == measuresArray.indexOf(measure)
+              ? isEditableRow
+              : false
+          }
+          tipoMedicion={tipoMedicion}
+          modifiedRows={modifiedRows}
+          activeRow={editableRowKey}
+        />
       ))}
       <PaginationWrapper
         handleInputChange={handleInputChange}
@@ -192,7 +224,7 @@ function ReportTable({ reportData }) {
         pageNumber={pageNumber}
         totalPages={totalPages}
         inputValue={inputValue}
-      ></PaginationWrapper>
+      />
     </Table>
   );
 }

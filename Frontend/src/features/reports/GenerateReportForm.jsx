@@ -11,7 +11,12 @@ import {
 } from "../../services/getRequests";
 import Select from "../../ui/Select";
 
-function GenerateReportForm({ handleShowReportTable, handleReportData }) {
+function GenerateReportForm({
+  handleShowReportTable,
+  handleReportData,
+  handleEnergyTags,
+  handlePageReset,
+}) {
   const { register, handleSubmit, formState, setValue, watch } = useForm();
   const { errors } = formState;
 
@@ -80,10 +85,12 @@ function GenerateReportForm({ handleShowReportTable, handleReportData }) {
     const queryParams = {
       medidorPrincipal: medidorPrincipal?.id,
       medidorRespaldo: medidorRespaldo?.id,
+      tipoMedida: data?.tipoMedida,
       fechaInicial: data?.fechaInicial,
       fechaFinal: data?.fechaFinal,
     };
 
+    handleEnergyTags(data?.tipoMedida);
     handleShowReportTable();
     handleReportData(queryParams);
   }
@@ -103,10 +110,15 @@ function GenerateReportForm({ handleShowReportTable, handleReportData }) {
         error={errors?.integratedMeters?.message}
       >
         <Select
+          type="white"
           id="plantaSubestacion"
           {...register("plantaSubestacion", {
             required: "Este campo es obligatorio",
           })}
+          onChange={(e) => {
+            setValue("plantaSubestacion", e.target.value);
+            handlePageReset();
+          }}
         >
           <option value="">Seleccione una opción</option>
           {plantsandsubs?.map((plansub) => (
@@ -121,17 +133,49 @@ function GenerateReportForm({ handleShowReportTable, handleReportData }) {
         error={errors?.integratedMeters?.message}
       >
         <Select
+          type="white"
           id="puntoMedicion"
           {...register("puntoMedicion", {
             required: "Este campo es obligatorio",
           })}
+          onChange={(e) => {
+            setValue("puntoMedicion", e.target.value); // Update the form value
+            handlePageReset(); // Reset if needed
+          }}
         >
           <option value="">Seleccione una opción</option>
+          {!integratedMeters && <option>Loading...</option>}
           {uniqueMeters?.map((meter) => (
             <option key={meter.id_ion_data} value={meter.id_punto_medicion}>
               {meter.description}
             </option>
           ))}
+        </Select>
+      </FormRow>
+
+      <FormRow label="Tipo de medida" error={errors?.integratedMeters?.message}>
+        <Select
+          type="white"
+          name="tipoMedida"
+          id="tipoMedida"
+          {...register("tipoMedida", {
+            required: "Este campo es obligatorio",
+          })}
+          defaultValue="energiaActivaIntervalo"
+          onChange={handlePageReset}
+        >
+          <option value="energiaActivaIntervalo">
+            Energia Activa Intervalo
+          </option>
+          <option value="energiaReactivaIntervalo">
+            Energia Reactiva Intervalo
+          </option>
+          <option value="energiaActivaAcumulada">
+            Energia Activa Acumulada
+          </option>
+          <option value="energiaReactivaAcumulada">
+            Energia Reactiva Acumulada
+          </option>
         </Select>
       </FormRow>
 
@@ -144,6 +188,7 @@ function GenerateReportForm({ handleShowReportTable, handleReportData }) {
           {...register("fechaInicial", {
             required: "Este campo es obligatorio",
           })}
+          onChange={handlePageReset}
         />
       </FormRow>
 
@@ -156,6 +201,7 @@ function GenerateReportForm({ handleShowReportTable, handleReportData }) {
           {...register("fechaFinal", {
             required: "Este campo es obligatorio",
           })}
+          onChange={handlePageReset}
         />
       </FormRow>
 

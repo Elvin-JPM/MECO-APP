@@ -12,15 +12,47 @@ const Select = styled.select`
   background-color: var(--color-grey-0);
   font-weight: 500;
   box-shadow: var(--shadow-sm);
-  overflow: auto; /* Allows scrolling */
+  overflow: auto;
+  cursor: pointer;
+
+  /* Add smooth transitions */
+  transition: all 0.3s ease-in-out;
 
   /* Hide scrollbar */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Internet Explorer and Edge */
-
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   &::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, and Opera */
+    display: none;
+  }
+
+  /* Hover Animation */
+  &:hover {
+    border-color: rgba(6, 78, 59, 0.6);
+    transform: scale(1.005); /* Slight zoom */
+  }
+
+  /* Focus Animation */
+  &:focus {
+    outline: none;
+    border-color: var(--color-brand-950);
+    box-shadow: 0 0 10px rgba(6, 78, 59, 0.4);
+  }
+
+  /* Disabled State */
+  &:disabled {
+    background-color: var(--color-grey-100);
+    color: var(--color-grey-500);
+    cursor: not-allowed;
+  }
+
+
+  /* Add responsive styles */
+  @media (max-width: 768px) {
+    font-size: 1.2rem;
+    padding: 0.6rem 1rem;
   }
 `;
+
+
 
 export default Select;

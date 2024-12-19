@@ -1,5 +1,7 @@
 import styled from "styled-components";
 import Button from "./Button";
+import { MdOutlineNavigateNext } from "react-icons/md";
+import { GrFormPrevious } from "react-icons/gr";
 
 const StyledPaginationWrapper = styled.div`
   display: flex;
@@ -36,8 +38,9 @@ function PaginationWrapper({
       <Button
         onClick={() => handlePageChange(pageNumber - 1)}
         disabled={pageNumber <= 1}
+        tooltip="Anterior"
       >
-        &lt;
+        <GrFormPrevious />
       </Button>
       {/* Page Input */}
       <PageInput
@@ -54,8 +57,9 @@ function PaginationWrapper({
       <Button
         onClick={() => handlePageChange(pageNumber + 1)}
         disabled={pageNumber >= totalPages}
+        tooltip="Siguiente"
       >
-        &gt;
+        <MdOutlineNavigateNext />
       </Button>
     </StyledPaginationWrapper>
   );

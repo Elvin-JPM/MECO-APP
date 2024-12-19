@@ -20,7 +20,6 @@ router.get("/measures", async (req, res) => {
     const fechaInicialFormatted = fechaInicial.replace("T", " ").slice(0, 16);
     const fechaFinalFormatted = fechaFinal.replace("T", " ").slice(0, 16);
 
-
     // Input validation
     if (
       !medidorPrincipal ||
@@ -63,19 +62,26 @@ router.get("/measures", async (req, res) => {
 
     // Paginated query
     const paginatedQuery = `
-      SELECT FECHA, KWH_DEL_MP, KWH_REC_MP, KVARH_DEL_MP, KVARH_REC_MP, KWH_DEL_MR, KWH_REC_MR, KVARH_DEL_MR, KVARH_REC_MR
+      SELECT FECHA,
+            KWH_DEL_MP, KWH_REC_MP, KVARH_DEL_MP, KVARH_REC_MP, KWH_DEL_MR, KWH_REC_MR, KVARH_DEL_MR, KVARH_REC_MR,
+            KWH_DEL_INT_MP, KWH_REC_INT_MP, KVARH_DEL_INT_MP, KVARH_REC_INT_MP, KWH_DEL_INT_MR, KWH_REC_INT_MR, KVARH_DEL_INT_MR, KVARH_REC_INT_MR
+
       FROM (
-        SELECT MP.FECHA, MP.KWH_DEL AS KWH_DEL_MP, MP.KWH_REC AS KWH_REC_MP, MP.KVARH_DEL AS KVARH_DEL_MP,
-               MP.KVARH_REC AS KVARH_REC_MP, MR.KWH_DEL AS KWH_DEL_MR, MR.KWH_REC AS KWH_REC_MR,
-               MR.KVARH_DEL AS KVARH_DEL_MR, MR.KVARH_REC AS KVARH_REC_MR
+        SELECT MP.FECHA,
+               MP.KWH_DEL AS KWH_DEL_MP, MP.KWH_REC AS KWH_REC_MP, MP.KVARH_DEL AS KVARH_DEL_MP, MP.KVARH_REC AS KVARH_REC_MP,
+               MR.KWH_DEL AS KWH_DEL_MR, MR.KWH_REC AS KWH_REC_MR, MR.KVARH_DEL AS KVARH_DEL_MR, MR.KVARH_REC AS KVARH_REC_MR,
+               MP.KWH_DEL_INT AS KWH_DEL_INT_MP, MP.KWH_REC_INT AS KWH_REC_INT_MP, MP.KVARH_DEL_INT AS KVARH_DEL_INT_MP, MP.KVARH_REC_INT AS KVARH_REC_INT_MP,
+               MR.KWH_DEL_INT AS KWH_DEL_INT_MR, MR.KWH_REC_INT AS KWH_REC_INT_MR, MR.KVARH_DEL_INT AS KVARH_DEL_INT_MR, MR.KVARH_REC_INT AS KVARH_REC_INT_MR
         FROM (
-          SELECT TO_CHAR(FECHA, 'DD-MM-YYYY HH24:MI') AS FECHA, KWH_DEL, KWH_REC, KVARH_DEL, KVARH_REC
+          SELECT TO_CHAR(FECHA, 'DD-MM-YYYY HH24:MI') AS FECHA,
+          KWH_DEL, KWH_REC, KVARH_DEL, KVARH_REC, KWH_DEL_INT, KWH_REC_INT, KVARH_DEL_INT, KVARH_REC_INT
           FROM MCAM_MEDICIONES
           WHERE ID_MEDIDOR = :medidorPrincipal
             AND FECHA BETWEEN TO_DATE(:fechaInicial, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinal, 'YYYY-MM-DD HH24:MI')
         ) MP
         INNER JOIN (
-          SELECT TO_CHAR(FECHA, 'DD-MM-YYYY HH24:MI') AS FECHA, KWH_DEL, KWH_REC, KVARH_DEL, KVARH_REC
+          SELECT TO_CHAR(FECHA, 'DD-MM-YYYY HH24:MI') AS FECHA,
+          KWH_DEL, KWH_REC, KVARH_DEL, KVARH_REC, KWH_DEL_INT, KWH_REC_INT, KVARH_DEL_INT, KVARH_REC_INT
           FROM MCAM_MEDICIONES
           WHERE ID_MEDIDOR = :medidorRespaldo
             AND FECHA BETWEEN TO_DATE(:fechaInicial, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinal, 'YYYY-MM-DD HH24:MI')
@@ -104,6 +110,14 @@ router.get("/measures", async (req, res) => {
         KWH_REC_MR,
         KVARH_DEL_MR,
         KVARH_REC_MR,
+        KWH_DEL_INT_MP,
+        KWH_REC_INT_MP,
+        KVARH_DEL_INT_MP,
+        KVARH_REC_INT_MP,
+        KWH_DEL_INT_MR,
+        KWH_REC_INT_MR,
+        KVARH_DEL_INT_MR,
+        KVARH_REC_INT_MR,
       ]) => ({
         fecha: FECHA,
         kwh_del_mp: KWH_DEL_MP,
@@ -114,6 +128,14 @@ router.get("/measures", async (req, res) => {
         kwh_rec_mr: KWH_REC_MR,
         kvarh_del_mr: KVARH_DEL_MR,
         kvarh_rec_mr: KVARH_REC_MR,
+        kwh_del_int_mp: KWH_DEL_INT_MP,
+        kwh_rec_int_mp: KWH_REC_INT_MP,
+        kvarh_del_int_mp: KVARH_DEL_INT_MP,
+        kvarh_rec_int_mp: KVARH_REC_INT_MP,
+        kwh_del_int_mr: KWH_DEL_INT_MR,
+        kwh_rec_int_mr: KWH_REC_INT_MR,
+        kvarh_del_int_mr: KVARH_DEL_INT_MR,
+        kvarh_rec_int_mr: KVARH_REC_INT_MR,
       })
     );
 

@@ -1,9 +1,10 @@
 import styled from "styled-components";
 
 const StyledHeader = styled.header`
-  background-color: var(--color-grey-0);
+  background-color: (255, 255, 255, 0.7);
   padding: 1.2rem 4.8rem;
   border-bottom: 1px solid var(--color-grey-100);
+  backdrop-filter: blur(100px);
 `;
 
 // const StyledHeader = styled.header`
@@ -18,8 +19,8 @@ const StyledHeader = styled.header`
 //   z-index: 1000; /* Ensure it appears above other elements */
 // `;
 
-function Header({children}) {
-  return <StyledHeader>{ children}</StyledHeader>;
+function Header({ children }) {
+  return <StyledHeader>{children}</StyledHeader>;
 }
 
 export default Header;

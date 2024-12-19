@@ -6,53 +6,118 @@ const router = express.Router();
 router.put("/updateMeasures", async (req, res) => {
   const rowsToEdit = req.body; // Assuming req.body is an array of objects
   console.log("Rows to edit:", rowsToEdit);
+  let queryPrincipal = "";
+  let queryRespaldo = "";
 
   let connection;
   try {
     connection = await getConnection();
 
-    const queryPrincipal = `
+    // Use a for...of loop for async/await
+    for (const rowToEdit of rowsToEdit) {
+      // Preprocess numeric values to remove commas
+      const energia_del_mp = parseFloat(
+        rowToEdit.energia_del_mp.replace(/,/g, "")
+      );
+      const energia_rec_mp = parseFloat(
+        rowToEdit.energia_rec_mp.replace(/,/g, "")
+      );
+      const energia_del_mr = parseFloat(
+        rowToEdit.energia_del_mr.replace(/,/g, "")
+      );
+      const energia_rec_mr = parseFloat(
+        rowToEdit.energia_rec_mr.replace(/,/g, "")
+      );
+
+      if (rowToEdit.tipoMedicion === "energiaActivaIntervalo") {
+        queryPrincipal = `
       UPDATE MCAM_MEDICIONES
       SET
-        KWH_DEL = :kwh_del_mp,
-        KWH_REC = :kwh_rec_mp
+        KWH_DEL_INT = :energia_del_mp,
+        KWH_REC_INT = :energia_rec_mp
       WHERE ID_MEDIDOR = :idPrincipal
       AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')
     `;
-
-    const queryRespaldo = `
+        queryRespaldo = `
       UPDATE MCAM_MEDICIONES
       SET
-        KWH_DEL = :kwh_del_mr,
-        KWH_REC = :kwh_rec_mr
+        KWH_DEL_INT = :energia_del_mr,
+        KWH_REC_INT = :energia_rec_mr
       WHERE ID_MEDIDOR = :idRespaldo
       AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')
+      `;
+      } else if (rowToEdit.tipoMedicion === "energiaActivaAcumulada") {
+        queryPrincipal = `
+      UPDATE MCAM_MEDICIONES
+      SET
+        KWH_DEL = :energia_del_mp,
+        KWH_REC = :energia_rec_mp
+      WHERE ID_MEDIDOR = :idPrincipal
+      AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')
     `;
+        queryRespaldo = `
+      UPDATE MCAM_MEDICIONES
+      SET
+        KWH_DEL = :energia_del_mr,
+        KWH_REC = :energia_rec_mr
+      WHERE ID_MEDIDOR = :idRespaldo
+      AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')`;
+      } else if (rowToEdit.tipoMedicion === "energiaReactivaAcumulada") {
+        queryPrincipal = `
+      UPDATE MCAM_MEDICIONES
+      SET
+        KVARH_DEL = :energia_del_mp,
+        KVARH_REC = :energia_rec_mp
+      WHERE ID_MEDIDOR = :idPrincipal
+      AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')
+    `;
+        queryRespaldo = `
+      UPDATE MCAM_MEDICIONES
+      SET
+        KVARH_DEL = :energia_del_mr,
+        KVARH_REC = :energia_rec_mr
+      WHERE ID_MEDIDOR = :idRespaldo
+      AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')`;
+      } else {
+        queryPrincipal = `
+      UPDATE MCAM_MEDICIONES
+      SET
+        KVARH_DEL_INT = :energia_del_mp,
+        KVARH_REC_INT = :energia_rec_mp
+      WHERE ID_MEDIDOR = :idPrincipal
+      AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')
+    `;
+        queryRespaldo = `
+      UPDATE MCAM_MEDICIONES
+      SET
+        KVARH_DEL_INT = :energia_del_mr,
+        KVARH_REC_INT = :energia_rec_mr
+      WHERE ID_MEDIDOR = :idRespaldo
+      AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')`;
+      }
 
-    // Use a for...of loop for async/await
-    for (const rowToEdit of rowsToEdit) {
       // Update the principal record
       await connection.execute(
         queryPrincipal,
         {
-          kwh_del_mp: rowToEdit.kwh_del_mp,
-          kwh_rec_mp: rowToEdit.kwh_rec_mp,
+          energia_del_mp,
+          energia_rec_mp,
           idPrincipal: rowToEdit.idPrincipal,
           fecha: rowToEdit.fecha,
         },
-        { autoCommit: false } // Set autoCommit to false for batch operations
+        { autoCommit: false }
       );
 
       // Update the respaldo record
       await connection.execute(
         queryRespaldo,
         {
-          kwh_del_mr: rowToEdit.kwh_del_mr,
-          kwh_rec_mr: rowToEdit.kwh_rec_mr,
+          energia_del_mr,
+          energia_rec_mr,
           idRespaldo: rowToEdit.idRespaldo,
           fecha: rowToEdit.fecha,
         },
-        { autoCommit: false } // Set autoCommit to false for batch operations
+        { autoCommit: false }
       );
     }
 
@@ -83,5 +148,6 @@ router.put("/updateMeasures", async (req, res) => {
     }
   }
 });
+
 
 module.exports = router;
