@@ -12,6 +12,9 @@ import { useState } from "react";
 import PaginationWrapper from "../../ui/PaginationWrapper";
 import { useCallback } from "react";
 import useUpdateMeasures from "./useUpdateMeasures";
+import Modal from "../../ui/Modal";
+import SubstitutionForm from "./SubstitutionForm";
+import Heading from "../../ui/Heading";
 
 const Table = styled.div`
   border: 1px solid var(--color-grey-200);
@@ -49,12 +52,15 @@ function ReportTable({
   const [editableRowKey, setEditableRowKey] = useState(null);
   const [activeRow, setActiveRow] = useState(null);
   const [modifiedRows, setModifiedRows] = useState([]);
+  const [showModal, setShowModal] = useState(false);
   const { isUpdating, updateMeasures } = useUpdateMeasures(
     pageNumber,
     reportData
   );
 
   console.log(modifiedRows);
+
+  console.log("Report data at report table: ", reportData);
 
   const { isLoading: isLoadingMeasures, data: measures } = useQuery({
     queryKey: ["measures", pageNumber, reportData],
@@ -75,6 +81,11 @@ function ReportTable({
   const handleInsertRow = (rowData) => {
     console.log("Row submitted:", rowData);
   };
+
+  const handleShowModal = () =>
+  {
+    setShowModal(show => !show);
+  }
 
   const handleModifiedRows = () => {
     const modifiedRowsList = rowsToEdit.map((item) => item.key);
@@ -164,68 +175,86 @@ function ReportTable({
     if (rowsToEdit?.length > 0) {
       console.log("Rows to edit on onUpdateMeasures : ", rowsToEdit);
       updateMeasures(rowsToEdit);
-      setRowsToEdit([]);
     } else {
       console.log("hello");
     }
+    setRowsToEdit([]);
     setIsEditableRow(false);
+    setEditableRowKey(null);
+    setModifiedRows([]);
   };
 
   return (
-    <Table role="table">
-      {rowsToEdit?.length > 0 ? (
-        <Button onClick={onUpdateMeasures} tooltip="Guardar cambios">
-          GUARDAR CAMBIOS
-        </Button>
-      ) : null}
-      <PaginationWrapper
-        handleInputChange={handleInputChange}
-        handlePageChange={handlePageChange}
-        handleInputSubmit={handleInputSubmit}
-        pageNumber={pageNumber}
-        totalPages={totalPages}
-        inputValue={inputValue}
-      />
-      <TableHeader role="row">
-        <div>FECHA</div>
-        {energyTags?.map((energyTag) => (
-          <div key={energyTag}>{energyTag}</div>
-        ))}
-        <ButtonArray>
-          <Button onClick={exportToExcel} tooltip="Descargar perfil">
-            <FaDownload />
+    <>
+      <Table role="table">
+        {rowsToEdit?.length > 0 ? (
+          <Button
+            onClick={() => {
+              setShowModal(true);
+              onUpdateMeasures;
+            }}
+            tooltip="Guardar cambios"
+          >
+            GUARDAR CAMBIOS
           </Button>
-        </ButtonArray>
-      </TableHeader>
-      {measuresArray?.map((measure) => (
-        <MeasureRow
-          measure={measure}
-          key={measuresArray.indexOf(measure)}
-          rowKey={measuresArray.indexOf(measure)}
-          reportData={reportData}
-          onInsertRow={handleInsertRow}
-          handleRowChange={handleRowChange}
-          handleIsEditableRow={handleIsEditableRow}
-          handleModifiedRows={handleModifiedRows}
-          isEditableRow={
-            editableRowKey == measuresArray.indexOf(measure)
-              ? isEditableRow
-              : false
-          }
-          tipoMedicion={tipoMedicion}
-          modifiedRows={modifiedRows}
-          activeRow={editableRowKey}
+        ) : null}
+        <PaginationWrapper
+          handleInputChange={handleInputChange}
+          handlePageChange={handlePageChange}
+          handleInputSubmit={handleInputSubmit}
+          pageNumber={pageNumber}
+          totalPages={totalPages}
+          inputValue={inputValue}
         />
-      ))}
-      <PaginationWrapper
-        handleInputChange={handleInputChange}
-        handlePageChange={handlePageChange}
-        handleInputSubmit={handleInputSubmit}
-        pageNumber={pageNumber}
-        totalPages={totalPages}
-        inputValue={inputValue}
-      />
-    </Table>
+        <TableHeader role="row">
+          <div>FECHA</div>
+          {energyTags?.map((energyTag) => (
+            <div key={energyTag}>{energyTag}</div>
+          ))}
+          <ButtonArray>
+            <Button onClick={exportToExcel} tooltip="Descargar perfil">
+              <FaDownload />
+            </Button>
+          </ButtonArray>
+        </TableHeader>
+        {measuresArray?.map((measure) => (
+          <MeasureRow
+            measure={measure}
+            key={measuresArray.indexOf(measure)}
+            rowKey={measuresArray.indexOf(measure)}
+            reportData={reportData}
+            onInsertRow={handleInsertRow}
+            handleRowChange={handleRowChange}
+            handleIsEditableRow={handleIsEditableRow}
+            handleModifiedRows={handleModifiedRows}
+            isEditableRow={
+              editableRowKey == measuresArray.indexOf(measure)
+                ? isEditableRow
+                : false
+            }
+            tipoMedicion={tipoMedicion}
+            modifiedRows={modifiedRows}
+            activeRow={editableRowKey}
+          />
+        ))}
+        <PaginationWrapper
+          handleInputChange={handleInputChange}
+          handlePageChange={handlePageChange}
+          handleInputSubmit={handleInputSubmit}
+          pageNumber={pageNumber}
+          totalPages={totalPages}
+          inputValue={inputValue}
+        />
+      </Table>
+      {showModal && (
+        <Modal onClose={handleShowModal}>
+          <Heading as="h2">Validación, cálculo y sustitución de mediciones</Heading>
+          <SubstitutionForm
+            idPuntoMedicion={reportData?.puntoMedicion}
+          ></SubstitutionForm>
+        </Modal>
+      )}
+    </>
   );
 }
 

@@ -30,3 +30,8 @@ export async function getMeasures(params, page) {
   const response = await getData(`/measures?page=${page}`, {}, params);
   return response;
 }
+
+export async function getAgente(idPunto) {
+  const response = await getData(`/agentes/${idPunto}`);
+  return response;
+}

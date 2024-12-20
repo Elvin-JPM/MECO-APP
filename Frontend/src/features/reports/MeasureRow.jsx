@@ -24,17 +24,29 @@ const TableRow = styled.div`
 
 const Column = styled.div.attrs((props) => ({
   contentEditable: props.contentEditable,
-  // activeRow: props.activeRow,
-  // rowKey: props.rowKey,
 }))`
   font-family: "Sono";
   font-weight: 500;
   background-color: ${(props) =>
-    props.contentEditable ? "var(--color-brand-50)" : "transparent"};
-  padding: ${(props) => (props.contentEditable ? "0.6rem" : 0)};
-  border-radius: ${(props) => (props.contentEditable ? "8px" : 0)};
-  /* border: ${(props) =>
-    props.contentEditable ? "2px dotted var(--color-brand-400)" : "none"}; */
+    props.contentEditable
+      ? "var(--color-brand-50)"
+      : Array.isArray(props.modifiedRows) &&
+        props.modifiedRows.includes(props.rowKey) &&
+        props.rowKey !== props.activeRow
+      ? "var(--color-red-100)"
+      : "transparent"};
+  padding: ${(props) =>
+    props.contentEditable ||
+    (Array.isArray(props.modifiedRows) &&
+      props.modifiedRows.includes(props.rowKey))
+      ? "0.6rem"
+      : 0};
+  border-radius: ${(props) =>
+    props.contentEditable ||
+    (Array.isArray(props.modifiedRows) &&
+      props.modifiedRows.includes(props.rowKey))
+      ? "8px"
+      : 0};
   box-shadow: ${(props) =>
     props.contentEditable ? "0 0 3px 1px var(--color-brand-700)" : "none"};
   cursor: ${(props) => (props.contentEditable ? "text" : "default")};
@@ -42,13 +54,7 @@ const Column = styled.div.attrs((props) => ({
     props.contentEditable ? "var(--color-brand-900)" : "inherit"};
   transition: background-color 0.3s ease, box-shadow 0.3s ease,
     padding 0.3s ease;
-  background-color: ${(props) =>
-    Array.isArray(props.modifiedRows) &&
-    props.modifiedRows.includes(props.rowKey) &&
-    props.rowKey !== props.activeRow
-      ? "var(--color-red-100)"
-      : "blue"};
-
+ 
   &:focus {
     outline-color: var(--color-brand-700);
   }

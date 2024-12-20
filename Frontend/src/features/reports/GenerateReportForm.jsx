@@ -88,7 +88,10 @@ function GenerateReportForm({
       tipoMedida: data?.tipoMedida,
       fechaInicial: data?.fechaInicial,
       fechaFinal: data?.fechaFinal,
+      puntoMedicion: Number(data?.puntoMedicion),
     };
+
+    console.log("params: ", queryParams);
 
     handleEnergyTags(data?.tipoMedida);
     handleShowReportTable();
