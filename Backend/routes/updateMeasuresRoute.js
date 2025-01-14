@@ -34,7 +34,8 @@ router.put("/updateMeasures", async (req, res) => {
       UPDATE MCAM_MEDICIONES
       SET
         KWH_DEL_INT = :energia_del_mp,
-        KWH_REC_INT = :energia_rec_mp
+        KWH_REC_INT = :energia_rec_mp,
+        ORIGEN = 'VS'
       WHERE ID_MEDIDOR = :idPrincipal
       AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')
     `;
@@ -42,7 +43,8 @@ router.put("/updateMeasures", async (req, res) => {
       UPDATE MCAM_MEDICIONES
       SET
         KWH_DEL_INT = :energia_del_mr,
-        KWH_REC_INT = :energia_rec_mr
+        KWH_REC_INT = :energia_rec_mr,
+        ORIGEN = 'VS'
       WHERE ID_MEDIDOR = :idRespaldo
       AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')
       `;
@@ -51,7 +53,8 @@ router.put("/updateMeasures", async (req, res) => {
       UPDATE MCAM_MEDICIONES
       SET
         KWH_DEL = :energia_del_mp,
-        KWH_REC = :energia_rec_mp
+        KWH_REC = :energia_rec_mp,
+        ORIGEN = 'VS'
       WHERE ID_MEDIDOR = :idPrincipal
       AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')
     `;
@@ -59,7 +62,8 @@ router.put("/updateMeasures", async (req, res) => {
       UPDATE MCAM_MEDICIONES
       SET
         KWH_DEL = :energia_del_mr,
-        KWH_REC = :energia_rec_mr
+        KWH_REC = :energia_rec_mr,
+        ORIGEN = 'VS'
       WHERE ID_MEDIDOR = :idRespaldo
       AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')`;
       } else if (rowToEdit.tipoMedicion === "energiaReactivaAcumulada") {
@@ -67,7 +71,8 @@ router.put("/updateMeasures", async (req, res) => {
       UPDATE MCAM_MEDICIONES
       SET
         KVARH_DEL = :energia_del_mp,
-        KVARH_REC = :energia_rec_mp
+        KVARH_REC = :energia_rec_mp,
+        ORIGEN = 'VS'
       WHERE ID_MEDIDOR = :idPrincipal
       AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')
     `;
@@ -75,7 +80,8 @@ router.put("/updateMeasures", async (req, res) => {
       UPDATE MCAM_MEDICIONES
       SET
         KVARH_DEL = :energia_del_mr,
-        KVARH_REC = :energia_rec_mr
+        KVARH_REC = :energia_rec_mr,
+        ORIGEN = 'VS'
       WHERE ID_MEDIDOR = :idRespaldo
       AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')`;
       } else {
@@ -83,7 +89,8 @@ router.put("/updateMeasures", async (req, res) => {
       UPDATE MCAM_MEDICIONES
       SET
         KVARH_DEL_INT = :energia_del_mp,
-        KVARH_REC_INT = :energia_rec_mp
+        KVARH_REC_INT = :energia_rec_mp,
+        ORIGEN = 'VS'
       WHERE ID_MEDIDOR = :idPrincipal
       AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')
     `;
@@ -91,7 +98,8 @@ router.put("/updateMeasures", async (req, res) => {
       UPDATE MCAM_MEDICIONES
       SET
         KVARH_DEL_INT = :energia_del_mr,
-        KVARH_REC_INT = :energia_rec_mr
+        KVARH_REC_INT = :energia_rec_mr,
+        ORIGEN = 'VS'
       WHERE ID_MEDIDOR = :idRespaldo
       AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')`;
       }
@@ -148,6 +156,5 @@ router.put("/updateMeasures", async (req, res) => {
     }
   }
 });
-
 
 module.exports = router;

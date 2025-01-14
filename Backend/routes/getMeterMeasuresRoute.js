@@ -62,18 +62,20 @@ router.get("/measures", async (req, res) => {
 
     // Paginated query
     const paginatedQuery = `
-      SELECT FECHA,
+      SELECT FECHA, ORIGEN_MP, ORIGEN_MR,
             KWH_DEL_MP, KWH_REC_MP, KVARH_DEL_MP, KVARH_REC_MP, KWH_DEL_MR, KWH_REC_MR, KVARH_DEL_MR, KVARH_REC_MR,
             KWH_DEL_INT_MP, KWH_REC_INT_MP, KVARH_DEL_INT_MP, KVARH_REC_INT_MP, KWH_DEL_INT_MR, KWH_REC_INT_MR, KVARH_DEL_INT_MR, KVARH_REC_INT_MR
 
       FROM (
         SELECT MP.FECHA,
+               MP.ORIGEN AS ORIGEN_MP, MR.ORIGEN AS ORIGEN_MR,
                MP.KWH_DEL AS KWH_DEL_MP, MP.KWH_REC AS KWH_REC_MP, MP.KVARH_DEL AS KVARH_DEL_MP, MP.KVARH_REC AS KVARH_REC_MP,
                MR.KWH_DEL AS KWH_DEL_MR, MR.KWH_REC AS KWH_REC_MR, MR.KVARH_DEL AS KVARH_DEL_MR, MR.KVARH_REC AS KVARH_REC_MR,
                MP.KWH_DEL_INT AS KWH_DEL_INT_MP, MP.KWH_REC_INT AS KWH_REC_INT_MP, MP.KVARH_DEL_INT AS KVARH_DEL_INT_MP, MP.KVARH_REC_INT AS KVARH_REC_INT_MP,
                MR.KWH_DEL_INT AS KWH_DEL_INT_MR, MR.KWH_REC_INT AS KWH_REC_INT_MR, MR.KVARH_DEL_INT AS KVARH_DEL_INT_MR, MR.KVARH_REC_INT AS KVARH_REC_INT_MR
         FROM (
           SELECT TO_CHAR(FECHA, 'DD-MM-YYYY HH24:MI') AS FECHA,
+          ORIGEN,
           KWH_DEL, KWH_REC, KVARH_DEL, KVARH_REC, KWH_DEL_INT, KWH_REC_INT, KVARH_DEL_INT, KVARH_REC_INT
           FROM MCAM_MEDICIONES
           WHERE ID_MEDIDOR = :medidorPrincipal
@@ -81,6 +83,7 @@ router.get("/measures", async (req, res) => {
         ) MP
         INNER JOIN (
           SELECT TO_CHAR(FECHA, 'DD-MM-YYYY HH24:MI') AS FECHA,
+          ORIGEN,
           KWH_DEL, KWH_REC, KVARH_DEL, KVARH_REC, KWH_DEL_INT, KWH_REC_INT, KVARH_DEL_INT, KVARH_REC_INT
           FROM MCAM_MEDICIONES
           WHERE ID_MEDIDOR = :medidorRespaldo
@@ -102,6 +105,8 @@ router.get("/measures", async (req, res) => {
     const measures = result.rows.map(
       ([
         FECHA,
+        ORIGEN_MP,
+        ORIGEN_MR,
         KWH_DEL_MP,
         KWH_REC_MP,
         KVARH_DEL_MP,
@@ -120,6 +125,8 @@ router.get("/measures", async (req, res) => {
         KVARH_REC_INT_MR,
       ]) => ({
         fecha: FECHA,
+        origen_mp: ORIGEN_MP,
+        origen_mr: ORIGEN_MR,
         kwh_del_mp: KWH_DEL_MP,
         kwh_rec_mp: KWH_REC_MP,
         kvarh_del_mp: KVARH_DEL_MP,

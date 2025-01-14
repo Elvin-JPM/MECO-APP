@@ -41,12 +41,13 @@ const Column = styled.div.attrs((props) => ({
       props.modifiedRows.includes(props.rowKey))
       ? "0.6rem"
       : 0};
-  border-radius: ${(props) =>
+  border-radius: 8px;
+  /* border-radius: ${(props) =>
     props.contentEditable ||
     (Array.isArray(props.modifiedRows) &&
       props.modifiedRows.includes(props.rowKey))
       ? "8px"
-      : 0};
+      : "8px"}; */
   box-shadow: ${(props) =>
     props.contentEditable ? "0 0 3px 1px var(--color-brand-700)" : "none"};
   cursor: ${(props) => (props.contentEditable ? "text" : "default")};
@@ -54,7 +55,7 @@ const Column = styled.div.attrs((props) => ({
     props.contentEditable ? "var(--color-brand-900)" : "inherit"};
   transition: background-color 0.3s ease, box-shadow 0.3s ease,
     padding 0.3s ease;
- 
+
   &:focus {
     outline-color: var(--color-brand-700);
   }
@@ -77,6 +78,8 @@ function MeasureRow({
   const [editableInputs, setEditableInputs] = useState({});
   const {
     fecha,
+    origen_mp,
+    origen_mr,
     kwh_del_mp,
     kwh_rec_mp,
     kwh_del_mr,
@@ -101,6 +104,14 @@ function MeasureRow({
   let energiaDelMrRef = useRef(null);
   let energiaRecMrRef = useRef(null);
 
+  const vsStyle = {
+    //borderBottom: "1px solid #f7fee7",
+    padding: "5px 3px",
+    backgroundColor: "var(--color-grey-200)",
+    color: "var(--color-brand-900)",
+    fontStyle: "italic",
+  };
+
   // Collect values from each ref
   const handleEditableDivInput = (e) => {
     // Check if the event is triggered from a contentEditable element
@@ -123,7 +134,6 @@ function MeasureRow({
         sel.addRange(range);
       }
     }
-
     // Collect values from each ref
     const updatedValues = {
       fecha: fechaRef.current?.innerText,
@@ -153,6 +163,7 @@ function MeasureRow({
 
   const allRows = [{ fecha }, ...additionalRows];
 
+  // Se activa al hacer click en el botton editar fila
   const handleEditRow = (buttonValue) => {
     if (buttonValue === "Cancelar") {
       const mapping = {
@@ -297,6 +308,7 @@ function MeasureRow({
           activeRow={activeRow}
           rowKey={rowKey}
           onInput={handleEditableDivInput}
+          style={origen_mp === "VS" ? vsStyle : {}}
         >
           {tipoMedicion === "energiaActivaAcumulada"
             ? new Intl.NumberFormat("en-US").format(kwh_del_mp)
@@ -313,6 +325,7 @@ function MeasureRow({
           modifiedRows={modifiedRows}
           activeRow={activeRow}
           rowKey={rowKey}
+          style={origen_mp === "VS" ? vsStyle : {}}
         >
           {tipoMedicion === "energiaActivaAcumulada"
             ? new Intl.NumberFormat("en-US").format(kwh_rec_mp)
@@ -329,6 +342,7 @@ function MeasureRow({
           modifiedRows={modifiedRows}
           activeRow={activeRow}
           rowKey={rowKey}
+          style={origen_mr === "VS" ? vsStyle : {}}
         >
           {tipoMedicion === "energiaActivaAcumulada"
             ? new Intl.NumberFormat("en-US").format(kwh_del_mr)
@@ -345,6 +359,7 @@ function MeasureRow({
           modifiedRows={modifiedRows}
           activeRow={activeRow}
           rowKey={rowKey}
+          style={origen_mr === "VS" ? vsStyle : {}}
         >
           {tipoMedicion === "energiaActivaAcumulada"
             ? new Intl.NumberFormat("en-US").format(kwh_rec_mr)

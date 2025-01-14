@@ -62,6 +62,7 @@ function ReportTable({
 
   console.log("Report data at report table: ", reportData);
 
+  // Extrae los datos de energia de la base de datos, con la paginacion adecuada
   const { isLoading: isLoadingMeasures, data: measures } = useQuery({
     queryKey: ["measures", pageNumber, reportData],
     queryFn: () => getMeasures(reportData, pageNumber),
@@ -71,21 +72,11 @@ function ReportTable({
   const measuresArray = measures?.data || [];
   const totalPages = measures?.totalPages || 1;
   console.log(reportData);
+  console.log(measuresArray);
 
-  // useEffect(() => {
-  //   // Sync the local pageNumber state with the prop
-  //   setPageNumber(reportPageNumber);
-  //   setInputValue(reportPageNumber); // Update the input value as well
-  // }, [reportPageNumber]);
-
-  const handleInsertRow = (rowData) => {
-    console.log("Row submitted:", rowData);
+  const handleShowModal = () => {
+    setShowModal((show) => !show);
   };
-
-  const handleShowModal = () =>
-  {
-    setShowModal(show => !show);
-  }
 
   const handleModifiedRows = () => {
     const modifiedRowsList = rowsToEdit.map((item) => item.key);
@@ -190,8 +181,8 @@ function ReportTable({
         {rowsToEdit?.length > 0 ? (
           <Button
             onClick={() => {
+              //onUpdateMeasures();
               setShowModal(true);
-              onUpdateMeasures;
             }}
             tooltip="Guardar cambios"
           >
@@ -223,7 +214,7 @@ function ReportTable({
             key={measuresArray.indexOf(measure)}
             rowKey={measuresArray.indexOf(measure)}
             reportData={reportData}
-            onInsertRow={handleInsertRow}
+            //onInsertRow={handleInsertRow}
             handleRowChange={handleRowChange}
             handleIsEditableRow={handleIsEditableRow}
             handleModifiedRows={handleModifiedRows}
@@ -248,9 +239,14 @@ function ReportTable({
       </Table>
       {showModal && (
         <Modal onClose={handleShowModal}>
-          <Heading as="h2">Validación, cálculo y sustitución de mediciones</Heading>
+          <Heading as="h2">
+            Validación, cálculo y sustitución de mediciones
+          </Heading>
           <SubstitutionForm
             idPuntoMedicion={reportData?.puntoMedicion}
+            onUpdateMeasures={onUpdateMeasures}
+            rowsToEdit={rowsToEdit}
+            handleShowModal = {handleShowModal}
           ></SubstitutionForm>
         </Modal>
       )}

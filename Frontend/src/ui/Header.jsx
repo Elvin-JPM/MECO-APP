@@ -1,7 +1,7 @@
 import styled from "styled-components";
 
 const StyledHeader = styled.header`
-  background-color: (255, 255, 255, 0.7);
+  background-color: (255, 255, 255, 0.2);
   padding: 1.2rem 4.8rem;
   border-bottom: 1px solid var(--color-grey-100);
   backdrop-filter: blur(100px);
