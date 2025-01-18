@@ -78,24 +78,14 @@ function MeasureRow({
   const [editableInputs, setEditableInputs] = useState({});
   const {
     fecha,
-    origen_mp,
-    origen_mr,
-    kwh_del_mp,
-    kwh_rec_mp,
-    kwh_del_mr,
-    kwh_rec_mr,
-    kwh_del_int_mp,
-    kwh_rec_int_mp,
-    kwh_del_int_mr,
-    kwh_rec_int_mr,
-    kvarh_del_mp,
-    kvarh_rec_mp,
-    kvarh_del_mr,
-    kvarh_rec_mr,
-    kvarh_del_int_mp,
-    kvarh_rec_int_mp,
-    kvarh_del_int_mr,
-    kvarh_rec_int_mr,
+    or_del_mp,
+    energia_del_mp,
+    or_rec_mp,
+    energia_rec_mp,
+    or_del_mr,
+    energia_del_mr,
+    or_rec_mr,
+    energia_rec_mr,
   } = measure;
 
   let fechaRef = useRef(null);
@@ -104,15 +94,23 @@ function MeasureRow({
   let energiaDelMrRef = useRef(null);
   let energiaRecMrRef = useRef(null);
 
+  // Refs para guardar el estado inicial de los valores de energia
+  let fixedEnergiaDelMpRef = useRef(null);
+  let fixedEnergiaRecMpRef = useRef(null);
+  let fixedEnergiaDelMrRef = useRef(null);
+  let fixedEnergiaRecMrRef = useRef(null);
+
+  // Estilo de los valores que han sufrido alguna modificacion
   const vsStyle = {
     //borderBottom: "1px solid #f7fee7",
     padding: "5px 3px",
     backgroundColor: "var(--color-grey-200)",
-    color: "var(--color-brand-900)",
+    color: "red",
     fontStyle: "italic",
   };
 
-  // Collect values from each ref
+  // Funcion para actualizar los valores que van cambiando en los inputs cuando son editables
+  // La actualizacion se realiza mediante useRef a cada valor de energia
   const handleEditableDivInput = (e) => {
     // Check if the event is triggered from a contentEditable element
     if (e && e.target && e.target.isContentEditable) {
@@ -137,14 +135,18 @@ function MeasureRow({
     // Collect values from each ref
     const updatedValues = {
       fecha: fechaRef.current?.innerText,
-      energia_del_mp: energiaDelMpRef.current?.innerText,
-      energia_rec_mp: energiaRecMpRef.current?.innerText,
-      energia_del_mr: energiaDelMrRef.current?.innerText,
-      energia_rec_mr: energiaRecMrRef.current?.innerText,
+      energia_del_mp_new: energiaDelMpRef.current?.innerText, // Se convierte a numero para
+      energia_rec_mp_new: energiaRecMpRef.current?.innerText, // poder compararlos con los
+      energia_del_mr_new: energiaDelMrRef.current?.innerText, // valores originales en el backend
+      energia_rec_mr_new: energiaRecMrRef.current?.innerText,
       key: rowKey,
       idPrincipal: reportData.medidorPrincipal,
       idRespaldo: reportData.medidorRespaldo,
       tipoMedicion,
+      energia_del_mp: Number(energia_del_mp).toFixed(4), // Se usan con cuatro cifras decimales
+      energia_rec_mp: Number(energia_rec_mp).toFixed(4), // Ya que en los inputs tambien estan fijados asi
+      energia_del_mr: Number(energia_del_mr).toFixed(4),
+      energia_rec_mr: Number(energia_rec_mr).toFixed(4),
     };
 
     console.log("Updated Values:", updatedValues);
@@ -152,44 +154,44 @@ function MeasureRow({
     // Check if any value has changed and trigger the update function
     if (
       updatedValues.fecha !== fecha ||
-      updatedValues.energia_del_mp !== kwh_del_mp ||
-      updatedValues.energia_rec_mp !== kwh_rec_mp ||
-      updatedValues.energia_del_mr !== kwh_del_mr ||
-      updatedValues.energia_rec_mr !== kwh_rec_mr
+      updatedValues.energia_del_mp !== energia_del_mp ||
+      updatedValues.energia_rec_mp !== energia_rec_mp ||
+      updatedValues.energia_del_mr !== energia_del_mr ||
+      updatedValues.energia_rec_mr !== energia_rec_mr
     ) {
       handleRowChange(updatedValues);
     }
   };
 
-  const allRows = [{ fecha }, ...additionalRows];
+  //const allRows = [{ fecha }, ...additionalRows];
 
   // Se activa al hacer click en el botton editar fila
   const handleEditRow = (buttonValue) => {
     if (buttonValue === "Cancelar") {
       const mapping = {
         energiaActivaIntervalo: {
-          energiaDelMpRef: Intl.NumberFormat("en-US").format(kwh_del_int_mp),
-          energiaRecMpRef: Intl.NumberFormat("en-US").format(kwh_rec_int_mp),
-          energiaDelMrRef: Intl.NumberFormat("en-US").format(kwh_del_int_mr),
-          energiaRecMrRef: Intl.NumberFormat("en-US").format(kwh_rec_int_mr),
+          energiaDelMpRef: Intl.NumberFormat("en-US").format(energia_del_mp),
+          energiaRecMpRef: Intl.NumberFormat("en-US").format(energia_rec_mp),
+          energiaDelMrRef: Intl.NumberFormat("en-US").format(energia_del_mr),
+          energiaRecMrRef: Intl.NumberFormat("en-US").format(energia_del_mr),
         },
         energiaActivaAcumulada: {
-          energiaDelMpRef: Intl.NumberFormat("en-US").format(kwh_del_mp),
-          energiaRecMpRef: Intl.NumberFormat("en-US").format(kwh_rec_mp),
-          energiaDelMrRef: Intl.NumberFormat("en-US").format(kwh_del_mr),
-          energiaRecMrRef: Intl.NumberFormat("en-US").format(kwh_rec_mr),
+          energiaDelMpRef: Intl.NumberFormat("en-US").format(energia_del_mp),
+          energiaRecMpRef: Intl.NumberFormat("en-US").format(energia_rec_mp),
+          energiaDelMrRef: Intl.NumberFormat("en-US").format(energia_del_mr),
+          energiaRecMrRef: Intl.NumberFormat("en-US").format(energia_del_mr),
         },
         energiaReactivaAcumulada: {
-          energiaDelMpRef: Intl.NumberFormat("en-US").format(kvarh_del_mp),
-          energiaRecMpRef: Intl.NumberFormat("en-US").format(kvarh_rec_mp),
-          energiaDelMrRef: Intl.NumberFormat("en-US").format(kvarh_del_mr),
-          energiaRecMrRef: Intl.NumberFormat("en-US").format(kvarh_rec_mr),
+          energiaDelMpRef: Intl.NumberFormat("en-US").format(energia_del_mp),
+          energiaRecMpRef: Intl.NumberFormat("en-US").format(energia_rec_mp),
+          energiaDelMrRef: Intl.NumberFormat("en-US").format(energia_del_mr),
+          energiaRecMrRef: Intl.NumberFormat("en-US").format(energia_del_mr),
         },
         default: {
-          energiaDelMpRef: Intl.NumberFormat("en-US").format(kvarh_del_int_mp),
-          energiaRecMpRef: Intl.NumberFormat("en-US").format(kvarh_rec_int_mp),
-          energiaDelMrRef: Intl.NumberFormat("en-US").format(kvarh_del_int_mr),
-          energiaRecMrRef: Intl.NumberFormat("en-US").format(kvarh_rec_int_mr),
+          energiaDelMpRef: Intl.NumberFormat("en-US").format(energia_del_mp),
+          energiaRecMpRef: Intl.NumberFormat("en-US").format(energia_rec_mp),
+          energiaDelMrRef: Intl.NumberFormat("en-US").format(energia_del_mr),
+          energiaRecMrRef: Intl.NumberFormat("en-US").format(energia_del_mr),
         },
       };
 
@@ -227,6 +229,7 @@ function MeasureRow({
     return oldDate;
   }
 
+  // Funcion para agregar una nueva fila al hacer click en el boton "+"
   function handleAddRow(currentFecha, currentIndex) {
     const allRows = [{ fecha }, ...additionalRows];
     const nextFecha =
@@ -239,12 +242,12 @@ function MeasureRow({
     // Validate the new date
     const existingDates = allRows.map((row) => new Date(row.fecha).getTime());
     if (existingDates.includes(newFecha.getTime())) {
-      alert("A row with this date already exists.");
-      return;
+      console.log("A row with this date already exists.");
+      //return;
     }
     if (nextFecha && newFecha >= nextFecha) {
-      alert("The new row's date must be less than the next row's date.");
-      return;
+      console.log("The new row's date must be less than the next row's date.");
+      //return;
     }
 
     // Insert the new row in the appropriate position
@@ -259,8 +262,11 @@ function MeasureRow({
       },
       ...additionalRows.slice(currentIndex + 1),
     ]);
+
+    console.log(additionalRows);
   }
 
+  // habilita o deshabilita el boton para agreagar una nueva fila, basandose en las fechas
   function canAddRow(currentFecha, currentIndex) {
     const allRows = [{ fecha }, ...additionalRows];
     const nextFecha =
@@ -287,7 +293,7 @@ function MeasureRow({
     setAdditionalRows(updatedRows);
   }
 
-  // Submit row data to the database
+  //Submit row data to the database
   function handleSubmitRow(index) {
     const rowToSubmit = additionalRows[index];
     onInsertRow(rowToSubmit); // Pass row data to parent for database insertion
@@ -299,7 +305,7 @@ function MeasureRow({
       {/* Original row */}
       <TableRow role="row">
         <Column ref={fechaRef} onInput={handleEditableDivInput}>
-          {fecha}
+          {formatDate(fecha)}
         </Column>
         <Column
           ref={energiaDelMpRef}
@@ -308,15 +314,12 @@ function MeasureRow({
           activeRow={activeRow}
           rowKey={rowKey}
           onInput={handleEditableDivInput}
-          style={origen_mp === "VS" ? vsStyle : {}}
+          style={or_del_mp === "VS" ? vsStyle : {}}
         >
-          {tipoMedicion === "energiaActivaAcumulada"
-            ? new Intl.NumberFormat("en-US").format(kwh_del_mp)
-            : tipoMedicion === "energiaActivaIntervalo"
-            ? new Intl.NumberFormat("en-US").format(kwh_del_int_mp)
-            : tipoMedicion === "energiaReactivaAcumulada"
-            ? new Intl.NumberFormat("en-US").format(kvarh_del_mp)
-            : new Intl.NumberFormat("en-US").format(kvarh_del_int_mp)}
+          {new Intl.NumberFormat("en-US", {
+            minimumFractionDigits: 4,
+            maximumFractionDigits: 4,
+          }).format(energia_del_mp)}
         </Column>
         <Column
           ref={energiaRecMpRef}
@@ -325,15 +328,12 @@ function MeasureRow({
           modifiedRows={modifiedRows}
           activeRow={activeRow}
           rowKey={rowKey}
-          style={origen_mp === "VS" ? vsStyle : {}}
+          style={or_rec_mp === "VS" ? vsStyle : {}}
         >
-          {tipoMedicion === "energiaActivaAcumulada"
-            ? new Intl.NumberFormat("en-US").format(kwh_rec_mp)
-            : tipoMedicion === "energiaActivaIntervalo"
-            ? new Intl.NumberFormat("en-US").format(kwh_rec_int_mp)
-            : tipoMedicion === "energiaReactivaAcumulada"
-            ? new Intl.NumberFormat("en-US").format(kvarh_rec_mp)
-            : new Intl.NumberFormat("en-US").format(kvarh_rec_int_mp)}
+          {new Intl.NumberFormat("en-US", {
+            minimumFractionDigits: 4,
+            maximumFractionDigits: 4,
+          }).format(energia_rec_mp)}
         </Column>
         <Column
           ref={energiaDelMrRef}
@@ -342,15 +342,12 @@ function MeasureRow({
           modifiedRows={modifiedRows}
           activeRow={activeRow}
           rowKey={rowKey}
-          style={origen_mr === "VS" ? vsStyle : {}}
+          style={or_del_mr === "VS" ? vsStyle : {}}
         >
-          {tipoMedicion === "energiaActivaAcumulada"
-            ? new Intl.NumberFormat("en-US").format(kwh_del_mr)
-            : tipoMedicion === "energiaActivaIntervalo"
-            ? new Intl.NumberFormat("en-US").format(kwh_del_int_mr)
-            : tipoMedicion === "energiaReactivaAcumulada"
-            ? new Intl.NumberFormat("en-US").format(kvarh_del_mr)
-            : new Intl.NumberFormat("en-US").format(kvarh_del_int_mr)}
+          {new Intl.NumberFormat("en-US", {
+            minimumFractionDigits: 4,
+            maximumFractionDigits: 4,
+          }).format(energia_del_mr)}
         </Column>
         <Column
           ref={energiaRecMrRef}
@@ -359,15 +356,12 @@ function MeasureRow({
           modifiedRows={modifiedRows}
           activeRow={activeRow}
           rowKey={rowKey}
-          style={origen_mr === "VS" ? vsStyle : {}}
+          style={or_rec_mr === "VS" ? vsStyle : {}}
         >
-          {tipoMedicion === "energiaActivaAcumulada"
-            ? new Intl.NumberFormat("en-US").format(kwh_rec_mr)
-            : tipoMedicion === "energiaActivaIntervalo"
-            ? new Intl.NumberFormat("en-US").format(kwh_rec_int_mr)
-            : tipoMedicion === "energiaReactivaAcumulada"
-            ? new Intl.NumberFormat("en-US").format(kvarh_rec_mr)
-            : new Intl.NumberFormat("en-US").format(kvarh_rec_int_mr)}
+          {new Intl.NumberFormat("en-US", {
+            minimumFractionDigits: 4,
+            maximumFractionDigits: 4,
+          }).format(energia_rec_mr)}
         </Column>
         <Column>
           <ButtonArray>
@@ -375,7 +369,7 @@ function MeasureRow({
               onClick={() => handleAddRow(fecha, -1)}
               variation="secondary"
               size="small"
-              disabled={!canAddRow(fecha, -1)}
+              //disabled={!canAddRow(fecha, -1)}
               tooltip="Agregar fila"
             >
               <FaPlus />
@@ -420,7 +414,7 @@ function MeasureRow({
           <Column>
             <Input
               type="number"
-              value={row.kwh_rec_mr}
+              value={row.kwh_rec_mp}
               onChange={(e) =>
                 handleInputChange(index, "kwh_rec_mp", e.target.value)
               }
@@ -449,7 +443,7 @@ function MeasureRow({
               onClick={() => handleAddRow(row.fecha, index)}
               variation="secondary"
               size="small"
-              disabled={!canAddRow(row.fecha, index)}
+              //disabled={!canAddRow(row.fecha, index)}
             >
               <FaPlus />
             </Button>

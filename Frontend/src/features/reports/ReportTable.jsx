@@ -72,7 +72,7 @@ function ReportTable({
   const measuresArray = measures?.data || [];
   const totalPages = measures?.totalPages || 1;
   console.log(reportData);
-  console.log(measuresArray);
+  console.log("Datos extraidos: ",measuresArray);
 
   const handleShowModal = () => {
     setShowModal((show) => !show);
@@ -150,10 +150,10 @@ function ReportTable({
     const worksheet = XLSX.utils.json_to_sheet(
       measuresArray?.map((measure) => ({
         Fecha: measure.fecha,
-        EAG_MP: measure.EAG_MP,
-        EAC_MP: measure.EAC_MP,
-        EAG_MR: measure.EAG_MR,
-        EAC_MR: measure.EAC_MR,
+        EAG_MP: measure.energia_del_mp,
+        EAC_MP: measure.energia_rec_mp,
+        EAG_MR: measure.energia_del_mr,
+        EAC_MR: measure.energia_rec_mr,
       }))
     );
 

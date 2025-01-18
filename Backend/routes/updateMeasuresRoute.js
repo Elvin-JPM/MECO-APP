@@ -16,100 +16,106 @@ router.put("/updateMeasures", async (req, res) => {
     // Use a for...of loop for async/await
     for (const rowToEdit of rowsToEdit) {
       // Preprocess numeric values to remove commas
-      const energia_del_mp = parseFloat(
-        rowToEdit.energia_del_mp.replace(/,/g, "")
+      const energia_del_mp_new = parseFloat(
+        rowToEdit.energia_del_mp_new.replace(/,/g, "")
       );
-      const energia_rec_mp = parseFloat(
-        rowToEdit.energia_rec_mp.replace(/,/g, "")
+      const energia_rec_mp_new = parseFloat(
+        rowToEdit.energia_rec_mp_new.replace(/,/g, "")
       );
-      const energia_del_mr = parseFloat(
-        rowToEdit.energia_del_mr.replace(/,/g, "")
+      const energia_del_mr_new = parseFloat(
+        rowToEdit.energia_del_mr_new.replace(/,/g, "")
       );
-      const energia_rec_mr = parseFloat(
-        rowToEdit.energia_rec_mr.replace(/,/g, "")
+      const energia_rec_mr_new = parseFloat(
+        rowToEdit.energia_rec_mr_new.replace(/,/g, "")
       );
 
-      if (rowToEdit.tipoMedicion === "energiaActivaIntervalo") {
-        queryPrincipal = `
-      UPDATE MCAM_MEDICIONES
-      SET
-        KWH_DEL_INT = :energia_del_mp,
-        KWH_REC_INT = :energia_rec_mp,
-        ORIGEN = 'VS'
-      WHERE ID_MEDIDOR = :idPrincipal
-      AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')
-    `;
-        queryRespaldo = `
-      UPDATE MCAM_MEDICIONES
-      SET
-        KWH_DEL_INT = :energia_del_mr,
-        KWH_REC_INT = :energia_rec_mr,
-        ORIGEN = 'VS'
-      WHERE ID_MEDIDOR = :idRespaldo
-      AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')
-      `;
-      } else if (rowToEdit.tipoMedicion === "energiaActivaAcumulada") {
-        queryPrincipal = `
-      UPDATE MCAM_MEDICIONES
-      SET
-        KWH_DEL = :energia_del_mp,
-        KWH_REC = :energia_rec_mp,
-        ORIGEN = 'VS'
-      WHERE ID_MEDIDOR = :idPrincipal
-      AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')
-    `;
-        queryRespaldo = `
-      UPDATE MCAM_MEDICIONES
-      SET
-        KWH_DEL = :energia_del_mr,
-        KWH_REC = :energia_rec_mr,
-        ORIGEN = 'VS'
-      WHERE ID_MEDIDOR = :idRespaldo
-      AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')`;
+      console.log("Datos nuevos sin coma: ");
+      console.log(energia_del_mp_new);
+      console.log(energia_rec_mp_new);
+      console.log(energia_rec_mr_new);
+      console.log(energia_del_mr_new);
+
+      let energiaGenerada = "";
+      let energiaConsumida = "";
+
+      if (rowToEdit.tipoMedicion === "energiaActivaAcumulada") {
+        energiaGenerada = "KWH_DEL";
+        energiaConsumida = "KWH_REC";
       } else if (rowToEdit.tipoMedicion === "energiaReactivaAcumulada") {
-        queryPrincipal = `
-      UPDATE MCAM_MEDICIONES
-      SET
-        KVARH_DEL = :energia_del_mp,
-        KVARH_REC = :energia_rec_mp,
-        ORIGEN = 'VS'
-      WHERE ID_MEDIDOR = :idPrincipal
-      AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')
-    `;
-        queryRespaldo = `
-      UPDATE MCAM_MEDICIONES
-      SET
-        KVARH_DEL = :energia_del_mr,
-        KVARH_REC = :energia_rec_mr,
-        ORIGEN = 'VS'
-      WHERE ID_MEDIDOR = :idRespaldo
-      AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')`;
+        energiaGenerada = "KVARH_DEL";
+        energiaConsumida = "KVARH_REC";
+      } else if (rowToEdit.tipoMedicion === "energiaActivaIntervalo") {
+        energiaGenerada = "KWH_DEL_INT";
+        energiaConsumida = "KWH_REC_INT";
       } else {
-        queryPrincipal = `
-      UPDATE MCAM_MEDICIONES
-      SET
-        KVARH_DEL_INT = :energia_del_mp,
-        KVARH_REC_INT = :energia_rec_mp,
-        ORIGEN = 'VS'
-      WHERE ID_MEDIDOR = :idPrincipal
-      AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')
-    `;
-        queryRespaldo = `
-      UPDATE MCAM_MEDICIONES
-      SET
-        KVARH_DEL_INT = :energia_del_mr,
-        KVARH_REC_INT = :energia_rec_mr,
-        ORIGEN = 'VS'
-      WHERE ID_MEDIDOR = :idRespaldo
-      AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI')`;
+        energiaGenerada = "KVARH_DEL_INT";
+        energiaConsumida = "KVARH_REC_INT";
       }
+
+      let queryPrincipal = `
+        BEGIN
+          UPDATE MCAM_MEDICIONES
+          SET
+            DATO_ENERGIA = :energia_del_mp_new
+            ${
+              parseFloat(rowToEdit.energia_del_mp) !== energia_del_mp_new
+                ? ", ORIGEN = 'VS'"
+                : ""
+            }
+          WHERE ID_MEDIDOR = :idPrincipal
+          AND TIPO_ENERGIA = :energiaGenerada
+          AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI');
+
+          UPDATE MCAM_MEDICIONES
+          SET
+            DATO_ENERGIA = :energia_rec_mp_new
+            ${
+              parseFloat(rowToEdit.energia_rec_mp) !== energia_rec_mp_new
+                ? ", ORIGEN = 'VS'"
+                : ""
+            }
+          WHERE ID_MEDIDOR = :idPrincipal
+          AND TIPO_ENERGIA = :energiaConsumida
+          AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI');
+        END;
+      `;
+
+      let queryRespaldo = `
+          BEGIN
+            UPDATE MCAM_MEDICIONES
+            SET
+              DATO_ENERGIA = :energia_del_mr_new
+              ${
+                parseFloat(rowToEdit.energia_del_mr) !== energia_del_mr_new
+                  ? ", ORIGEN = 'VS'"
+                  : ""
+              }
+            WHERE ID_MEDIDOR = :idRespaldo
+            AND TIPO_ENERGIA = :energiaGenerada
+            AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI');
+
+            UPDATE MCAM_MEDICIONES
+            SET
+              DATO_ENERGIA = :energia_rec_mr_new
+              ${
+                parseFloat(rowToEdit.energia_rec_mr) !== energia_rec_mr_new
+                  ? ", ORIGEN = 'VS'"
+                  : ""
+              }
+            WHERE ID_MEDIDOR = :idRespaldo
+            AND TIPO_ENERGIA = :energiaConsumida
+            AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI');
+          END;
+        `;
 
       // Update the principal record
       await connection.execute(
         queryPrincipal,
         {
-          energia_del_mp,
-          energia_rec_mp,
+          energia_del_mp_new,
+          energia_rec_mp_new,
+          energiaGenerada,
+          energiaConsumida,
           idPrincipal: rowToEdit.idPrincipal,
           fecha: rowToEdit.fecha,
         },
@@ -120,8 +126,10 @@ router.put("/updateMeasures", async (req, res) => {
       await connection.execute(
         queryRespaldo,
         {
-          energia_del_mr,
-          energia_rec_mr,
+          energia_del_mr_new,
+          energia_rec_mr_new,
+          energiaGenerada,
+          energiaConsumida,
           idRespaldo: rowToEdit.idRespaldo,
           fecha: rowToEdit.fecha,
         },

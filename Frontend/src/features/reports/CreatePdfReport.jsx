@@ -3,14 +3,12 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import { formatDate } from "../../utils/dateFunctions";
 
-function CreatePdfReport({ formData }) {
+function CreatePdfReport({ formData, rowsToEdit }) {
   const [pdfUrl, setPdfUrl] = useState(null);
-
 
   console.log("Form data received at pdf: ", formData);
 
   useEffect(() => {
-
     const getFormattedDate = () => {
       const today = new Date();
       const day = String(today.getDate()).padStart(2, "0"); // Ensures 2 digits
@@ -23,7 +21,11 @@ function CreatePdfReport({ formData }) {
     const formattedDate = getFormattedDate();
 
     const generatePdf = async () => {
-      const doc = new jsPDF();
+      const doc = new jsPDF({
+        unit: "mm",
+        format: "a4",
+        orientation: "portrait",
+      });
       const pageWidth = doc.internal.pageSize.width;
       const maxWidth = 140;
 
@@ -123,8 +125,6 @@ function CreatePdfReport({ formData }) {
           y += textHeight + 5;
         });
 
-        doc.setFontSize(8);
-
         const headers = [
           [
             { content: "FECHA", rowSpan: 2 },
@@ -134,45 +134,45 @@ function CreatePdfReport({ formData }) {
             { content: "MEDIDOR RESPALDO", colSpan: 2 },
           ],
           [
-            { content: "kWh del" },
-            { content: "kWh rec" },
-            { content: "kWh del" },
-            { content: "kWh rec" },
-            { content: "kWh del" },
-            { content: "kWh rec" },
-            { content: "kWh del" },
-            { content: "kWh rec" },
+            { content: "kWh del int" },
+            { content: "kWh rec int" },
+            { content: "kWh del int" },
+            { content: "kWh rec int" },
+            { content: "kWh del int" },
+            { content: "kWh rec int" },
+            { content: "kWh del int" },
+            { content: "kWh rec int" },
           ],
         ];
 
-        // Define table data
-        const data = [
-          [
-            "06/12/2024 14:30",
-            "5,569,370.00",
-            "289,194.13",
-            "5,566,106.50",
-            "289,178.25",
-            "5,569,370.00",
-            "290,211.97",
-            "5,566,106.50",
-            "290,196.19",
-          ],
-          [
-            "06/12/2024 14:45",
-            "REGISTRO PERDIDO",
-            "REGISTRO PERDIDO",
-            "REGISTRO PERDIDO",
-            "REGISTRO PERDIDO",
-            "5,569,370.00",
-            "290,211.97",
-            "5,566,106.50",
-            "290,196.19",
-          ],
-          // Add more rows here...
-        ];
+        let data = [];
+        for (const row of rowsToEdit) {
+          data.push([
+            row.fecha,
+            row.energia_del_mp,
+            row.energia_rec_mp,
+            row.energia_del_mr,
+            row.energia_rec_mr,
+            row.energia_del_mp_new,
+            row.energia_rec_mp_new,
+            row.energia_del_mr_new,
+            row.energia_rec_mr_new,
+          ]);
+        }
 
+        console.log("Data for the subs table: ", data);
+
+        y += 3;
+        doc.setFontSize(9);
+        doc.setFont("times", "bold");
+        doc.setFillColor(95, 208, 223);
+        doc.rect(41, y - 4, rectWidth + 6.3, 4, "F");
+        doc.rect(41 + rectWidth + 6.7, y - 4, rectWidth + 8.3, 4, "F");
+        doc.text("VALORES ORIGINALES", 61, y - 1);
+        doc.text("VALORES SUSTITUCIÓN", 138, y - 1);
         // Create the table
+
+        doc.setFontSize(8);
         doc.autoTable({
           head: headers,
           body: data,
@@ -184,12 +184,23 @@ function CreatePdfReport({ formData }) {
             valign: "middle",
           },
           headStyles: {
-            fillColor: [1, 1, 1], // Header background color
-            textColor: 255, // Header text color
-            fontStyle: "nomal",
+            fillColor: [241, 245, 249], // Header background color as RGB array
+            textColor: 0, // Header text color (black)
+            fontStyle: "normal",
           },
           alternateRowStyles: {
-            fillColor: [240, 240, 240], // Alternate row background color
+            fillColor: [240, 240, 240], // Alternate row background color as RGB array
+          },
+          didParseCell: (cellData) => {
+            const { row, column, cell, section } = cellData;
+
+            // Apply styles only to the body section (exclude header)
+            if (section === "body") {
+              const redTextColumns = [1, 2, 3, 4]; // 0-based column indices for red text
+              if (redTextColumns.includes(column.index)) {
+                cell.styles.textColor = [255, 0, 0]; // Set text color to red
+              }
+            }
           },
         });
 

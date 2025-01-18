@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { css } from "styled-components";
 
 const StyledFormRow = styled.div`
   display: grid;
@@ -25,10 +26,30 @@ const StyledFormRow = styled.div`
     justify-content: flex-end;
     gap: 1.2rem;
   }
+
+  ${(props) =>
+    props.type === "login" &&
+    css`
+      display: flex;
+      flex-direction: column;
+      justify-content: left;
+      align-items: left;
+      gap: 0.2rem;
+      width: 100%;
+      &:not(:last-child) {
+        border-bottom: none;
+      }
+    `}
 `;
 
 const Label = styled.label`
   font-weight: 500;
+  ${(props) =>
+    props.type === "login" &&
+    css`
+      width: 80%;
+      color: var(--color-grey-0)
+    `}
 `;
 
 const Error = styled.span`
@@ -36,10 +57,16 @@ const Error = styled.span`
   color: var(--color-red-700);
 `;
 
-function FormRow({ label, error, children }) {
+function FormRow({ label, error, type, children }) {
+  console.log(type);
   return (
-    <StyledFormRow>
-      {label && <Label htmlFor={children.props.id}> {label} </Label>}
+    <StyledFormRow type={type}>
+      {label && (
+        <Label type={type && "login"} htmlFor={children.props.id}>
+          {" "}
+          {label}{" "}
+        </Label>
+      )}
       {children}
       {error && <Error>{error}</Error>}
     </StyledFormRow>

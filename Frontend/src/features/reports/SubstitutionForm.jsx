@@ -10,11 +10,18 @@ import Textarea from "../../ui/Textarea";
 import Spinner from "../../ui/Spinner";
 import CreatePdfReport from "./CreatePdfReport";
 
-function SubstitutionForm({ idPuntoMedicion, onUpdateMeasures, rowsToEdit, handleShowModal }) {
+function SubstitutionForm({
+  idPuntoMedicion,
+  onUpdateMeasures,
+  rowsToEdit,
+  handleShowModal,
+}) {
   const [formData, setFormData] = useState(null);
   const [showPdfReport, setShowPdfReport] = useState(false);
   const { register, handleSubmit, formState, setValue } = useForm();
   const { errors } = formState;
+
+  console.log("Rows to edit on Substitution form: ", rowsToEdit);
 
   const { data: agenteData, isLoading: isLoadingAgente } = useQuery({
     queryKey: ["agente", idPuntoMedicion],
@@ -54,7 +61,7 @@ function SubstitutionForm({ idPuntoMedicion, onUpdateMeasures, rowsToEdit, handl
   function onSubmit(data) {
     console.log(data);
     setFormData(data);
-    setShowPdfReport(c => !c);
+    setShowPdfReport((c) => !c);
   }
 
   if (isLoadingAgente) return <Spinner />;
@@ -207,12 +214,16 @@ function SubstitutionForm({ idPuntoMedicion, onUpdateMeasures, rowsToEdit, handl
       </Form>
       {showPdfReport && (
         <div>
-          <CreatePdfReport formData={formData} />
-          <Button type="button" onClick={() =>
-          {
-            onUpdateMeasures();
-            handleShowModal();
-          }}>Guardar datos</Button>
+          <CreatePdfReport formData={formData} rowsToEdit={rowsToEdit} />
+          <Button
+            type="button"
+            onClick={() => {
+              onUpdateMeasures();
+              handleShowModal();
+            }}
+          >
+            Guardar datos
+          </Button>
         </div>
       )}
     </>
