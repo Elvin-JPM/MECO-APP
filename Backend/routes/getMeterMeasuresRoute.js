@@ -40,6 +40,12 @@ router.get("/measures", async (req, res) => {
     const fechaInicialFormatted = fechaInicial.replace("T", " ").slice(0, 16);
     const fechaFinalFormatted = fechaFinal.replace("T", " ").slice(0, 16);
 
+    console.log(
+      "Fechas formateadas: ",
+      fechaInicialFormatted,
+      fechaFinalFormatted
+    );
+
     // Input validation
     if (
       !medidorPrincipal ||
@@ -152,7 +158,7 @@ router.get("/measures", async (req, res) => {
               (SELECT FECHA, ORIGEN AS OR_DEL_MP, DATO_ENERGIA AS ENERGIA_DEL_MP 
               FROM MCAM_MEDICIONES
               WHERE ID_MEDIDOR = :medidorPrincipal
-              AND FECHA BETWEEN TO_DATE(:fechaInicial, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinal, 'YYYY-MM-DD HH24:MI')
+              AND FECHA BETWEEN TO_DATE(:fechaInicialFormatted, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinalFormatted, 'YYYY-MM-DD HH24:MI')
               AND TIPO_ENERGIA = :energiaGenerada) EG_MP
 
               INNER JOIN
@@ -160,7 +166,7 @@ router.get("/measures", async (req, res) => {
               (SELECT FECHA, ORIGEN AS OR_REC_MP, DATO_ENERGIA AS ENERGIA_REC_MP 
               FROM MCAM_MEDICIONES
               WHERE ID_MEDIDOR = :medidorPrincipal
-              AND FECHA BETWEEN TO_DATE(:fechaInicial, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinal, 'YYYY-MM-DD HH24:MI')
+              AND FECHA BETWEEN TO_DATE(:fechaInicialFormatted, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinalFormatted, 'YYYY-MM-DD HH24:MI')
               AND TIPO_ENERGIA = :energiaConsumida) EC_MP
 
               ON EG_MP.FECHA = EC_MP.FECHA
@@ -170,7 +176,7 @@ router.get("/measures", async (req, res) => {
               (SELECT FECHA, ORIGEN AS OR_DEL_MR, DATO_ENERGIA AS ENERGIA_DEL_MR 
               FROM MCAM_MEDICIONES
               WHERE ID_MEDIDOR = :medidorRespaldo
-              AND FECHA BETWEEN TO_DATE(:fechaInicial, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinal, 'YYYY-MM-DD HH24:MI')
+              AND FECHA BETWEEN TO_DATE(:fechaInicialFormatted, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinalFormatted, 'YYYY-MM-DD HH24:MI')
               AND TIPO_ENERGIA = :energiaGenerada) EG_MR
 
               ON EG_MP.FECHA = EG_MR.FECHA
@@ -180,7 +186,7 @@ router.get("/measures", async (req, res) => {
               (SELECT FECHA, ORIGEN AS OR_REC_MR, DATO_ENERGIA AS ENERGIA_REC_MR 
               FROM MCAM_MEDICIONES
               WHERE ID_MEDIDOR = :medidorRespaldo
-              AND FECHA BETWEEN TO_DATE(:fechaInicial, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinal, 'YYYY-MM-DD HH24:MI')
+              AND FECHA BETWEEN TO_DATE(:fechaInicialFormatted, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinalFormatted, 'YYYY-MM-DD HH24:MI')
               AND TIPO_ENERGIA = :energiaConsumida) EC_MR
 
               ON EG_MP.FECHA = EC_MR.FECHA
@@ -190,8 +196,8 @@ router.get("/measures", async (req, res) => {
     const result = await connection.execute(paginatedQuery, {
       medidorPrincipal,
       medidorRespaldo,
-      fechaInicial: fechaInicialFormatted,
-      fechaFinal: fechaFinalFormatted,
+      fechaInicialFormatted: fechaInicialFormatted,
+      fechaFinalFormatted: fechaFinalFormatted,
       energiaGenerada,
       energiaConsumida,
       offset,

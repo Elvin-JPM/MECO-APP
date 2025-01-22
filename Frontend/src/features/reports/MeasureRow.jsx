@@ -94,19 +94,19 @@ function MeasureRow({
   let energiaDelMrRef = useRef(null);
   let energiaRecMrRef = useRef(null);
 
-  // Refs para guardar el estado inicial de los valores de energia
-  let fixedEnergiaDelMpRef = useRef(null);
-  let fixedEnergiaRecMpRef = useRef(null);
-  let fixedEnergiaDelMrRef = useRef(null);
-  let fixedEnergiaRecMrRef = useRef(null);
-
-  // Estilo de los valores que han sufrido alguna modificacion
-  const vsStyle = {
-    //borderBottom: "1px solid #f7fee7",
+  // Estilo de los valores que han sido insertados por el sistema, pero que aun no han sido editados por el usuario
+  const viStyle = {
     padding: "5px 3px",
-    backgroundColor: "var(--color-grey-200)",
-    color: "red",
+    backgroundColor: "var(--color-red-50)",
+    color: "var(--color-red-600)",
     fontStyle: "italic",
+  };
+
+  // Estilo de los valores que han sido insertados por el sistema, pero que aun no han sido editados por el usuario
+  const vsStyle = {
+    padding: "4px 1px",
+    backgroundColor: "var(--color-green-100)",
+    color: "var(--color-green-700)",
   };
 
   // Funcion para actualizar los valores que van cambiando en los inputs cuando son editables
@@ -314,7 +314,9 @@ function MeasureRow({
           activeRow={activeRow}
           rowKey={rowKey}
           onInput={handleEditableDivInput}
-          style={or_del_mp === "VS" ? vsStyle : {}}
+          style={
+            or_del_mp === "VS" ? vsStyle : or_del_mp === "VI" ? viStyle : {}
+          }
         >
           {new Intl.NumberFormat("en-US", {
             minimumFractionDigits: 4,
@@ -328,7 +330,9 @@ function MeasureRow({
           modifiedRows={modifiedRows}
           activeRow={activeRow}
           rowKey={rowKey}
-          style={or_rec_mp === "VS" ? vsStyle : {}}
+          style={
+            or_rec_mp === "VS" ? vsStyle : or_rec_mp === "VI" ? viStyle : {}
+          }
         >
           {new Intl.NumberFormat("en-US", {
             minimumFractionDigits: 4,
@@ -342,7 +346,9 @@ function MeasureRow({
           modifiedRows={modifiedRows}
           activeRow={activeRow}
           rowKey={rowKey}
-          style={or_del_mr === "VS" ? vsStyle : {}}
+          style={
+            or_del_mr === "VS" ? vsStyle : or_del_mr === "VI" ? viStyle : {}
+          }
         >
           {new Intl.NumberFormat("en-US", {
             minimumFractionDigits: 4,
@@ -356,7 +362,9 @@ function MeasureRow({
           modifiedRows={modifiedRows}
           activeRow={activeRow}
           rowKey={rowKey}
-          style={or_rec_mr === "VS" ? vsStyle : {}}
+          style={
+            or_rec_mr === "VS" ? vsStyle : or_rec_mr === "VI" ? viStyle : {}
+          }
         >
           {new Intl.NumberFormat("en-US", {
             minimumFractionDigits: 4,

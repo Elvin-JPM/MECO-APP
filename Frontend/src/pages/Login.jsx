@@ -45,8 +45,8 @@ const StyledLogin = styled.div`
   height: 100vh;
   overflow: hidden;
   position: relative;
-  /* background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%); */
-  background: radial-gradient(ellipse at bottom, var(--color-grey-0) 0%, var(--color-grey-300) 35%, var(--color-grey-500) 100%);
+  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+  /* background: radial-gradient(ellipse at bottom, var(--color-grey-0) 0%, var(--color-grey-300) 35%, var(--color-grey-500) 100%); */
 
   #stars {
     position: absolute;
@@ -134,7 +134,7 @@ function Login() {
       <div id="stars3"></div>
       <Form type={"login"}>
         <Logo />
-        <Heading>APP MEDICION COMERCIAL</Heading>
+        <Heading>MEDICIÓN COMERCIAL</Heading>
 
         <FormRow label={"Nombre de Usuario"} type={"login"}>
           <Input

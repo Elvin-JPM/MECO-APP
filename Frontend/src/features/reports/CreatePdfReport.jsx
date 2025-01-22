@@ -3,7 +3,7 @@ import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import { formatDate } from "../../utils/dateFunctions";
 
-function CreatePdfReport({ formData, rowsToEdit }) {
+function CreatePdfReport({ formData, rowsToEdit, getPdfFile }) {
   const [pdfUrl, setPdfUrl] = useState(null);
 
   console.log("Form data received at pdf: ", formData);
@@ -205,6 +205,8 @@ function CreatePdfReport({ formData, rowsToEdit }) {
         });
 
         const pdfBlob = doc.output("blob");
+        console.log("pdf file at create pdfReport: ", pdfBlob);
+        getPdfFile(pdfBlob);
         const url = URL.createObjectURL(pdfBlob);
         setPdfUrl(url);
       };

@@ -9,6 +9,7 @@ import { getAgente } from "../../services/getRequests";
 import Textarea from "../../ui/Textarea";
 import Spinner from "../../ui/Spinner";
 import CreatePdfReport from "./CreatePdfReport";
+import useCreateSubstitutionReport from "./useCreateSubstitutionReport";
 
 function SubstitutionForm({
   idPuntoMedicion,
@@ -16,6 +17,10 @@ function SubstitutionForm({
   rowsToEdit,
   handleShowModal,
 }) {
+  const { iscreating, createSubstitutionReport } =
+    useCreateSubstitutionReport();
+  const [pdfFile, setPdfFile] = useState(null);
+
   const [formData, setFormData] = useState(null);
   const [showPdfReport, setShowPdfReport] = useState(false);
   const { register, handleSubmit, formState, setValue } = useForm();
@@ -34,6 +39,10 @@ function SubstitutionForm({
   today.setHours(0, 0, 0, 0);
   const yesterday = new Date(today);
   yesterday.setDate(today.getDate() - 1);
+
+  function getPdfFile(pdfReport) {
+    setPdfFile(pdfReport);
+  }
 
   const formatDateForInput = (date) => {
     const year = date.getFullYear();
@@ -62,6 +71,22 @@ function SubstitutionForm({
     console.log(data);
     setFormData(data);
     setShowPdfReport((c) => !c);
+  }
+
+  function saveReportData() {
+    const formDataBackend = new FormData();
+    formDataBackend.append("file", pdfFile, "generated.pdf");
+    Object.entries(formData).forEach(([key, value]) => {
+      formDataBackend.append(key, value); // Add form data
+    });
+
+    console.log("saveReportData: ");
+    // Log all entries in the FormData
+    for (let [key, value] of formDataBackend.entries()) {
+      console.log(`${key}:`, value);
+    }
+
+    createSubstitutionReport(formDataBackend);
   }
 
   if (isLoadingAgente) return <Spinner />;
@@ -214,11 +239,16 @@ function SubstitutionForm({
       </Form>
       {showPdfReport && (
         <div>
-          <CreatePdfReport formData={formData} rowsToEdit={rowsToEdit} />
+          <CreatePdfReport
+            formData={formData}
+            rowsToEdit={rowsToEdit}
+            getPdfFile={getPdfFile}
+          />
           <Button
             type="button"
             onClick={() => {
               onUpdateMeasures();
+              saveReportData();
               handleShowModal();
             }}
           >

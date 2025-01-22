@@ -21,7 +21,7 @@ function AppLayout() {
   return (
     <StyledAppLayout>
       <Header>
-        <Heading>VALIDACIONES Y SUSTITUCIONES</Heading>
+        <Heading>MEDICIÓN COMERCIAL</Heading>
       </Header>
       <Sidebar />
       <Main>

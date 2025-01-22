@@ -58,7 +58,6 @@ const Error = styled.span`
 `;
 
 function FormRow({ label, error, type, children }) {
-  console.log(type);
   return (
     <StyledFormRow type={type}>
       {label && (

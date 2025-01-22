@@ -7,7 +7,7 @@ const Form = styled.form`
       padding: 2.4rem 4rem;
 
       /* Box */
-      background-color: var(--color-grey-200);
+      background-color: var(--color-grey-0);
       border: 1px solid var(--color-grey-100);
       border-radius: var(--border-radius-md);
     `}
@@ -29,7 +29,7 @@ const Form = styled.form`
         var(--color-grey-0),
         var(--color-grey-400)
       ); */
-      background-color: rgba(32, 32, 32, 0.9);
+      background-color: transparent;
       border: 1px solid var(--color-grey-200);
       border-radius: var(--border-radius-lg);
       box-shadow: 2px 2px 1px 1px var(--color-grey-500);

@@ -17,6 +17,9 @@ const updateMeasuresRoute = require("./routes/updateMeasuresRoute");
 
 const insertNewMeterRoute = require("./routes/insertNewMeterRoute");
 const createUserRoute = require("./routes/createUserRoute");
+const createSubstitutionReport = require("./routes/createSubstitutionReport");
+
+const loginRoute = require("./routes/loginRoute");
 
 require("dotenv").config();
 
@@ -53,14 +56,18 @@ app.use("/api", getSubstationsRoute);
 app.use("/api", getPowerPlantsRoute);
 app.use("/api", getPlantsAndSubstationsRoute);
 app.use("/api", getMetersModelsRoute);
-app.use("/api", insertNewMeterRoute);
 app.use("/api", getMeterRoute);
 app.use("/api", getIntegratedMetersRoute);
 app.use("/api", getMeterMesasuresRoute);
 app.use("/api", getAgenteRoute);
 app.use("/api", updateMeasuresRoute);
 app.use("/api", updateMeterRoute);
+
 app.use("/api", createUserRoute);
+app.use("/api", insertNewMeterRoute);
+app.use("/api", createSubstitutionReport);
+
+app.use("/api", loginRoute);
 
 // Start the server
 (async () => {
