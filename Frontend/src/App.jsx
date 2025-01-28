@@ -15,6 +15,9 @@ import Settings from "./pages/Settings";
 import Locations from "./pages/Locations";
 import { Toaster } from "react-hot-toast";
 import Reports from "./pages/Reports";
+import Authentication from "./features/authentication/Authentication";
+import { RequireAuth } from "./features/authentication/RequireAuth";
+import { UserProvider } from "./features/authentication/UserProvider";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,7 +34,15 @@ function App() {
       <GlobalStyles />
       <BrowserRouter>
         <Routes>
-          <Route element={<AppLayout />}>
+          <Route
+            element={
+              <UserProvider>
+                <RequireAuth>
+                  <AppLayout />
+                </RequireAuth>
+              </UserProvider>
+            }
+          >
             <Route index element={<Navigate replace to="dashboard" />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="meters" element={<Meters />} />
@@ -42,7 +53,7 @@ function App() {
           </Route>
           <Route path="locations" element={<Locations />} />
 
-          <Route path="login" element={<Login />} />
+          <Route path="login" element={<Authentication />} />
           <Route path="signup" element={<SignUp />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
@@ -63,6 +74,7 @@ function App() {
             maxWidth: "500px",
             padding: "16px 24px",
             backgroundColor: "var(--color-grey-0)",
+            border: "1px solid var(--color-institucional-celeste)",
             color: "var(--color-grey-700)",
           },
         }}

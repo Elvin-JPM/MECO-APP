@@ -19,11 +19,12 @@ const animatedText = keyframes`
 
 const StyledHeading = styled.h1`
   /* color: var(--color-brand-900); */
+  text-align: center;
   background: linear-gradient(
     45deg,
-    var(--color-brand-600),
-    var(--color-brand-800),
-    #d5e7b5
+    var(--color-grey-500),
+    var(--color-grey-700),
+    var(--color-grey-800)
   );
   background-clip: text;
   -webkit-background-clip: text;

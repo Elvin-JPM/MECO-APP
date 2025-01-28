@@ -22,15 +22,12 @@ const sizes = {
 
 const variations = {
   primary: css`
-    color: var(--color-brand-50);
-    background-color: var(--color-brand-700);
-    &:hover {
-      background-color: var(--color-brand-700);
-    }
+    //color: var(--color-brand-50);
+    background-color: var(--color-institucional-celeste);
   `,
 
   secondary: css`
-    color: var(--color-grey-600);
+    //color: var(--color-grey-600);
     background-color: var(--color-grey-0);
     border: 1px solid var(--color-grey-200);
 
@@ -40,10 +37,10 @@ const variations = {
   `,
   danger: css`
     color: var(--color-red-100);
-    background-color: var(--color-red-700);
+    background-color: var(--color-institucional-rojo);
 
     &:hover {
-      background-color: var(--color-red-800);
+      background-color: var(--color-institucional-rojo);
     }
   `,
 };
@@ -51,6 +48,7 @@ const variations = {
 const Button = styled.button.attrs((props) => ({
   title: props.tooltip, // Adds the tooltip text as a `title` attribute (optional)
 }))`
+  color: var(--color-grey-700);
   border: none;
   border-radius: var(--border-radius-sm);
   box-shadow: var(--shadow-sm);
@@ -61,13 +59,13 @@ const Button = styled.button.attrs((props) => ({
 
   /* Tooltip styles */
   &::after {
-    content: attr(data-tooltip); 
+    content: attr(data-tooltip);
     position: absolute;
     bottom: calc(100% + 8px); /* Position the tooltip above the button */
     left: 50%;
     transform: translateX(-50%);
     background-color: var(--color-grey-800);
-    color: var(--color-white);
+    color: var(--color-grey-800);
     padding: 0.4rem 0.8rem;
     font-size: 1.2rem;
     border-radius: var(--border-radius-sm);

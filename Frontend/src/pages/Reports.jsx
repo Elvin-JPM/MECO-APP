@@ -57,7 +57,7 @@ function Reports() {
 
   return (
     <div>
-      <h2>Informes</h2>
+      <h2>INFORMES</h2>
       <GenerateReportForm
         handleShowReportTable={handleShowReportTable}
         handleReportData={handleReportData}

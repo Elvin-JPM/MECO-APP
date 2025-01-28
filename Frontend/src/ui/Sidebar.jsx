@@ -16,7 +16,7 @@ const StyledSidebar = styled.aside`
 function Sidebar() {
   return (
     <StyledSidebar>
-      <Logo />
+      <Logo image="CND-LOGO.png" height={"6rem"}/>
       <MainNav />
     </StyledSidebar>
   );

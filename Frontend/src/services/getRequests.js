@@ -1,5 +1,27 @@
 import { getData } from "./api";
 
+export async function loginProtected() {
+  try {
+    const response = await getData("/protected"); // No need for the Authorization header
+    console.log("Response at login protected: ", response);
+    return response;
+  } catch (error) {
+    console.error("Error in loginProtected:", error);
+    throw error;
+  }
+}
+
+export async function getUser() {
+  try {
+    const response = await getData("/me");
+    console.log("User obtained from the /me route: ", response);
+    return response;
+  } catch (error) {
+    console.log("Error at getUser() from the /me route: ", error);
+    throw error;
+  }
+}
+
 export async function getMeters(page) {
   const response = await getData(`/meters?page=${page}`);
   return response;

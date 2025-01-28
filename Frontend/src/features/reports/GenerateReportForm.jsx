@@ -10,6 +10,8 @@ import {
   getPlantsAndSubstations,
 } from "../../services/getRequests";
 import Select from "../../ui/Select";
+//import CustomDropdown from "../../ui/CustomDropdown";
+//import Select from 'react-select';
 
 function GenerateReportForm({
   handleShowReportTable,
@@ -131,6 +133,7 @@ function GenerateReportForm({
           ))}
         </Select>
       </FormRow>
+      
       <FormRow
         label="Punto de medición"
         error={errors?.integratedMeters?.message}

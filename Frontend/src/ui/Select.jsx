@@ -14,6 +14,7 @@ const Select = styled.select`
   box-shadow: var(--shadow-sm);
   overflow: auto;
   cursor: pointer;
+  accent-color: var(--color-institucional-celeste);
 
   /* Add smooth transitions */
   transition: all 0.3s ease-in-out;
@@ -27,14 +28,15 @@ const Select = styled.select`
 
   /* Hover Animation */
   &:hover {
-    border-color: rgba(6, 78, 59, 0.6);
+    outline-color: var(--color-institucional-celeste);
+    border-color: var(--color-institucional-celeste);
     transform: scale(1.005); /* Slight zoom */
   }
 
   /* Focus Animation */
   &:focus {
     outline: none;
-    border-color: var(--color-brand-950);
+    border-color: var(--color-institucional-celeste);
     box-shadow: 0 0 10px rgba(6, 78, 59, 0.4);
   }
 
@@ -45,14 +47,11 @@ const Select = styled.select`
     cursor: not-allowed;
   }
 
-
   /* Add responsive styles */
   @media (max-width: 768px) {
     font-size: 1.2rem;
     padding: 0.6rem 1rem;
   }
 `;
-
-
 
 export default Select;

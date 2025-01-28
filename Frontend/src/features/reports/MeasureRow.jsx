@@ -9,6 +9,7 @@ import { formatDate } from "../../utils/dateFunctions";
 import { formatDateInput } from "../../utils/dateFunctions";
 import toast from "react-hot-toast";
 import { IoWarning } from "react-icons/io5";
+import { useUser } from "../authentication/UserProvider";
 
 const TableRow = styled.div`
   display: grid;
@@ -76,6 +77,7 @@ function MeasureRow({
   //const [isEditable, setIsEditable] = useState(false);
   const [additionalRows, setAdditionalRows] = useState([]);
   const [editableInputs, setEditableInputs] = useState({});
+  const { userData } = useUser();
   const {
     fecha,
     or_del_mp,
@@ -372,16 +374,7 @@ function MeasureRow({
           }).format(energia_rec_mr)}
         </Column>
         <Column>
-          <ButtonArray>
-            <Button
-              onClick={() => handleAddRow(fecha, -1)}
-              variation="secondary"
-              size="small"
-              //disabled={!canAddRow(fecha, -1)}
-              tooltip="Agregar fila"
-            >
-              <FaPlus />
-            </Button>
+          {userData.departmentId === 18 ? (
             <Button
               onClick={() => {
                 handleEditRow(isEditableRow ? "Cancelar" : "Editar");
@@ -393,71 +386,11 @@ function MeasureRow({
             >
               {isEditableRow ? "Cancel" : <MdEdit />}
             </Button>
-          </ButtonArray>
+          ) : (
+            ""
+          )}
         </Column>
       </TableRow>
-
-      {/* Render additional editable rows */}
-      {additionalRows.map((row, index) => (
-        <TableRow role="row" key={index}>
-          <Column>
-            <Input
-              type="datetime-local"
-              //value={formatDate(row.fecha)}
-              defaultValue={formatDateInput(row.fecha)}
-              onChange={(e) =>
-                handleInputChange(index, "fecha", e.target.value)
-              }
-            />
-          </Column>
-          <Column>
-            <Input
-              type="number"
-              value={row.kwh_del_mp}
-              onChange={(e) =>
-                handleInputChange(index, "kwh_del_mp", e.target.value)
-              }
-            />
-          </Column>
-          <Column>
-            <Input
-              type="number"
-              value={row.kwh_rec_mp}
-              onChange={(e) =>
-                handleInputChange(index, "kwh_rec_mp", e.target.value)
-              }
-            />
-          </Column>
-          <Column>
-            <Input
-              type="number"
-              value={row.kwh_del_mr}
-              onChange={(e) =>
-                handleInputChange(index, "kwh_del_mr", e.target.value)
-              }
-            />
-          </Column>
-          <Column>
-            <Input
-              type="number"
-              value={row.kwh_rec_mr}
-              onChange={(e) =>
-                handleInputChange(index, "kwh_rec_mr", e.target.value)
-              }
-            />
-          </Column>
-          <Column>
-            <Button
-              onClick={() => handleAddRow(row.fecha, index)}
-              variation="secondary"
-              size="small"
-              //disabled={!canAddRow(row.fecha, index)}
-            >
-              <FaPlus />
-            </Button>
-          </Column>
-        </TableRow>
-      ))}
     </>
   );
 }

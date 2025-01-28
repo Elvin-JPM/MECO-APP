@@ -1,11 +1,10 @@
 import styled from "styled-components";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import Spinner from "../../ui/Spinner";
 import Button from "../../ui/Button";
 import { FaDownload } from "react-icons/fa6";
 import * as XLSX from "xlsx";
 import { getMeasures } from "../../services/getRequests";
-//import AddMeter from "./AddMeter";
 import ButtonArray from "../../ui/ButtonArray";
 import MeasureRow from "./MeasureRow";
 import { useState } from "react";
@@ -15,6 +14,8 @@ import useUpdateMeasures from "./useUpdateMeasures";
 import Modal from "../../ui/Modal";
 import SubstitutionForm from "./SubstitutionForm";
 import Heading from "../../ui/Heading";
+import toast from "react-hot-toast";
+import { formatDate } from "../../utils/dateFunctions";
 
 const Table = styled.div`
   border: 1px solid var(--color-grey-200);
@@ -57,6 +58,7 @@ function ReportTable({
     pageNumber,
     reportData
   );
+  const [isDownloadReady, setIsDownloadReady] = useState(false);
 
   console.log(modifiedRows);
 
@@ -69,10 +71,47 @@ function ReportTable({
     keepPreviousData: true,
   });
 
+  // Esta funcion extrae todos los datos que se van a descargar en el archivo de Excel
+  const allMeasuresMutation = useMutation({
+    mutationFn: () => getMeasures(reportData, -1),
+    onSuccess: (data) => {
+      console.log("All inside the onSuccess callback: ", data?.data);
+
+      // Process the data for Excel export
+      const worksheet = XLSX.utils.json_to_sheet(
+        data?.data.map((measure) => ({
+          Fecha: formatDate(measure.fecha),
+          EAG_MP: measure.energia_del_mp,
+          EAC_MP: measure.energia_rec_mp,
+          EAG_MR: measure.energia_del_mr,
+          EAC_MR: measure.energia_rec_mr,
+        }))
+      );
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Measures");
+      XLSX.writeFile(workbook, "Measures.xlsx");
+    },
+    onError: () => {
+      toast.error("Extracción de datos no completada.");
+    },
+  });
+
+  const exportToExcel = async () => {
+    // Use toast.promise to handle loading, success, and error states
+    await toast.promise(
+      allMeasuresMutation.mutateAsync(), // Use mutateAsync for promise-based handling
+      {
+        loading: "Extrayendo datos...", // Loading state message
+        success: "¡Datos descargados correctamente!", // Success state message
+        error: "Extracción de datos no completada.", // Error state message
+      }
+    );
+  };
+
   const measuresArray = measures?.data || [];
   const totalPages = measures?.totalPages || 1;
   console.log(reportData);
-  console.log("Datos extraidos: ",measuresArray);
+  console.log("Datos extraidos: ", measuresArray);
 
   const handleShowModal = () => {
     setShowModal((show) => !show);
@@ -146,22 +185,6 @@ function ReportTable({
 
   if (isLoadingMeasures) return <Spinner />;
 
-  const exportToExcel = () => {
-    const worksheet = XLSX.utils.json_to_sheet(
-      measuresArray?.map((measure) => ({
-        Fecha: measure.fecha,
-        EAG_MP: measure.energia_del_mp,
-        EAC_MP: measure.energia_rec_mp,
-        EAG_MR: measure.energia_del_mr,
-        EAC_MR: measure.energia_rec_mr,
-      }))
-    );
-
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Measures");
-    XLSX.writeFile(workbook, "Measures.xlsx");
-  };
-
   const onUpdateMeasures = () => {
     if (rowsToEdit?.length > 0) {
       console.log("Rows to edit on onUpdateMeasures : ", rowsToEdit);
@@ -203,7 +226,11 @@ function ReportTable({
             <div key={energyTag}>{energyTag}</div>
           ))}
           <ButtonArray>
-            <Button onClick={exportToExcel} tooltip="Descargar perfil">
+            <Button
+              disabled={allMeasuresMutation.isLoading}
+              onClick={exportToExcel}
+              tooltip="Descargar perfil"
+            >
               <FaDownload />
             </Button>
           </ButtonArray>
@@ -246,7 +273,7 @@ function ReportTable({
             idPuntoMedicion={reportData?.puntoMedicion}
             onUpdateMeasures={onUpdateMeasures}
             rowsToEdit={rowsToEdit}
-            handleShowModal = {handleShowModal}
+            handleShowModal={handleShowModal}
           ></SubstitutionForm>
         </Modal>
       )}

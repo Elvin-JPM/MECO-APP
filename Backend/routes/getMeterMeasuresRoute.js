@@ -18,6 +18,9 @@ router.get("/measures", async (req, res) => {
       limit = 30,
     } = req.query;
 
+    //const { page } = req.params;
+    console.log("page received: ", page);
+
     console.log("Data for table: ", req.query);
 
     let energiaGenerada = "";
@@ -53,13 +56,12 @@ router.get("/measures", async (req, res) => {
       !tipoMedida ||
       !fechaInicial ||
       !fechaFinal ||
-      isNaN(page) ||
-      isNaN(limit)
+      (isNaN(page) && page !== -1) || // Allow -1 for page
+      (isNaN(limit) && limit !== "all")
     ) {
       return res.status(422).json({ error: "Invalid or missing parameters" });
     }
 
-    const offset = (page - 1) * parseInt(limit);
     connection = await getConnection();
 
     // Total count query
@@ -109,41 +111,8 @@ router.get("/measures", async (req, res) => {
 
     console.log("total count: ", totalCount);
 
-    // Paginated query
-    // const paginatedQuery = `
-    //   SELECT FECHA, ORIGEN_MP, ORIGEN_MR,
-    //         KWH_DEL_MP, KWH_REC_MP, KVARH_DEL_MP, KVARH_REC_MP, KWH_DEL_MR, KWH_REC_MR, KVARH_DEL_MR, KVARH_REC_MR,
-    //         KWH_DEL_INT_MP, KWH_REC_INT_MP, KVARH_DEL_INT_MP, KVARH_REC_INT_MP, KWH_DEL_INT_MR, KWH_REC_INT_MR, KVARH_DEL_INT_MR, KVARH_REC_INT_MR
-
-    //   FROM (
-    //     SELECT MP.FECHA,
-    //            MP.ORIGEN AS ORIGEN_MP, MR.ORIGEN AS ORIGEN_MR,
-    //            MP.KWH_DEL AS KWH_DEL_MP, MP.KWH_REC AS KWH_REC_MP, MP.KVARH_DEL AS KVARH_DEL_MP, MP.KVARH_REC AS KVARH_REC_MP,
-    //            MR.KWH_DEL AS KWH_DEL_MR, MR.KWH_REC AS KWH_REC_MR, MR.KVARH_DEL AS KVARH_DEL_MR, MR.KVARH_REC AS KVARH_REC_MR,
-    //            MP.KWH_DEL_INT AS KWH_DEL_INT_MP, MP.KWH_REC_INT AS KWH_REC_INT_MP, MP.KVARH_DEL_INT AS KVARH_DEL_INT_MP, MP.KVARH_REC_INT AS KVARH_REC_INT_MP,
-    //            MR.KWH_DEL_INT AS KWH_DEL_INT_MR, MR.KWH_REC_INT AS KWH_REC_INT_MR, MR.KVARH_DEL_INT AS KVARH_DEL_INT_MR, MR.KVARH_REC_INT AS KVARH_REC_INT_MR
-    //     FROM (
-    //       SELECT TO_CHAR(FECHA, 'DD-MM-YYYY HH24:MI') AS FECHA,
-    //       ORIGEN,
-    //       KWH_DEL, KWH_REC, KVARH_DEL, KVARH_REC, KWH_DEL_INT, KWH_REC_INT, KVARH_DEL_INT, KVARH_REC_INT
-    //       FROM MCAM_MEDICIONES
-    //       WHERE ID_MEDIDOR = :medidorPrincipal
-    //         AND FECHA BETWEEN TO_DATE(:fechaInicial, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinal, 'YYYY-MM-DD HH24:MI')
-    //     ) MP
-    //     INNER JOIN (
-    //       SELECT TO_CHAR(FECHA, 'DD-MM-YYYY HH24:MI') AS FECHA,
-    //       ORIGEN,
-    //       KWH_DEL, KWH_REC, KVARH_DEL, KVARH_REC, KWH_DEL_INT, KWH_REC_INT, KVARH_DEL_INT, KVARH_REC_INT
-    //       FROM MCAM_MEDICIONES
-    //       WHERE ID_MEDIDOR = :medidorRespaldo
-    //         AND FECHA BETWEEN TO_DATE(:fechaInicial, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinal, 'YYYY-MM-DD HH24:MI')
-    //     ) MR
-    //     ON MP.FECHA = MR.FECHA
-    //   )
-    //   OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
-    // `;
-
-    const paginatedQuery = `
+    // Build the query
+    let paginatedQuery = `
             SELECT 
             EG_MP.FECHA, 
             OR_DEL_MP, 
@@ -191,23 +160,33 @@ router.get("/measures", async (req, res) => {
 
               ON EG_MP.FECHA = EC_MR.FECHA
               )
-      OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
+              ORDER BY FECHA
     `;
+
+    // Add pagination only if page is not -1
+    if (page !== "-1") {
+      // const offset = (page - 1) * parseInt(limit);
+      paginatedQuery += ` OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`;
+    }
+
+    // Execute the query
     const result = await connection.execute(paginatedQuery, {
       medidorPrincipal,
       medidorRespaldo,
-      fechaInicialFormatted: fechaInicialFormatted,
-      fechaFinalFormatted: fechaFinalFormatted,
+      fechaInicialFormatted,
+      fechaFinalFormatted,
       energiaGenerada,
       energiaConsumida,
-      offset,
-      limit: parseInt(limit),
+      ...(page !== "-1" && {
+        offset: (page - 1) * parseInt(limit),
+        limit: parseInt(limit),
+      }),
     });
 
     const measures = result.rows.map(
       ([
         FECHA,
-        OR_DEL_MP, //ORIGEN DE LA ENERGIA ENVIADA MEDIDOR PRINCIPAL
+        OR_DEL_MP,
         ENERGIA_DEL_MP,
         OR_REC_MP,
         ENERGIA_REC_MP,
@@ -228,11 +207,13 @@ router.get("/measures", async (req, res) => {
       })
     );
 
+    console.log(measures);
+
     res.json({
       data: measures,
-      currentPage: parseInt(page),
+      currentPage: page === "-1" ? 1 : parseInt(page),
       totalItems: totalCount,
-      totalPages: Math.ceil(totalCount / limit),
+      totalPages: page === "-1" ? 1 : Math.ceil(totalCount / limit),
     });
   } catch (error) {
     console.error("Database query error:", error.message);

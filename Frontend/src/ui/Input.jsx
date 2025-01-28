@@ -7,10 +7,18 @@ const Input = styled.input`
   border-radius: var(--border-radius-sm);
   padding: 0.8rem 1.2rem;
 
+  &:focus {
+    caret-color: var(--color-institucional-amarillo);
+    outline-color: var(--color-institucional-celeste);
+  }
+
   ${(props) =>
     props.inputuse === "login" &&
     css`
       width: 80%;
+      background-color: var(--color-grey-100);
+      backdrop-filter: blur(10px);
+      height: 4.5rem;
     `}
 `;
 

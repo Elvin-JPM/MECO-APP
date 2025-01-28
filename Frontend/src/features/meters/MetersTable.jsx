@@ -116,6 +116,14 @@ function MetersTable() {
       {metersArray.map((meter) => (
         <MeterRow meter={meter} key={meter.id}></MeterRow>
       ))}
+      <PaginationWrapper
+        handleInputChange={handleInputChange}
+        handlePageChange={handlePageChange}
+        handleInputSubmit={handleInputSubmit}
+        pageNumber={pageNumber}
+        totalPages={totalPages}
+        inputValue={inputValue}
+      ></PaginationWrapper>
     </Table>
   );
 }

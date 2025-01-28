@@ -46,9 +46,9 @@ const Label = styled.label`
   font-weight: 500;
   ${(props) =>
     props.type === "login" &&
-    css`
+  css`
       width: 80%;
-      color: var(--color-grey-0)
+      color: var(--color-grey-900)
     `}
 `;
 

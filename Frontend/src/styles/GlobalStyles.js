@@ -2,6 +2,11 @@ import { createGlobalStyle } from "styled-components";
 
 const GlobalStyles = createGlobalStyle`
     :root {
+
+  --color-institucional-celeste: #5fd0df;
+  --color-institucional-amarillo: #f29100;
+  --color-institucional-rojo: #e20613;
+      
   /* Emerald */
   --color-brand-50: #ecfdf5;
   --color-brand-100: #d1fae5;

@@ -13,7 +13,7 @@ function Meters() {
   return (
     <>
       <Row type="horizontal">
-        <Heading as="h1">All Meters</Heading>
+        <Heading as="h1">Medidores</Heading>
       </Row>
       <Row>
         <MetersTable handleSetNumPages={handleSetNumPages} />

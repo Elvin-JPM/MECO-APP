@@ -5,14 +5,18 @@ const StyledLogo = styled.div`
 `;
 
 const Img = styled.img`
-  height: 9.6rem;
+  height: ${(props) => props.height || "9.6rem"};
   width: auto;
 `;
 
-function Logo() {
+function Logo({ image, height }) {
   return (
     <StyledLogo>
-      <Img src="/electric-meter.png" alt="Logo" />
+      {image ? (
+        <Img src={image} alt="Logo" height={height} />
+      ) : (
+        <Img src="/electric-meter.png" alt="Logo" height={height} />
+      )}
     </StyledLogo>
   );
 }

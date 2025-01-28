@@ -2,10 +2,13 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const router = express.Router();
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 const { getConnection } = require("../db");
 
 const ActiveDirectory = require("activedirectory");
 
+// Configuracion para Active Directory
 const config = {
   url: process.env.LDAP_URL, // LDAP server URL
   baseDN: process.env.LDAP_BASE_DN, // Base DN for your LDAP domain
@@ -14,6 +17,8 @@ const config = {
 };
 
 const ad = new ActiveDirectory(config);
+
+const JWT_SECRET = process.env.JWT_SECRET || "SECRET_KEY";
 
 const getUserData = async (username) => {
   let connection = await getConnection();
@@ -30,42 +35,73 @@ const getUserData = async (username) => {
       ldap_user,
       nombre,
       id_departamento,
-      id_cargo,
+      //   id_cargo,
     })
   );
-  console.log("user data obtained: ", userData);
+  console.debug("user data obtained: ", userData);
   return userData[0];
 };
 
+//////////////////////////// LOGIN ROUTE ///////////////////////////////////////
+
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
-  console.log(req.body);
+  console.debug("Data received at login in the backend: ", req.body);
 
   if (!username || !password) {
     return res
       .status(400)
-      .json({ error: "Username and password are required" });
+      .json({ error: "Nombre de usuario y contraseña requeridos" });
   }
 
   const userData = await getUserData(username);
+  if (!userData) {
+    return res.status(404).json({ error: "Usuario no encontrado" });
+  }
+
+  if (![18, 4, 12, 13].includes(userData.id_departamento)) {
+    return res.status(401).json({ error: "Usuario no autorizado" });
+  }
 
   const userDN = userData.ldap_user;
 
   // Authenticate user
   ad.authenticate(userDN, password, (err, auth) => {
     if (err) {
-      console.error("Authentication error:", err);
-      return res
-        .status(500)
-        .json({ error: "An error occurred during authentication" });
+      console.error("Error de autenticación: ", err);
+      return res.status(500).json({ error: err });
     }
 
     if (auth) {
-      console.log(`User ${username} authenticated successfully.`);
-      return res.status(200).json({ message: "Authentication successful" });
+      console.log(`Usuario ${username} autenticado correctamente.`);
+
+      // Generate JWT
+      const token = jwt.sign(
+        {
+          username: userData.username,
+          nombre: userData.nombre,
+          id_departamento: userData.id_departamento,
+          id_cargo: userData.id_cargo,
+        },
+        JWT_SECRET,
+        { expiresIn: "1h" } // Token validity
+      );
+
+      res.cookie("auth_token", token, {
+        path: "/",
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        maxAge: 3600000,
+      });
+
+      return res.status(200).json({
+        message: "Autenticación exitosa",
+        //token,
+      });
     } else {
-      console.log(`Authentication failed for user ${username}.`);
-      return res.status(401).json({ error: "Invalid credentials" });
+      console.log(`Autenticación fallida para el usuario ${username}.`);
+      return res.status(401).json({ error: "Credenciales incorrectas" });
     }
   });
 });

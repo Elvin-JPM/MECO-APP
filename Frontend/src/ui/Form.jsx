@@ -7,7 +7,7 @@ const Form = styled.form`
       padding: 2.4rem 4rem;
 
       /* Box */
-      background-color: var(--color-grey-0);
+      background-color: rgba(255, 255, 255, 0.6);
       border: 1px solid var(--color-grey-100);
       border-radius: var(--border-radius-md);
     `}
@@ -29,21 +29,24 @@ const Form = styled.form`
         var(--color-grey-0),
         var(--color-grey-400)
       ); */
-      background-color: transparent;
-      border: 1px solid var(--color-grey-200);
+      background-color: rgba(244, 246, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 2px solid var(--color-grey-300);
       border-radius: var(--border-radius-lg);
-      box-shadow: 2px 2px 1px 1px var(--color-grey-500);
+      --box-shadow: 2px 2px var(--color-grey-200);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      width: 25%;
-      height: 60%;
+      width: 28%;
+      height: 70%;
       gap: 1rem;
+
     `}
   overflow: hidden;
   font-size: 1.4rem;
   margin-bottom: 2rem;
+  backdrop-filter: blur(8px);
 `;
 
 export default Form;

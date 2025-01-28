@@ -7,6 +7,7 @@ import Modal from "../../ui/Modal";
 import { FaPlus } from "react-icons/fa6";
 import ButtonArray from "../../ui/ButtonArray";
 import AddMeter from "./AddMeter";
+import { useUser } from "../authentication/UserProvider";
 
 const TableRow = styled.div`
   display: grid;
@@ -43,6 +44,7 @@ const Column = styled.div`
 
 function MeterRow({ meter }) {
   const [showForm, setShowForm] = useState(false);
+  const { userData } = useUser();
   const {
     id,
     id_punto,
@@ -73,12 +75,16 @@ function MeterRow({ meter }) {
         <Column>{id_punto}</Column>
         <Column>{subestacion}</Column>
         <Column>{serie}</Column>
-        <ButtonArray>
-          <Button onClick={handleShowForm} variation="secondary" size="small">
-            <MdEdit />
-          </Button>
-          <AddMeter />
-        </ButtonArray>
+        {userData?.departmentId === 18 ? (
+          <ButtonArray>
+            <Button onClick={handleShowForm} variation="secondary" size="small">
+              <MdEdit />
+            </Button>
+            <AddMeter />
+          </ButtonArray>
+        ) : (
+          ""
+        )}
       </TableRow>
 
       {showForm && (

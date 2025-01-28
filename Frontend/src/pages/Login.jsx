@@ -1,41 +1,17 @@
 import { useForm } from "react-hook-form";
-import { useEffect } from "react";
+import { useState } from "react";
 import Input from "../ui/Input"; // Your custom Input component
 import Form from "../ui/Form";
 import FormRow from "../ui/FormRow";
 import Button from "../ui/Button";
-import { useQuery } from "@tanstack/react-query";
 import styled, { keyframes } from "styled-components";
 import Logo from "../ui/Logo";
 import Heading from "../ui/Heading";
-
-// Animation for the stars
-const animStarSmall = keyframes`
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-1300px);
-  }
-`;
-
-const animStarMedium = keyframes`
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-2000px);
-  }
-`;
-
-const animStarLarge = keyframes`
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-2000px);
-  }
-`;
+import useLogin from "../features/authentication/useLogin";
+import useLoginProtected from "../features/authentication/useLoginProtected";
+import { Link, useNavigate } from "react-router-dom";
+import Spinner from "../ui/Spinner";
+import Ribbon from "../ui/Ribbon";
 
 // Styled Component for the star field
 const StyledLogin = styled.div`
@@ -44,97 +20,65 @@ const StyledLogin = styled.div`
   align-items: center;
   height: 100vh;
   overflow: hidden;
+  //overflow-y: scroll;
   position: relative;
-  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
-  /* background: radial-gradient(ellipse at bottom, var(--color-grey-0) 0%, var(--color-grey-300) 35%, var(--color-grey-500) 100%); */
-
-  #stars {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 1px;
-    height: 1px;
-    border-radius: 50%;
-    background: transparent;
-    box-shadow: ${(props) =>
-      Array.from({ length: props.smallCount || 700 })
-        .map(
-          () =>
-            `${Math.random() * window.innerWidth}px ${
-              Math.random() * 2000
-            }px #FFF`
-        )
-        .join(", ")};
-    animation: ${animStarSmall} ${(props) => props.smallDuration || 50}s linear
-      infinite;
-  }
-
-  #stars2 {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 2px;
-    height: 2px;
-    border-radius: 50%;
-    background: transparent;
-    box-shadow: ${(props) =>
-      Array.from({ length: props.mediumCount || 200 })
-        .map(
-          () =>
-            `${Math.random() * window.innerWidth}px ${
-              Math.random() * 2000
-            }px #FFF`
-        )
-        .join(", ")};
-    animation: ${animStarMedium} ${(props) => props.mediumDuration || 100}s
-      linear infinite;
-  }
-
-  #stars3 {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 3px;
-    border-radius: 50%;
-    background: transparent;
-    box-shadow: ${(props) =>
-      Array.from({ length: props.largeCount || 100 })
-        .map(
-          () =>
-            `${Math.random() * window.innerWidth}px ${
-              Math.random() * 2000
-            }px #FBF5DD`
-        )
-        .join(", ")};
-    animation: ${animStarLarge} ${(props) => props.largeDuration || 150}s linear
-      infinite;
-  }
+  background: url("../../public/white-abstract-bg.jpg") center / cover;
 
   > * {
-    position: relative;
-    z-index: 1; /* Ensure content is above the star field */
+    margin-top: 0;
   }
 `;
 
 function Login() {
   const { register, handleSubmit, formState, setValue, watch } = useForm();
+  const [isLoading, setIsLoading] = useState(false);
+
   const { errors } = formState;
+  const navigate = useNavigate();
+
+  const handleIsLoggin = () => {
+    setIsLoading((c) => !c);
+  };
+
+  // on success callback
+  // Esta funcion se ejecutara dentro de la funcion login que viene del Custom Hook
+  const onSuccess = (response) => {
+    console.log("User data from backend: ", response.data);
+    if (response) {
+      //localStorage.setItem("authToken", response.data.token);
+      console.log("Llamando a loginProtected");
+      console.log("Cookies at login:", document.cookie); // Check cookies in frontend
+      loginProtected();
+    }
+  };
+
+  const onSuccessProtectedLogin = (response) => {
+    console.log("Data received at login from protected route: ", response);
+    if (response.user) {
+      console.log("Usuario loggeado: ", response.user.username);
+      //localStorage.setItem("username", response.user.username);
+      //localStorage.setItem("user_department_id", response.user.id_departamento);
+      handleIsLoggin();
+      navigate("/meters");
+    }
+  };
+
+  const { isLoginProtected, loginProtected } = useLoginProtected(
+    onSuccessProtectedLogin
+  );
+  const { isAuthenticating, login } = useLogin(onSuccess, handleIsLoggin);
+
+  function onSubmit(data) {
+    console.log("Form data: ", data);
+    login(data);
+  }
+
   return (
-    <StyledLogin
-      smallCount={900}
-      mediumCount={350}
-      largeCount={105}
-      smallDuration={48} // Smaller stars move faster
-      mediumDuration={90}
-      largeDuration={130} // Larger stars move slower
-    >
-      <div id="stars"></div>
-      <div id="stars2"></div>
-      <div id="stars3"></div>
-      <Form type={"login"}>
-        <Logo />
-        <Heading>MEDICIÓN COMERCIAL</Heading>
+    <StyledLogin>
+      <Ribbon />
+      <Form type={"login"} onSubmit={handleSubmit(onSubmit)}>
+        <Logo image="../../public/CND-LOGO.png" />
+        <Heading>APP MEDICIÓN COMERCIAL</Heading>
 
         <FormRow label={"Nombre de Usuario"} type={"login"}>
           <Input
@@ -142,7 +86,7 @@ function Login() {
             id="username"
             inputuse={"login"}
             //defaultValue={formatDateForInput(yesterday)}
-            placeholder="nombre de usuario"
+            placeholder="ej: jgarcia"
             {...register("username", {
               required: "Este campo es obligatorio",
             })}
@@ -152,16 +96,30 @@ function Login() {
 
         <FormRow label={"Contraseña"} type={"login"}>
           <Input
-            type="text"
-            id="username"
+            type="password"
+            id="password"
             inputuse={"login"}
             //defaultValue={formatDateForInput(yesterday)}
-            placeholder="contraseña"
-            {...register("username", {
+            placeholder="Contraseña de tu computadora..."
+            {...register("password", {
               required: "Este campo es obligatorio",
             })}
             //onChange={handlePageReset}
           />
+        </FormRow>
+        {isAuthenticating || isLoginProtected ? "Logging in..." : ""}
+        <FormRow>
+          <Button
+            variation="primary"
+            size="large"
+            type="submit"
+            disabled={isAuthenticating}
+            onClick={() => {
+              setIsLoading(true);
+            }}
+          >
+            {isLoading ? "Ingresando..." : "Ingresar"}
+          </Button>
         </FormRow>
       </Form>
     </StyledLogin>

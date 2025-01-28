@@ -37,9 +37,12 @@ const StyledNavLink = styled(NavLink)`
   &:active,
   &.active:link,
   &.active:visited {
-    color: var(--color-grey-800);
+    color: var(--color-grey-900);
     background-color: var(--color-grey-50);
     border-radius: var(--border-radius-sm);
+    border-bottom-right-radius: 0px;
+    /* border-bottom-left-radius: 0px;
+    border-bottom: 2px solid var(--color-institucional-amarillo); */
   }
 
   & svg {
@@ -53,7 +56,7 @@ const StyledNavLink = styled(NavLink)`
   &:active svg,
   &.active:link svg,
   &.active:visited svg {
-    color: var(--color-brand-600);
+    color: var(--color-institucional-amarillo);
   }
 `;
 
