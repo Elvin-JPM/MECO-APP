@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_APP_URL;
-axios.defaults.timeout = 10000;
+axios.defaults.timeout = 50000;
 axios.defaults.withCredentials = true;
 
 export async function postData(endpoint, requestBody = {}, headers = {}) {

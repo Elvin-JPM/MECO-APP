@@ -17,12 +17,14 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.1",
+    "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
     "ldapjs": "^3.0.7",
     "mssql": "^11.0.1",
     "multer": "^1.4.5-lts.1",
     "node-cron": "^3.0.3",
-    "oracledb": "^6.7.0"
+    "oracledb": "^6.7.0",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.7"

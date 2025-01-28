@@ -10,13 +10,12 @@ const StyledSidebar = styled.aside`
   display: flex;
   flex-direction: column;
   gap: 3.2rem;
-
 `;
 
 function Sidebar() {
   return (
     <StyledSidebar>
-      <Logo image="CND-LOGO.png" height={"6rem"}/>
+      <Logo image="../../CND-LOGO.png" height={"6rem"} />
       <MainNav />
     </StyledSidebar>
   );

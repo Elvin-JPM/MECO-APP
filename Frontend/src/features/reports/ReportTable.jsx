@@ -16,8 +16,10 @@ import SubstitutionForm from "./SubstitutionForm";
 import Heading from "../../ui/Heading";
 import toast from "react-hot-toast";
 import { formatDate } from "../../utils/dateFunctions";
+import TableSkeleton from "../../ui/TableSkeleton";
+import { useRef } from "react";
 
-const Table = styled.div`
+export const Table = styled.div`
   border: 1px solid var(--color-grey-200);
   font-size: 1.4rem;
   background-color: var(--color-grey-0);
@@ -25,7 +27,7 @@ const Table = styled.div`
   overflow: hidden;
 `;
 
-const TableHeader = styled.header`
+export const TableHeader = styled.header`
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr 0.3fr;
   column-gap: 2.4rem;
@@ -59,6 +61,9 @@ function ReportTable({
     reportData
   );
   const [isDownloadReady, setIsDownloadReady] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPagesRef = useRef(null);
+  const pageNumberRef = useRef(1);
 
   console.log(modifiedRows);
 
@@ -70,6 +75,15 @@ function ReportTable({
     queryFn: () => getMeasures(reportData, pageNumber),
     keepPreviousData: true,
   });
+
+  console.log("Measures: ", measures?.data);
+
+  if (measures?.totalPages && totalPagesRef.current === null) {
+    totalPagesRef.current = measures.totalPages;
+  }
+
+  const measuresArray = measures?.data || [];
+  const totalPages = measures?.totalPages || totalPagesRef.current || 0;
 
   // Esta funcion extrae todos los datos que se van a descargar en el archivo de Excel
   const allMeasuresMutation = useMutation({
@@ -103,13 +117,11 @@ function ReportTable({
       {
         loading: "Extrayendo datos...", // Loading state message
         success: "¡Datos descargados correctamente!", // Success state message
-        error: "Extracción de datos no completada.", // Error state message
+        error: "Extracción de datos fallida.", // Error state message
       }
     );
   };
 
-  const measuresArray = measures?.data || [];
-  const totalPages = measures?.totalPages || 1;
   console.log(reportData);
   console.log("Datos extraidos: ", measuresArray);
 
@@ -183,8 +195,6 @@ function ReportTable({
     });
   }, []);
 
-  if (isLoadingMeasures) return <Spinner />;
-
   const onUpdateMeasures = () => {
     if (rowsToEdit?.length > 0) {
       console.log("Rows to edit on onUpdateMeasures : ", rowsToEdit);
@@ -200,70 +210,78 @@ function ReportTable({
 
   return (
     <>
-      <Table role="table">
-        {rowsToEdit?.length > 0 ? (
-          <Button
-            onClick={() => {
-              //onUpdateMeasures();
-              setShowModal(true);
-            }}
-            tooltip="Guardar cambios"
-          >
-            GUARDAR CAMBIOS
-          </Button>
-        ) : null}
-        <PaginationWrapper
-          handleInputChange={handleInputChange}
-          handlePageChange={handlePageChange}
-          handleInputSubmit={handleInputSubmit}
-          pageNumber={pageNumber}
-          totalPages={totalPages}
-          inputValue={inputValue}
+      {isLoadingMeasures ? (
+        <TableSkeleton
+          energyTags={energyTags}
+          totalPages={totalPagesRef.current}
+          pageNumber={pageNumberRef.current}
         />
-        <TableHeader role="row">
-          <div>FECHA</div>
-          {energyTags?.map((energyTag) => (
-            <div key={energyTag}>{energyTag}</div>
-          ))}
-          <ButtonArray>
+      ) : (
+        <Table role="table">
+          {rowsToEdit?.length > 0 ? (
             <Button
-              disabled={allMeasuresMutation.isLoading}
-              onClick={exportToExcel}
-              tooltip="Descargar perfil"
+              onClick={() => {
+                //onUpdateMeasures();
+                setShowModal(true);
+              }}
+              tooltip="Guardar cambios"
             >
-              <FaDownload />
+              GUARDAR CAMBIOS
             </Button>
-          </ButtonArray>
-        </TableHeader>
-        {measuresArray?.map((measure) => (
-          <MeasureRow
-            measure={measure}
-            key={measuresArray.indexOf(measure)}
-            rowKey={measuresArray.indexOf(measure)}
-            reportData={reportData}
-            //onInsertRow={handleInsertRow}
-            handleRowChange={handleRowChange}
-            handleIsEditableRow={handleIsEditableRow}
-            handleModifiedRows={handleModifiedRows}
-            isEditableRow={
-              editableRowKey == measuresArray.indexOf(measure)
-                ? isEditableRow
-                : false
-            }
-            tipoMedicion={tipoMedicion}
-            modifiedRows={modifiedRows}
-            activeRow={editableRowKey}
+          ) : null}
+          <PaginationWrapper
+            handleInputChange={handleInputChange}
+            handlePageChange={handlePageChange}
+            handleInputSubmit={handleInputSubmit}
+            pageNumber={pageNumber}
+            totalPages={totalPages}
+            inputValue={inputValue}
           />
-        ))}
-        <PaginationWrapper
-          handleInputChange={handleInputChange}
-          handlePageChange={handlePageChange}
-          handleInputSubmit={handleInputSubmit}
-          pageNumber={pageNumber}
-          totalPages={totalPages}
-          inputValue={inputValue}
-        />
-      </Table>
+          <TableHeader role="row">
+            <div>FECHA</div>
+            {energyTags?.map((energyTag) => (
+              <div key={energyTag}>{energyTag}</div>
+            ))}
+            <ButtonArray>
+              <Button
+                disabled={allMeasuresMutation.isLoading}
+                onClick={exportToExcel}
+                tooltip="Descargar perfil"
+              >
+                <FaDownload />
+              </Button>
+            </ButtonArray>
+          </TableHeader>
+          {measuresArray?.map((measure) => (
+            <MeasureRow
+              measure={measure}
+              key={measuresArray.indexOf(measure)}
+              rowKey={measuresArray.indexOf(measure)}
+              reportData={reportData}
+              //onInsertRow={handleInsertRow}
+              handleRowChange={handleRowChange}
+              handleIsEditableRow={handleIsEditableRow}
+              handleModifiedRows={handleModifiedRows}
+              isEditableRow={
+                editableRowKey == measuresArray.indexOf(measure)
+                  ? isEditableRow
+                  : false
+              }
+              tipoMedicion={tipoMedicion}
+              modifiedRows={modifiedRows}
+              activeRow={editableRowKey}
+            />
+          ))}
+          <PaginationWrapper
+            handleInputChange={handleInputChange}
+            handlePageChange={handlePageChange}
+            handleInputSubmit={handleInputSubmit}
+            pageNumber={pageNumber}
+            totalPages={totalPages}
+            inputValue={inputValue}
+          />
+        </Table>
+      )}
       {showModal && (
         <Modal onClose={handleShowModal}>
           <Heading as="h2">

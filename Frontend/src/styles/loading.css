@@ -1,0 +1,24 @@
+.loading-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.loading-cell {
+  height: 40px;
+  background-color: #e6f0ff; /* Light blue base color */
+  margin: 4px;
+  border-radius: 4px;
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    background-color: #e6f0ff; /* Light blue */
+  }
+  50% {
+    background-color: #b3d1ff; /* Slightly darker blue */
+  }
+}

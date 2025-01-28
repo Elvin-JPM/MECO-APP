@@ -8,10 +8,16 @@ import UserSection from "./UserSection";
 
 const Main = styled.main`
   background-color: var(--color-grey-50);
-  background: url("white-abstract-bg.jpg") center / cover padding-box;
+  background: url("/white-abstract-bg.jpg") center / cover padding-box;
   background-clip: padding-box;
   padding: 4rem 4.8rem 6.4rem;
   overflow: scroll;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
 `;
 
 const StyledAppLayout = styled.div`
@@ -20,25 +26,36 @@ const StyledAppLayout = styled.div`
   grid-template-rows: auto 1fr;
   margin-top: 3vh;
   height: 97vh;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   /* position: relative;
   z-index: 2500; */
 `;
 
+const AppBody = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+`;
+
 function AppLayout() {
   return (
-    <>
+    <AppBody>
       <Ribbon />
       <StyledAppLayout>
         <Header>
           <Heading>APP MEDICIÓN COMERCIAL</Heading>
-          <UserSection/>
+          <UserSection />
         </Header>
         <Sidebar />
         <Main>
           <Outlet />
         </Main>
       </StyledAppLayout>
-    </>
+    </AppBody>
   );
 }
 

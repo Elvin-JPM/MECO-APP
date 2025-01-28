@@ -10,6 +10,7 @@ import { formatDateInput } from "../../utils/dateFunctions";
 import toast from "react-hot-toast";
 import { IoWarning } from "react-icons/io5";
 import { useUser } from "../authentication/UserProvider";
+import "../../styles/loading.css";
 
 const TableRow = styled.div`
   display: grid;
@@ -62,7 +63,7 @@ const Column = styled.div.attrs((props) => ({
   }
 `;
 
-function MeasureRow({
+export default function MeasureRow({
   measure,
   onInsertRow,
   handleRowChange,
@@ -73,7 +74,20 @@ function MeasureRow({
   rowKey,
   modifiedRows,
   activeRow,
+  isLoading = false,
 }) {
+  if (isLoading) {
+    return (
+      <TableRow role="row" className="loading-row">
+        <div className="loading-cell"></div>
+        <div className="loading-cell"></div>
+        <div className="loading-cell"></div>
+        <div className="loading-cell"></div>
+        <div className="loading-cell"></div>
+      </TableRow>
+    );
+  }
+
   //const [isEditable, setIsEditable] = useState(false);
   const [additionalRows, setAdditionalRows] = useState([]);
   const [editableInputs, setEditableInputs] = useState({});
@@ -394,5 +408,3 @@ function MeasureRow({
     </>
   );
 }
-
-export default MeasureRow;

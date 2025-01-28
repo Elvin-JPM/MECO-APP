@@ -2,10 +2,16 @@ const express = require("express");
 const { getConnection } = require("../db");
 const router = express.Router();
 const oracledb = require("oracledb");
+const { query, validationResult } = require("express-validator");
 
 ///////////////////////////////////////////////////
 
 router.get("/measures", async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
+
   let connection;
   try {
     const {
@@ -62,51 +68,32 @@ router.get("/measures", async (req, res) => {
       return res.status(422).json({ error: "Invalid or missing parameters" });
     }
 
+    console.log("Starting measures endpoint");
     connection = await getConnection();
+    console.log("Connection established");
 
     // Total count query
     const countQuery = `
-      SELECT COUNT(*) AS TOTAL_COUNT
-      FROM (
-        SELECT TO_CHAR(FECHA, 'DD-MM-YYYY HH24:MI') AS FECHA
-        FROM MCAM_MEDICIONES
-        WHERE ID_MEDIDOR = :medidorPrincipal
-        AND TIPO_ENERGIA = :energiaGenerada
-          AND FECHA BETWEEN TO_DATE(:fechaInicial, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinal, 'YYYY-MM-DD HH24:MI')
-      ) MP_EG
-       INNER JOIN (
-        SELECT TO_CHAR(FECHA, 'DD-MM-YYYY HH24:MI') AS FECHA
-        FROM MCAM_MEDICIONES
-        WHERE ID_MEDIDOR = :medidorPrincipal
-        AND TIPO_ENERGIA = :energiaConsumida
-          AND FECHA BETWEEN TO_DATE(:fechaInicial, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinal, 'YYYY-MM-DD HH24:MI')
-      ) MP_EC 
-      ON MP_EG.FECHA = MP_EC.FECHA
-      INNER JOIN (
-        SELECT TO_CHAR(FECHA, 'DD-MM-YYYY HH24:MI') AS FECHA
-        FROM MCAM_MEDICIONES
-        WHERE ID_MEDIDOR = :medidorRespaldo
-        AND TIPO_ENERGIA = :energiaConsumida
-          AND FECHA BETWEEN TO_DATE(:fechaInicial, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinal, 'YYYY-MM-DD HH24:MI')
-      ) MR_EC 
-      ON MP_EG.FECHA = MR_EC.FECHA
-      INNER JOIN (
-        SELECT TO_CHAR(FECHA, 'DD-MM-YYYY HH24:MI') AS FECHA
-        FROM MCAM_MEDICIONES
-        WHERE ID_MEDIDOR = :medidorRespaldo
-        AND TIPO_ENERGIA = :energiaGenerada
-          AND FECHA BETWEEN TO_DATE(:fechaInicial, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinal, 'YYYY-MM-DD HH24:MI')
-      ) MR_EG
-      ON MP_EG.FECHA = MR_EG.FECHA
+          SELECT COUNT(*)
+          FROM MCAM_MEDICIONES
+          WHERE ID_MEDIDOR = :medidorPrincipal
+          AND TIPO_ENERGIA = :energiaGenerada
+          AND FECHA BETWEEN TO_DATE(:fechaInicialFormatted, 'YYYY-MM-DD HH24:MI')
+          AND TO_DATE(:fechaFinalFormatted, 'YYYY-MM-DD HH24:MI')
     `;
-    const countResult = await connection.execute(countQuery, {
-      medidorPrincipal,
-      medidorRespaldo,
-      energiaGenerada,
-      energiaConsumida,
-      fechaInicial: fechaInicialFormatted,
-      fechaFinal: fechaFinalFormatted,
-    });
+    const countResult = await connection.execute(
+      countQuery,
+      {
+        medidorPrincipal,
+        //medidorRespaldo,
+        energiaGenerada,
+        //energiaConsumida,
+        fechaInicialFormatted,
+        fechaFinalFormatted,
+      },
+      { timeout: 10000 }
+    );
+
     const totalCount = countResult.rows[0][0];
 
     console.log("total count: ", totalCount);
@@ -114,58 +101,30 @@ router.get("/measures", async (req, res) => {
     // Build the query
     let paginatedQuery = `
             SELECT 
-            EG_MP.FECHA, 
-            OR_DEL_MP, 
-            ENERGIA_DEL_MP, 
-            OR_REC_MP, 
-            ENERGIA_REC_MP,
-            OR_DEL_MR, 
-            ENERGIA_DEL_MR, 
-            OR_REC_MR, 
-            ENERGIA_REC_MR
-            FROM (
-              (SELECT FECHA, ORIGEN AS OR_DEL_MP, DATO_ENERGIA AS ENERGIA_DEL_MP 
-              FROM MCAM_MEDICIONES
-              WHERE ID_MEDIDOR = :medidorPrincipal
+              FECHA,
+              MAX(CASE WHEN ID_MEDIDOR = :medidorPrincipal AND TIPO_ENERGIA = :energiaGenerada THEN ORIGEN END) AS OR_DEL_MP,
+              MAX(CASE WHEN ID_MEDIDOR = :medidorPrincipal AND TIPO_ENERGIA = :energiaGenerada THEN DATO_ENERGIA END) AS ENERGIA_DEL_MP,
+              MAX(CASE WHEN ID_MEDIDOR = :medidorPrincipal AND TIPO_ENERGIA = :energiaConsumida THEN ORIGEN END) AS OR_REC_MP,
+              MAX(CASE WHEN ID_MEDIDOR = :medidorPrincipal AND TIPO_ENERGIA = :energiaConsumida THEN DATO_ENERGIA END) AS ENERGIA_REC_MP,
+              MAX(CASE WHEN ID_MEDIDOR = :medidorRespaldo AND TIPO_ENERGIA = :energiaGenerada THEN ORIGEN END) AS OR_DEL_MR,
+              MAX(CASE WHEN ID_MEDIDOR = :medidorRespaldo AND TIPO_ENERGIA = :energiaGenerada THEN DATO_ENERGIA END) AS ENERGIA_DEL_MR,
+              MAX(CASE WHEN ID_MEDIDOR = :medidorRespaldo AND TIPO_ENERGIA = :energiaConsumida THEN ORIGEN END) AS OR_REC_MR,
+              MAX(CASE WHEN ID_MEDIDOR = :medidorRespaldo AND TIPO_ENERGIA = :energiaConsumida THEN DATO_ENERGIA END) AS ENERGIA_REC_MR
+            FROM 
+              MCAM_MEDICIONES
+            WHERE 
+              (ID_MEDIDOR = :medidorPrincipal OR ID_MEDIDOR = :medidorRespaldo)
               AND FECHA BETWEEN TO_DATE(:fechaInicialFormatted, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinalFormatted, 'YYYY-MM-DD HH24:MI')
-              AND TIPO_ENERGIA = :energiaGenerada) EG_MP
-
-              INNER JOIN
-
-              (SELECT FECHA, ORIGEN AS OR_REC_MP, DATO_ENERGIA AS ENERGIA_REC_MP 
-              FROM MCAM_MEDICIONES
-              WHERE ID_MEDIDOR = :medidorPrincipal
-              AND FECHA BETWEEN TO_DATE(:fechaInicialFormatted, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinalFormatted, 'YYYY-MM-DD HH24:MI')
-              AND TIPO_ENERGIA = :energiaConsumida) EC_MP
-
-              ON EG_MP.FECHA = EC_MP.FECHA
-
-              INNER JOIN
-
-              (SELECT FECHA, ORIGEN AS OR_DEL_MR, DATO_ENERGIA AS ENERGIA_DEL_MR 
-              FROM MCAM_MEDICIONES
-              WHERE ID_MEDIDOR = :medidorRespaldo
-              AND FECHA BETWEEN TO_DATE(:fechaInicialFormatted, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinalFormatted, 'YYYY-MM-DD HH24:MI')
-              AND TIPO_ENERGIA = :energiaGenerada) EG_MR
-
-              ON EG_MP.FECHA = EG_MR.FECHA
-
-              INNER JOIN
-
-              (SELECT FECHA, ORIGEN AS OR_REC_MR, DATO_ENERGIA AS ENERGIA_REC_MR 
-              FROM MCAM_MEDICIONES
-              WHERE ID_MEDIDOR = :medidorRespaldo
-              AND FECHA BETWEEN TO_DATE(:fechaInicialFormatted, 'YYYY-MM-DD HH24:MI') AND TO_DATE(:fechaFinalFormatted, 'YYYY-MM-DD HH24:MI')
-              AND TIPO_ENERGIA = :energiaConsumida) EC_MR
-
-              ON EG_MP.FECHA = EC_MR.FECHA
-              )
-              ORDER BY FECHA
+              AND TIPO_ENERGIA IN (:energiaGenerada, :energiaConsumida)
+            GROUP BY 
+              FECHA
+            ORDER BY 
+            FECHA
     `;
 
     // Add pagination only if page is not -1
     if (page !== "-1") {
-      // const offset = (page - 1) * parseInt(limit);
+      //const offset = (page - 1) * parseInt(limit);
       paginatedQuery += ` OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY`;
     }
 
@@ -206,8 +165,6 @@ router.get("/measures", async (req, res) => {
         energia_rec_mr: ENERGIA_REC_MR,
       })
     );
-
-    console.log(measures);
 
     res.json({
       data: measures,

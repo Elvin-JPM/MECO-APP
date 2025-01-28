@@ -77,7 +77,7 @@ function Login() {
     <StyledLogin>
       <Ribbon />
       <Form type={"login"} onSubmit={handleSubmit(onSubmit)}>
-        <Logo image="../../public/CND-LOGO.png" />
+        <Logo image="../../CND-LOGO.png" />
         <Heading>APP MEDICIÓN COMERCIAL</Heading>
 
         <FormRow label={"Nombre de Usuario"} type={"login"}>

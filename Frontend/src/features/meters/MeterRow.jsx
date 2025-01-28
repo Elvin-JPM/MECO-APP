@@ -64,11 +64,7 @@ function MeterRow({ meter }) {
     <>
       <TableRow role="row">
         <Img
-          src={
-            foto
-              ? `data:image/jpeg;base64,${foto}`
-              : "https://memt.com.br/wp-content/uploads/2024/09/ION8650-4.jpg"
-          }
+          src={foto ? `data:image/jpeg;base64,${foto}` : "../../ION_8650.jpg"}
         ></Img>
         <Column>{nombre_planta}</Column>
         <Column>{ip}</Column>
