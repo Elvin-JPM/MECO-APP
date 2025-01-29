@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Input from "../../ui/Input"; // Your custom Input component
 import Form from "../../ui/Form";
 import FormRow from "../../ui/FormRow";
@@ -10,8 +10,6 @@ import {
   getPlantsAndSubstations,
 } from "../../services/getRequests";
 import Select from "../../ui/Select";
-//import CustomDropdown from "../../ui/CustomDropdown";
-//import Select from 'react-select';
 
 function GenerateReportForm({
   handleShowReportTable,
@@ -19,26 +17,37 @@ function GenerateReportForm({
   handleEnergyTags,
   handlePageReset,
 }) {
+  const nombrePlantaRef = useRef(null);
   const { register, handleSubmit, formState, setValue, watch } = useForm();
   const { errors } = formState;
 
   const selectedPlantaSub = watch("plantaSubestacion");
+  const selectedPuntoMedicion = watch("puntoMedicion");
 
-  const {
-    isLoadingPlantsSubs,
-    data: plantsandsubs,
-    // error,
-  } = useQuery({
+  const { isLoadingPlantsSubs, data: plantsandsubs } = useQuery({
     queryKey: ["plantsandsubs"],
     queryFn: getPlantsAndSubstations,
   });
 
-  // console.log(plantsandsubs);
+  const { data: integratedMeters } = useQuery({
+    queryKey: ["integratedMeters", selectedPlantaSub],
+    queryFn: () => getIntegratedMeters(selectedPlantaSub),
+    enabled: !!selectedPlantaSub,
+  });
 
-  // Helper to format dates for datetime-local inputs
+  const uniqueMeters = integratedMeters?.filter(
+    (item, index, array) =>
+      array.findIndex((other) => other.description === item.description) ===
+      index
+  );
+
+  const selectedMeterDescription = uniqueMeters?.find(
+    (meter) => meter.id_punto_medicion === Number(selectedPuntoMedicion)
+  )?.description;
+
   const formatDateForInput = (date) => {
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     const hours = String(date.getHours()).padStart(2, "0");
     const minutes = String(date.getMinutes()).padStart(2, "0");
@@ -47,35 +56,19 @@ function GenerateReportForm({
   };
 
   useEffect(() => {
-    // Default values for controlled inputs
     setValue("fechaInicial", formatDateForInput(yesterday));
     setValue("fechaFinal", formatDateForInput(today));
   }, []);
 
-  // Calculate default values
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // Set time to 00:00
+  today.setHours(0, 0, 0, 0);
   const yesterday = new Date(today);
-  yesterday.setDate(today.getDate() - 1); // Subtract 1 day
-
-  const {
-    //isLoading: isLoadingIntegratedMeters,
-    data: integratedMeters,
-    // error,
-  } = useQuery({
-    queryKey: ["integratedMeters", selectedPlantaSub],
-    queryFn: () => getIntegratedMeters(selectedPlantaSub),
-    enabled: !!selectedPlantaSub,
-  });
+  yesterday.setDate(today.getDate() - 1);
 
   async function onSubmit(data) {
-    //const formData = new FormData();
-
     const ionDataIds = integratedMeters?.filter(
       (meter) => Number(meter.id_punto_medicion) === Number(data?.puntoMedicion)
     );
-
-    console.log("ionDataIds: ", ionDataIds);
 
     const medidorPrincipal = ionDataIds.find(
       (medidor) => medidor.tipo === "PRINCIPAL"
@@ -91,6 +84,7 @@ function GenerateReportForm({
       fechaInicial: data?.fechaInicial,
       fechaFinal: data?.fechaFinal,
       puntoMedicion: Number(data?.puntoMedicion),
+      nombrePuntoMedicion: selectedMeterDescription, // Include the meter description
     };
 
     console.log("params: ", queryParams);
@@ -100,16 +94,8 @@ function GenerateReportForm({
     handleReportData(queryParams);
   }
 
-  const uniqueMeters = integratedMeters?.filter(
-    (item, index, array) =>
-      array.findIndex((other) => other.description === item.description) ===
-      index
-  );
-
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
-      {/* Punto de medición field */}
-
       <FormRow
         label="Planta/Subestación"
         error={errors?.integratedMeters?.message}
@@ -133,7 +119,7 @@ function GenerateReportForm({
           ))}
         </Select>
       </FormRow>
-      
+
       <FormRow
         label="Punto de medición"
         error={errors?.integratedMeters?.message}
@@ -145,8 +131,8 @@ function GenerateReportForm({
             required: "Este campo es obligatorio",
           })}
           onChange={(e) => {
-            setValue("puntoMedicion", e.target.value); // Update the form value
-            handlePageReset(); // Reset if needed
+            setValue("puntoMedicion", e.target.value);
+            handlePageReset();
           }}
         >
           <option value="">Seleccione una opción</option>
@@ -185,7 +171,6 @@ function GenerateReportForm({
         </Select>
       </FormRow>
 
-      {/* Fecha inicial field with datetime-local */}
       <FormRow label="Fecha inicial">
         <Input
           type="datetime-local"
@@ -198,7 +183,6 @@ function GenerateReportForm({
         />
       </FormRow>
 
-      {/* Fecha final field with datetime-local */}
       <FormRow label="Fecha final">
         <Input
           type="datetime-local"

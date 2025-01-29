@@ -8,11 +8,13 @@ const StyledModal = styled.div`
   transform: translate(-50%, -50%);
   background-color: var(--color-grey-0);
   border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 3px 2px 2px 2px var(--color-grey-100);
   padding: 3.2rem 4rem;
   transition: all 0.5s;
   height: 95vh;
+  border: 1px solid var(--color-grey-200);
   overflow: auto; /* Allows scrolling */
+  z-index: 1001; /* Ensure modal is above the overlay */
 
   /* Hide scrollbar */
   scrollbar-width: none; /* Firefox */
@@ -30,7 +32,7 @@ const Overlay = styled.div`
   width: 100%;
   height: 100vh;
   background-color: var(--backdrop-color);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(2px); /* Reduced blur, or remove this line entirely */
   z-index: 1000;
   transition: all 0.5s;
 `;

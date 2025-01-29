@@ -110,7 +110,7 @@ app.use("/api", meRoute);
 
     console.log(pythonScriptPath);
     // Schedule a cron job to run every day at 1:00 AM
-    cron.schedule("02 11 * * *", () => {
+    cron.schedule("19 09 * * *", () => {
       console.log("Running the Python script at 1:00 AM");
 
       // Pass parameters to the Python script, handle spaces in the path by quoting it
