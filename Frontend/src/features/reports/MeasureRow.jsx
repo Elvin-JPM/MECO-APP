@@ -1,16 +1,15 @@
 import styled from "styled-components";
 import { useRef, useState } from "react";
 import Button from "../../ui/Button";
-import Input from "../../ui/Input";
-import { FaPlus } from "react-icons/fa6";
+
 import { MdEdit } from "react-icons/md";
+import { IoCheckbox } from "react-icons/io5";
 import ButtonArray from "../../ui/ButtonArray";
 import { formatDate } from "../../utils/dateFunctions";
-import { formatDateInput } from "../../utils/dateFunctions";
-import toast from "react-hot-toast";
-import { IoWarning } from "react-icons/io5";
 import { useUser } from "../authentication/UserProvider";
 import "../../styles/loading.css";
+import PropTypes from "prop-types";
+import { toast } from "react-hot-toast";
 
 const TableRow = styled.div`
   display: grid;
@@ -32,22 +31,22 @@ const Column = styled.div.attrs((props) => ({
   background-color: ${(props) =>
     props.contentEditable
       ? "var(--color-brand-50)"
-      : Array.isArray(props.modifiedRows) &&
-        props.modifiedRows.includes(props.rowKey) &&
-        props.rowKey !== props.activeRow
+      : Array.isArray(props.modifiedrows) &&
+        props.modifiedrows.includes(props.rowkey) &&
+        props.rowkey !== props.activerow
       ? "var(--color-red-100)"
       : "transparent"};
   padding: ${(props) =>
     props.contentEditable ||
-    (Array.isArray(props.modifiedRows) &&
-      props.modifiedRows.includes(props.rowKey))
+    (Array.isArray(props.modifiedrows) &&
+      props.modifiedrows.includes(props.rowkey))
       ? "0.6rem"
       : 0};
   border-radius: 8px;
   /* border-radius: ${(props) =>
     props.contentEditable ||
-    (Array.isArray(props.modifiedRows) &&
-      props.modifiedRows.includes(props.rowKey))
+    (Array.isArray(props.modifiedrows) &&
+      props.modifiedrows.includes(props.rowkey))
       ? "8px"
       : "8px"}; */
   box-shadow: ${(props) =>
@@ -63,20 +62,41 @@ const Column = styled.div.attrs((props) => ({
   }
 `;
 
+// Estilo de los valores que han sido insertados por el sistema, pero que aun no han sido editados por el usuario
+const viStyle = {
+  padding: "5px 3px",
+  backgroundColor: "var(--color-red-50)",
+  color: "var(--color-red-600)",
+  fontStyle: "italic",
+};
+
+// Estilo de los valores que han sido insertados por el sistema, pero que aun no han sido editados por el usuario
+const vsStyle = {
+  padding: "4px 1px",
+  backgroundColor: "var(--color-green-100)",
+  color: "var(--color-green-700)",
+};
+
 export default function MeasureRow({
-  measure,
-  onInsertRow,
   handleRowChange,
-  reportData,
   handleIsEditableRow,
+  measure,
+  reportData,
   isEditableRow,
   tipoMedicion,
-  rowKey,
-  modifiedRows,
-  activeRow,
-  isLoading = false,
+  rowkey,
+  modifiedrows,
+  activerow,
 }) {
-  if (isLoading) {
+  const { userData } = useUser();
+  // Referencias a los inputs
+  const fechaRef = useRef(null);
+  const energiaDelMpRef = useRef(null);
+  const energiaRecMpRef = useRef(null);
+  const energiaDelMrRef = useRef(null);
+  const energiaRecMrRef = useRef(null);
+
+  if (!measure) {
     return (
       <TableRow role="row" className="loading-row">
         <div className="loading-cell"></div>
@@ -88,10 +108,6 @@ export default function MeasureRow({
     );
   }
 
-  //const [isEditable, setIsEditable] = useState(false);
-  const [additionalRows, setAdditionalRows] = useState([]);
-  const [editableInputs, setEditableInputs] = useState({});
-  const { userData } = useUser();
   const {
     fecha,
     or_del_mp,
@@ -103,27 +119,6 @@ export default function MeasureRow({
     or_rec_mr,
     energia_rec_mr,
   } = measure;
-
-  let fechaRef = useRef(null);
-  let energiaDelMpRef = useRef(null);
-  let energiaRecMpRef = useRef(null);
-  let energiaDelMrRef = useRef(null);
-  let energiaRecMrRef = useRef(null);
-
-  // Estilo de los valores que han sido insertados por el sistema, pero que aun no han sido editados por el usuario
-  const viStyle = {
-    padding: "5px 3px",
-    backgroundColor: "var(--color-red-50)",
-    color: "var(--color-red-600)",
-    fontStyle: "italic",
-  };
-
-  // Estilo de los valores que han sido insertados por el sistema, pero que aun no han sido editados por el usuario
-  const vsStyle = {
-    padding: "4px 1px",
-    backgroundColor: "var(--color-green-100)",
-    color: "var(--color-green-700)",
-  };
 
   // Funcion para actualizar los valores que van cambiando en los inputs cuando son editables
   // La actualizacion se realiza mediante useRef a cada valor de energia
@@ -155,7 +150,7 @@ export default function MeasureRow({
       energia_rec_mp_new: energiaRecMpRef.current?.innerText, // poder compararlos con los
       energia_del_mr_new: energiaDelMrRef.current?.innerText, // valores originales en el backend
       energia_rec_mr_new: energiaRecMrRef.current?.innerText,
-      key: rowKey,
+      key: rowkey,
       idPrincipal: reportData.medidorPrincipal,
       idRespaldo: reportData.medidorRespaldo,
       tipoMedicion,
@@ -177,6 +172,10 @@ export default function MeasureRow({
     ) {
       handleRowChange(updatedValues);
     }
+    // if (e.target.value === "validar") {
+    //   toast.success("Fila validada correctamente");
+    // }
+    console.log("e.target.value: ", e.target);
   };
 
   //const allRows = [{ fecha }, ...additionalRows];
@@ -227,94 +226,11 @@ export default function MeasureRow({
           ref.current.innerText = value;
         }
       });
-
-      // Optionally handle fechaRef specifically if needed
-      // if (fechaRef?.current) {
-      //   fechaRef.current.innerText = "Updated Date Value"; // Customize this as necessary
-      // }
     }
 
     // Toggle edit mode
-    handleIsEditableRow(!isEditableRow, rowKey, buttonValue);
+    handleIsEditableRow(!isEditableRow, rowkey, buttonValue);
   };
-
-  // Calculate a new date 15 minutes ahead
-  function calculateNewFecha(oldFecha) {
-    const oldDate = new Date(oldFecha);
-    oldDate.setMinutes(oldDate.getMinutes() + 15); // Add 15 minutes
-    return oldDate;
-  }
-
-  // Funcion para agregar una nueva fila al hacer click en el boton "+"
-  function handleAddRow(currentFecha, currentIndex) {
-    const allRows = [{ fecha }, ...additionalRows];
-    const nextFecha =
-      currentIndex + 1 < allRows.length
-        ? new Date(allRows[currentIndex + 1].fecha)
-        : null;
-
-    const newFecha = calculateNewFecha(currentFecha);
-
-    // Validate the new date
-    const existingDates = allRows.map((row) => new Date(row.fecha).getTime());
-    if (existingDates.includes(newFecha.getTime())) {
-      console.log("A row with this date already exists.");
-      //return;
-    }
-    if (nextFecha && newFecha >= nextFecha) {
-      console.log("The new row's date must be less than the next row's date.");
-      //return;
-    }
-
-    // Insert the new row in the appropriate position
-    setAdditionalRows([
-      ...additionalRows.slice(0, currentIndex + 1),
-      {
-        fecha: newFecha,
-        kwh_del_mp: "",
-        kwh_rec_mp: "",
-        kwh_del_mr: "",
-        kwh_rec_mr: "",
-      },
-      ...additionalRows.slice(currentIndex + 1),
-    ]);
-
-    console.log(additionalRows);
-  }
-
-  // habilita o deshabilita el boton para agreagar una nueva fila, basandose en las fechas
-  function canAddRow(currentFecha, currentIndex) {
-    const allRows = [{ fecha }, ...additionalRows];
-    const nextFecha =
-      currentIndex + 1 < allRows.length
-        ? new Date(allRows[currentIndex + 1].fecha)
-        : null;
-
-    const newFecha = calculateNewFecha(currentFecha);
-
-    // Check if newFecha exists in the rows
-    const existingDates = allRows.map((row) => new Date(row.fecha).getTime());
-    if (existingDates.includes(newFecha.getTime())) return false;
-
-    // Ensure newFecha is within the gap (if any)
-    if (nextFecha && newFecha >= nextFecha) return false;
-
-    return true;
-  }
-
-  // Handle changes to editable fields
-  function handleInputChange(index, field, value) {
-    const updatedRows = [...additionalRows];
-    updatedRows[index][field] = value;
-    setAdditionalRows(updatedRows);
-  }
-
-  //Submit row data to the database
-  function handleSubmitRow(index) {
-    const rowToSubmit = additionalRows[index];
-    onInsertRow(rowToSubmit); // Pass row data to parent for database insertion
-    setAdditionalRows(additionalRows.filter((_, i) => i !== index));
-  }
 
   return (
     <>
@@ -326,9 +242,9 @@ export default function MeasureRow({
         <Column
           ref={energiaDelMpRef}
           contentEditable={isEditableRow}
-          modifiedRows={modifiedRows}
-          activeRow={activeRow}
-          rowKey={rowKey}
+          modifiedrows={modifiedrows}
+          activerow={activerow}
+          rowkey={rowkey}
           onInput={handleEditableDivInput}
           style={
             or_del_mp === "VS" ? vsStyle : or_del_mp === "VI" ? viStyle : {}
@@ -343,9 +259,9 @@ export default function MeasureRow({
           ref={energiaRecMpRef}
           contentEditable={isEditableRow}
           onInput={handleEditableDivInput}
-          modifiedRows={modifiedRows}
-          activeRow={activeRow}
-          rowKey={rowKey}
+          modifiedrows={modifiedrows}
+          activerow={activerow}
+          rowkey={rowkey}
           style={
             or_rec_mp === "VS" ? vsStyle : or_rec_mp === "VI" ? viStyle : {}
           }
@@ -359,9 +275,9 @@ export default function MeasureRow({
           ref={energiaDelMrRef}
           contentEditable={isEditableRow}
           onInput={handleEditableDivInput}
-          modifiedRows={modifiedRows}
-          activeRow={activeRow}
-          rowKey={rowKey}
+          modifiedrows={modifiedrows}
+          activerow={activerow}
+          rowkey={rowkey}
           style={
             or_del_mr === "VS" ? vsStyle : or_del_mr === "VI" ? viStyle : {}
           }
@@ -375,9 +291,9 @@ export default function MeasureRow({
           ref={energiaRecMrRef}
           contentEditable={isEditableRow}
           onInput={handleEditableDivInput}
-          modifiedRows={modifiedRows}
-          activeRow={activeRow}
-          rowKey={rowKey}
+          modifiedrows={modifiedrows}
+          activerow={activerow}
+          rowkey={rowkey}
           style={
             or_rec_mr === "VS" ? vsStyle : or_rec_mr === "VI" ? viStyle : {}
           }
@@ -389,17 +305,35 @@ export default function MeasureRow({
         </Column>
         <Column>
           {userData.departmentId === 18 ? (
-            <Button
-              onClick={() => {
-                handleEditRow(isEditableRow ? "Cancelar" : "Editar");
-              }}
-              variation="secondary"
-              size="small"
-              tooltip={!isEditableRow ? "Editar" : "Cancelar"}
-              // disabled={!canAddRow(fecha, -1)}
-            >
-              {isEditableRow ? "Cancel" : <MdEdit />}
-            </Button>
+            <ButtonArray>
+              <Button
+                onClick={() => {
+                  handleEditRow(isEditableRow ? "Cancelar" : "Editar");
+                }}
+                variation="secondary"
+                size="small"
+                tooltip={!isEditableRow ? "Editar" : "Cancelar"}
+                // disabled={!canAddRow(fecha, -1)}
+              >
+                {isEditableRow ? "Cancel" : <MdEdit />}
+              </Button>
+              {or_del_mp === "VI" ||
+              or_rec_mp === "VI" ||
+              or_del_mr === "VI" ||
+              or_rec_mr === "VI" ? (
+                <Button
+                  variation="check"
+                  size="small"
+                  tooltip="Validar fila"
+                  onClick={handleEditableDivInput}
+                  value="validar"
+                >
+                  <IoCheckbox />
+                </Button>
+              ) : (
+                ""
+              )}
+            </ButtonArray>
           ) : (
             ""
           )}
@@ -408,3 +342,17 @@ export default function MeasureRow({
     </>
   );
 }
+
+MeasureRow.propTypes = {
+  measure: PropTypes.object,
+  onInsertRow: PropTypes.func,
+  handleRowChange: PropTypes.func,
+  reportData: PropTypes.object,
+  handleIsEditableRow: PropTypes.func,
+  isEditableRow: PropTypes.bool,
+  tipoMedicion: PropTypes.string,
+  rowkey: PropTypes.number,
+  modifiedrows: PropTypes.array,
+  activerow: PropTypes.string,
+  isLoading: PropTypes.bool,
+};

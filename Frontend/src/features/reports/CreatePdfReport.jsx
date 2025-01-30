@@ -2,11 +2,31 @@ import { useEffect, useState } from "react";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import { formatDate } from "../../utils/dateFunctions";
+import { useUser } from "../authentication/UserProvider";
 
 function CreatePdfReport({ formData, rowsToEdit, getPdfFile }) {
   const [pdfUrl, setPdfUrl] = useState(null);
 
+  const { userData } = useUser();
+
+  console.log("User data received at pdf: ", userData);
   console.log("Form data received at pdf: ", formData);
+
+  // Sort rowsToEdit by fecha
+  const sortedRows = [...rowsToEdit].sort((a, b) => {
+    const parseDate = (dateString) => {
+      const [datePart, timePart] = dateString.split(" ");
+      const [day, month, year] = datePart.split("-").map(Number);
+      const [hours, minutes] = timePart.split(":").map(Number);
+      return new Date(year, month - 1, day, hours, minutes);
+    };
+
+    const dateA = parseDate(a.fecha);
+    const dateB = parseDate(b.fecha);
+    return dateA - dateB; // Ascending order
+  });
+
+  console.log("Sorted rows: ", sortedRows);
 
   useEffect(() => {
     const getFormattedDate = () => {
@@ -69,10 +89,11 @@ function CreatePdfReport({ formData, rowsToEdit, getPdfFile }) {
           formData.resumenProblema,
           formData.razonProblema,
           formData.consecuencia,
-          "Josué Natanael García Ortiz",
+          userData.fullName,
           "3.3.2 Sustitución;  El ODS solamente modificará toda o parte de las lecturas de mediciones comerciales (con propósitos de liquidaciones) ante datos faltantes o cuando la validación basada en calificadores indique que toda o parte de una medición es inválida.",
           formData.medicionesAfectadas,
           formData.medicionesDisponibles,
+
           formData.procedimiento,
           formData.diasTipo,
           formatDate(formData.fechaInicial) +
@@ -146,7 +167,7 @@ function CreatePdfReport({ formData, rowsToEdit, getPdfFile }) {
         ];
 
         let data = [];
-        for (const row of rowsToEdit) {
+        for (const row of sortedRows) {
           data.push([
             row.fecha,
             row.energia_del_mp,
@@ -172,14 +193,14 @@ function CreatePdfReport({ formData, rowsToEdit, getPdfFile }) {
         doc.text("VALORES SUSTITUCIÓN", 138, y - 1);
         // Create the table
 
-        doc.setFontSize(8);
+        doc.setFontSize(6);
         doc.autoTable({
           head: headers,
           body: data,
           startY: y, // Position the table below the title
           theme: "grid",
           styles: {
-            fontSize: 8,
+            fontSize: 7,
             halign: "center", // Center align text in cells
             valign: "middle",
           },
@@ -190,6 +211,11 @@ function CreatePdfReport({ formData, rowsToEdit, getPdfFile }) {
           },
           alternateRowStyles: {
             fillColor: [240, 240, 240], // Alternate row background color as RGB array
+          },
+          columnStyles: {
+            // 0: { cellWidth: 30 }, // Set width for the first column
+            // 1: { cellWidth: 30 }, // Set width for the second column
+            // Add more column styles as needed
           },
           didParseCell: (cellData) => {
             const { row, column, cell, section } = cellData;

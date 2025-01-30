@@ -10,6 +10,7 @@ const sizes = {
   `,
   medium: css`
     font-size: 1.6rem;
+
     padding: 1.2rem 1.6rem;
     font-weight: 600;
   `,
@@ -43,11 +44,18 @@ const variations = {
       background-color: var(--color-institucional-rojo);
     }
   `,
+
+  check: css`
+    color: var(--color-green-300);
+    background-color: var(--color-brand-300);
+    border: 1px solid var(--color-grey-200);
+  `,
 };
 
 const Button = styled.button.attrs((props) => ({
   title: props.tooltip, // Adds the tooltip text as a `title` attribute (optional)
 }))`
+
   color: var(--color-grey-700);
   border: none;
   border-radius: var(--border-radius-sm);

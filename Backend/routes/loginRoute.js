@@ -81,10 +81,10 @@ router.post("/login", async (req, res) => {
           username: userData.username,
           nombre: userData.nombre,
           id_departamento: userData.id_departamento,
-          id_cargo: userData.id_cargo,
+          //   id_cargo: userData.id_cargo,
         },
         JWT_SECRET,
-        { expiresIn: "1h" } // Token validity
+        { expiresIn: "3h" } // Token validity
       );
 
       res.cookie("auth_token", token, {
