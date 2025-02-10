@@ -48,9 +48,20 @@ const Select = styled.select`
   }
 
   /* Add responsive styles */
-  @media (max-width: 768px) {
-    font-size: 1.2rem;
+  @media (min-width: 1200px) {
+    min-width: 40rem;
+  }
+
+  @media (max-width: 1200px) {
+    min-width: 23.5rem;
+    font-size: 1.1rem;
     padding: 0.6rem 1rem;
+  }
+
+  @media (max-width: 768px) {
+    min-width: 5rem;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.7rem;
   }
 `;
 

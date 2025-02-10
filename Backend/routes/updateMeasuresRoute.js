@@ -58,10 +58,12 @@ router.put("/updateMeasures", async (req, res) => {
           SET
             DATO_ENERGIA = :energia_del_mp_new
             ${
-              parseFloat(rowToEdit.energia_del_mp) !== energia_del_mp_new
+              parseFloat(rowToEdit.energia_del_mp) !== energia_del_mp_new ||
+              rowToEdit.filaValidadaCompleta
                 ? ", ORIGEN = 'VS'"
                 : ""
             }
+
           WHERE ID_MEDIDOR = :idPrincipal
           AND TIPO_ENERGIA = :energiaGenerada
           AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI');
@@ -70,10 +72,12 @@ router.put("/updateMeasures", async (req, res) => {
           SET
             DATO_ENERGIA = :energia_rec_mp_new
             ${
-              parseFloat(rowToEdit.energia_rec_mp) !== energia_rec_mp_new
+              parseFloat(rowToEdit.energia_rec_mp) !== energia_rec_mp_new ||
+              rowToEdit.filaValidadaCompleta
                 ? ", ORIGEN = 'VS'"
                 : ""
             }
+
           WHERE ID_MEDIDOR = :idPrincipal
           AND TIPO_ENERGIA = :energiaConsumida
           AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI');
@@ -86,10 +90,12 @@ router.put("/updateMeasures", async (req, res) => {
             SET
               DATO_ENERGIA = :energia_del_mr_new
               ${
-                parseFloat(rowToEdit.energia_del_mr) !== energia_del_mr_new
+                parseFloat(rowToEdit.energia_del_mr) !== energia_del_mr_new ||
+                rowToEdit.filaValidadaCompleta
                   ? ", ORIGEN = 'VS'"
                   : ""
               }
+
             WHERE ID_MEDIDOR = :idRespaldo
             AND TIPO_ENERGIA = :energiaGenerada
             AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI');
@@ -98,10 +104,12 @@ router.put("/updateMeasures", async (req, res) => {
             SET
               DATO_ENERGIA = :energia_rec_mr_new
               ${
-                parseFloat(rowToEdit.energia_rec_mr) !== energia_rec_mr_new
+                parseFloat(rowToEdit.energia_rec_mr) !== energia_rec_mr_new ||
+                rowToEdit.filaValidadaCompleta
                   ? ", ORIGEN = 'VS'"
                   : ""
               }
+
             WHERE ID_MEDIDOR = :idRespaldo
             AND TIPO_ENERGIA = :energiaConsumida
             AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI');

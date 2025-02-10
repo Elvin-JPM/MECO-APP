@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useUser } from "../features/authentication/UserProvider";
 import { logout } from "../services/postRequests";
 import toast from "react-hot-toast";
+import Spinner from "./Spinner";
 
 const StyledUserSection = styled.div`
   display: flex;
@@ -12,7 +13,16 @@ const StyledUserSection = styled.div`
   justify-content: center;
   align-items: center;
   gap: 1.5rem;
+
+  @media (max-width: 1200px) {
+    font-size: 1.3rem;
+  }
+  @media (max-width: 768px) {
+    font-size: 1.1rem;
+  }
 `;
+
+
 
 function UserSection() {
   const navigate = useNavigate();
@@ -44,7 +54,11 @@ function UserSection() {
   };
 
   if (loading) {
-    return <p>Cargando...</p>;
+    return (
+      <p>
+        <Spinner />
+      </p>
+    );
   }
 
   return (

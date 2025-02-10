@@ -40,10 +40,26 @@ const StyledFormRow = styled.div`
         border-bottom: none;
       }
     `}
+
+  @media (max-width: 1200px) {
+    gap: 0.3rem;
+    padding: 0.5rem 0;
+    font-size: 1.3rem;
+  }
+
+
+  @media (max-width: 768px) {
+    gap: 0;
+    padding: 0.2rem 0;
+    font-size: 0.9rem;
+    grid-template-columns: 1fr 1fr;
+  }
 `;
+
 
 const Label = styled.label`
   font-weight: 500;
+
   ${(props) =>
     props.type === "login" &&
   css`

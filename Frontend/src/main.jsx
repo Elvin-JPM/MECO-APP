@@ -4,7 +4,7 @@ import App from "./App.jsx";
 import { UserProvider } from "./features/authentication/UserProvider.jsx";
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
+  // <StrictMode>
     <App />
-  </StrictMode>
+  // </StrictMode>
 );

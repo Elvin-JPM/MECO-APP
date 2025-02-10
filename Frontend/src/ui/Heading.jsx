@@ -51,10 +51,15 @@ const StyledHeading = styled.h1`
       font-size: 2rem;
       font-weight: 500;
     `}
+
+  @media (min-width: 1200px) {
+    font-size: 2.5rem;
+  }
 `;
 
 function Heading({ children }) {
   return (
+
     <div>
       <StyledHeading>{children}</StyledHeading>
     </div>

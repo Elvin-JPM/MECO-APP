@@ -33,9 +33,19 @@ const StyledAppLayout = styled.div`
   -ms-overflow-style: none;
   /* position: relative;
   z-index: 2500; */
+  @media (max-width: 1200px) and (min-width: 768px) {
+    grid-template-columns: 18rem 1fr;
+  }
+  @media (max-width: 768px) and (min-width: 480px) {
+    grid-template-columns: 6rem 1fr;
+  }
+
 `;
 
+
+
 const AppBody = styled.div`
+
   display: flex;
   flex-direction: column;
   height: 100%;

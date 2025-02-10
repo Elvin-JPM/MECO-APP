@@ -5,7 +5,7 @@ import { FaDownload } from "react-icons/fa6";
 import { getMeasures } from "../../services/getRequests";
 import ButtonArray from "../../ui/ButtonArray";
 import MeasureRow from "./MeasureRow";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PaginationWrapper from "../../ui/PaginationWrapper";
 import { useCallback } from "react";
 import useUpdateMeasures from "./useUpdateMeasures";
@@ -23,7 +23,14 @@ export const Table = styled.div`
   background-color: var(--color-grey-0);
   border-radius: 7px;
   overflow: hidden;
+  @media (max-width: 1200px) and (min-width: 768px) {
+    font-size: 1.2rem;
+  }
+  @media (max-width: 768px) and (min-width: 480px) {
+    font-size: 1rem;
+  }
 `;
+
 
 export const TableHeader = styled.header`
   display: grid;
@@ -38,9 +45,21 @@ export const TableHeader = styled.header`
   font-weight: 600;
   color: var(--color-grey-600);
   padding: 1.6rem 2.4rem;
+  @media (max-width: 1200px) and (min-width: 768px) {
+    font-size: 1.2rem;
+    column-gap: 0.5rem;
+    letter-spacing: 0.2px;
+  }
+  @media (max-width: 768px) and (min-width: 480px) {
+    font-size: 1.1rem;
+    column-gap: 0.5rem;
+    letter-spacing: 0.1px;
+  }
+
 `;
 
 function ReportTable({
+
   reportData,
   energyTags = ["KWH DEL MP", "KWH REC MP", "KWH DEL MR", "KWH REC MR"],
   tipoMedicion,
@@ -57,6 +76,8 @@ function ReportTable({
     pageNumber,
     reportData
   );
+  const [showToast, setShowToast] = useState({ type: null, message: null });
+
   const { allMeasuresMutation } = useAllMeasuresStyling(reportData, energyTags);
   //const [isDownloadReady, setIsDownloadReady] = useState(false);
   //const [currentPage, setCurrentPage] = useState(1);
@@ -156,9 +177,50 @@ function ReportTable({
       }
 
       console.log("Updated rowsToEdit:", updatedRows);
+      // rowsToEdit sera este valor retornado por el handleRowChange
       return updatedRows;
     });
   }, []);
+
+  useEffect(() => {
+    if (showToast.type && showToast.message) {
+      if (showToast.type === "success") {
+        toast.success(showToast.message, {
+          style: {
+            border: "1px solid #713200",
+            padding: "16px",
+            color: "#713200",
+          },
+          iconTheme: {
+            primary: "#713200",
+            secondary: "#FFFAEE",
+          },
+        });
+      } else if (showToast.type === "error") {
+        toast.error(showToast.message);
+      }
+      // Reset the toast state
+      setShowToast({ type: null, message: null });
+    }
+  }, [showToast]);
+
+  const handleDeleteRow = (rowKey) => {
+    console.log("handleDeleteRow called for rowKey:", rowKey);
+    setRowsToEdit((prevRows) => {
+      const updatedRows = prevRows.filter((item) => item.key !== rowKey);
+      console.log("Rows to edit after deleting: ", updatedRows);
+
+      if (updatedRows.length === prevRows.length) {
+        setShowToast({ type: "error", message: "No se pudo eliminar la fila" });
+      } else {
+        setShowToast({
+          type: "success",
+          message: "Validación de fila cancelada",
+        });
+      }
+      return updatedRows; // Return the updated state
+    });
+  };
 
   const onUpdateMeasures = () => {
     if (rowsToEdit?.length > 0) {
@@ -221,11 +283,12 @@ function ReportTable({
             <MeasureRow
               handleRowChange={handleRowChange}
               handleIsEditableRow={handleIsEditableRow}
+              handleDeleteRow={handleDeleteRow}
               //handleModifiedRows={handleModifiedRows}
               measure={measure}
               reportData={reportData}
               tipoMedicion={tipoMedicion}
-              modifiedRows={modifiedRows}
+              modifiedrows={modifiedRows}
               activerow={editableRowKey}
               key={measuresArray.indexOf(measure)}
               rowkey={measuresArray.indexOf(measure)}

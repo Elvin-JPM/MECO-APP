@@ -10,6 +10,15 @@ const Form = styled.form`
       background-color: rgba(255, 255, 255, 0.6);
       border: 1px solid var(--color-grey-100);
       border-radius: var(--border-radius-md);
+
+      @media (max-width: 1200px) {
+        padding: 1.5rem 1.5rem;
+      }
+      @media (max-width: 768px) {
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+      }
     `}
 
   ${(props) =>
@@ -42,11 +51,35 @@ const Form = styled.form`
       height: 70%;
       gap: 1rem;
 
+      @media (min-width: 1200px) {
+        width: 42rem;
+        height: 55rem;
+        justify-content: center;
+      }
+      @media (max-width: 1200px) and (min-width: 768px) {
+        width: 38rem;
+        height: 50rem;
+        justify-content: center;
+      }
+
+      @media (max-width: 768px) and (min-width: 480px) {
+        width: 36rem;
+        height: 50rem;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+      @media (max-width: 480px) and (min-width: 320px) {
+        width: 34rem;
+        height: 46rem;
+        justify-content: center;
+        gap: 0.3rem;
+      }
     `}
   overflow: hidden;
   font-size: 1.4rem;
   margin-bottom: 2rem;
   backdrop-filter: blur(8px);
+
 `;
 
 export default Form;

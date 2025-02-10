@@ -10,6 +10,7 @@ import Textarea from "../../ui/Textarea";
 import Spinner from "../../ui/Spinner";
 import CreatePdfReport from "./CreatePdfReport";
 import useCreateSubstitutionReport from "./useCreateSubstitutionReport";
+import { useUser } from "../../features/authentication/userProvider";
 
 function SubstitutionForm({
   idPuntoMedicion,
@@ -20,6 +21,7 @@ function SubstitutionForm({
   const { iscreating, createSubstitutionReport } =
     useCreateSubstitutionReport();
   const [pdfFile, setPdfFile] = useState(null);
+  const { userData } = useUser();
 
   const [formData, setFormData] = useState(null);
   const [showPdfReport, setShowPdfReport] = useState(false);
@@ -79,6 +81,8 @@ function SubstitutionForm({
     Object.entries(formData).forEach(([key, value]) => {
       formDataBackend.append(key, value); // Add form data
     });
+
+    formDataBackend.append("validadoPor", userData.username);
 
     console.log("saveReportData: ");
     // Log all entries in the FormData

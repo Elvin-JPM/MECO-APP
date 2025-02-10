@@ -27,10 +27,15 @@ const StyledLogin = styled.div`
   > * {
     margin-top: 0;
   }
+
+  @media (min-width: 1200px) {
+    height: 100vh;
+  }
 `;
 
 function Login() {
   const { register, handleSubmit, formState, setValue, watch } = useForm();
+
   const [isLoading, setIsLoading] = useState(false);
 
   const { errors } = formState;
@@ -74,55 +79,57 @@ function Login() {
   }
 
   return (
-    <StyledLogin>
+    <>
       <Ribbon />
-      <Form type={"login"} onSubmit={handleSubmit(onSubmit)}>
-        <Logo image="../../CND-LOGO.png" />
-        <Heading>APP MEDICIÓN COMERCIAL</Heading>
+      <StyledLogin>
+        <Form type={"login"} onSubmit={handleSubmit(onSubmit)}>
+          <Logo image="../../CND-LOGO.png" />
+          <Heading>APP MEDICIÓN COMERCIAL</Heading>
 
-        <FormRow label={"Nombre de Usuario"} type={"login"}>
-          <Input
-            type="text"
-            id="username"
-            inputuse={"login"}
-            //defaultValue={formatDateForInput(yesterday)}
-            placeholder="ej: jgarcia"
-            {...register("username", {
-              required: "Este campo es obligatorio",
-            })}
-            //onChange={handlePageReset}
-          />
-        </FormRow>
+          <FormRow label={"Nombre de Usuario"} type={"login"}>
+            <Input
+              type="text"
+              id="username"
+              inputuse={"login"}
+              //defaultValue={formatDateForInput(yesterday)}
+              placeholder="ej: jgarcia"
+              {...register("username", {
+                required: "Este campo es obligatorio",
+              })}
+              //onChange={handlePageReset}
+            />
+          </FormRow>
 
-        <FormRow label={"Contraseña"} type={"login"}>
-          <Input
-            type="password"
-            id="password"
-            inputuse={"login"}
-            //defaultValue={formatDateForInput(yesterday)}
-            placeholder="Contraseña de tu computadora..."
-            {...register("password", {
-              required: "Este campo es obligatorio",
-            })}
-            //onChange={handlePageReset}
-          />
-        </FormRow>
-        {isAuthenticating || isLoginProtected ? "Logging in..." : ""}
-        <FormRow>
-          <Button
-            variation="primary"
-            size="large"
-            type="submit"
-            disabled={isAuthenticating}
-            onClick={() => {
-              setIsLoading(true);
-            }}
-          >
-            {isLoading ? "Ingresando..." : "Ingresar"}
-          </Button>
-        </FormRow>
-      </Form>
-    </StyledLogin>
+          <FormRow label={"Contraseña"} type={"login"}>
+            <Input
+              type="password"
+              id="password"
+              inputuse={"login"}
+              //defaultValue={formatDateForInput(yesterday)}
+              placeholder="Contraseña de tu computadora..."
+              {...register("password", {
+                required: "Este campo es obligatorio",
+              })}
+              //onChange={handlePageReset}
+            />
+          </FormRow>
+          {isAuthenticating || isLoginProtected ? "Logging in..." : ""}
+          <FormRow>
+            <Button
+              variation="primary"
+              size="large"
+              type="submit"
+              disabled={isAuthenticating}
+              onClick={() => {
+                setIsLoading(true);
+              }}
+            >
+              {isLoading ? "Ingresando..." : "Ingresar"}
+            </Button>
+          </FormRow>
+        </Form>
+      </StyledLogin>
+    </>
   );
 }
 

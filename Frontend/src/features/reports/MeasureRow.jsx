@@ -3,6 +3,8 @@ import { useRef, useState } from "react";
 import Button from "../../ui/Button";
 
 import { MdEdit } from "react-icons/md";
+import { MdCancel } from "react-icons/md";
+import { LuUndo } from "react-icons/lu";
 import { IoCheckbox } from "react-icons/io5";
 import ButtonArray from "../../ui/ButtonArray";
 import { formatDate } from "../../utils/dateFunctions";
@@ -30,11 +32,11 @@ const Column = styled.div.attrs((props) => ({
   font-weight: 500;
   background-color: ${(props) =>
     props.contentEditable
-      ? "var(--color-brand-50)"
+      ? "var(--color-grey-50)"
       : Array.isArray(props.modifiedrows) &&
         props.modifiedrows.includes(props.rowkey) &&
         props.rowkey !== props.activerow
-      ? "var(--color-red-100)"
+      ? "var(--color-grey-100)"
       : "transparent"};
   padding: ${(props) =>
     props.contentEditable ||
@@ -42,7 +44,14 @@ const Column = styled.div.attrs((props) => ({
       props.modifiedrows.includes(props.rowkey))
       ? "0.6rem"
       : 0};
+  border: ${(props) =>
+    props.contentEditable ||
+    (Array.isArray(props.modifiedrows) &&
+      props.modifiedrows.includes(props.rowkey))
+      ? "1px dashed var(--color-grey-300)"
+      : 0};
   border-radius: 8px;
+
   /* border-radius: ${(props) =>
     props.contentEditable ||
     (Array.isArray(props.modifiedrows) &&
@@ -50,36 +59,23 @@ const Column = styled.div.attrs((props) => ({
       ? "8px"
       : "8px"}; */
   box-shadow: ${(props) =>
-    props.contentEditable ? "0 0 3px 1px var(--color-brand-700)" : "none"};
+    props.contentEditable ? "1px 1px 3px 1px var(--color-grey-300)" : "none"};
   cursor: ${(props) => (props.contentEditable ? "text" : "default")};
   color: ${(props) =>
     props.contentEditable ? "var(--color-brand-900)" : "inherit"};
   transition: background-color 0.3s ease, box-shadow 0.3s ease,
     padding 0.3s ease;
 
+  caret-color: var(--color-institucional-amarillo);
   &:focus {
-    outline-color: var(--color-brand-700);
+    outline: none;
   }
 `;
-
-// Estilo de los valores que han sido insertados por el sistema, pero que aun no han sido editados por el usuario
-const viStyle = {
-  padding: "5px 3px",
-  backgroundColor: "var(--color-red-50)",
-  color: "var(--color-red-600)",
-  fontStyle: "italic",
-};
-
-// Estilo de los valores que han sido insertados por el sistema, pero que aun no han sido editados por el usuario
-const vsStyle = {
-  padding: "4px 1px",
-  backgroundColor: "var(--color-green-100)",
-  color: "var(--color-green-700)",
-};
 
 export default function MeasureRow({
   handleRowChange,
   handleIsEditableRow,
+  handleDeleteRow,
   measure,
   reportData,
   isEditableRow,
@@ -88,6 +84,7 @@ export default function MeasureRow({
   modifiedrows,
   activerow,
 }) {
+  const [validating, setValidating] = useState(null);
   const { userData } = useUser();
   // Referencias a los inputs
   const fechaRef = useRef(null);
@@ -107,6 +104,25 @@ export default function MeasureRow({
       </TableRow>
     );
   }
+
+  // Estilo de los valores que han sido insertados por el sistema, pero que aun no han sido editados por el usuario
+  let viStyle = {
+    padding: "5px 3px",
+    backgroundColor: "var(--color-red-100)",
+    //color: "var(--color-red-500)",
+    fontStyle: "italic",
+    border: "1px solid var(--color-rojo-300)",
+    textAlign: "center",
+  };
+
+  // Estilo de los valores que han sido insertados por el sistema, pero que aun no han sido editados por el usuario
+
+  const vsStyle = {
+    padding: "0.4rem 0.3rem",
+    backgroundColor: "var(--color-green-100)",
+    color: "var(--color-green-800)",
+    //border: "1px solid var(--color-institucional-celeste)",
+  };
 
   const {
     fecha,
@@ -158,6 +174,7 @@ export default function MeasureRow({
       energia_rec_mp: Number(energia_rec_mp).toFixed(4), // Ya que en los inputs tambien estan fijados asi
       energia_del_mr: Number(energia_del_mr).toFixed(4),
       energia_rec_mr: Number(energia_rec_mr).toFixed(4),
+      filaValidadaCompleta: e.currentTarget.value === "Validar",
     };
 
     console.log("Updated Values:", updatedValues);
@@ -172,10 +189,24 @@ export default function MeasureRow({
     ) {
       handleRowChange(updatedValues);
     }
-    // if (e.target.value === "validar") {
-    //   toast.success("Fila validada correctamente");
-    // }
-    console.log("e.target.value: ", e.target);
+    if (e.currentTarget.value === "Validar") {
+      setValidating({
+        backgroundColor: "var(--color-grey-50)",
+        color: "var(--color-brand-900)",
+        fontStyle: "italic",
+        border: "1px dashed var(--color-grey-200)",
+        padding: "0.6rem",
+        boxShadow: "1px 1px 3px 1px var(--color-grey-300)",
+        transition:
+          "background-color 0.3s ease, box-shadow 0.3s ease, padding 0.3s ease",
+      });
+      toast.success("Fila validada correctamente");
+    }
+
+    if (e.currentTarget.value === "Cancelar") {
+      handleDeleteRow(rowkey);
+      setValidating(null);
+    }
   };
 
   //const allRows = [{ fecha }, ...additionalRows];
@@ -247,7 +278,11 @@ export default function MeasureRow({
           rowkey={rowkey}
           onInput={handleEditableDivInput}
           style={
-            or_del_mp === "VS" ? vsStyle : or_del_mp === "VI" ? viStyle : {}
+            or_del_mp === "VS"
+              ? vsStyle
+              : or_del_mp === "VI" && validating === null
+              ? viStyle
+              : validating
           }
         >
           {new Intl.NumberFormat("en-US", {
@@ -263,7 +298,11 @@ export default function MeasureRow({
           activerow={activerow}
           rowkey={rowkey}
           style={
-            or_rec_mp === "VS" ? vsStyle : or_rec_mp === "VI" ? viStyle : {}
+            or_del_mp === "VS"
+              ? vsStyle
+              : or_del_mp === "VI" && !validating
+              ? viStyle
+              : validating
           }
         >
           {new Intl.NumberFormat("en-US", {
@@ -279,7 +318,11 @@ export default function MeasureRow({
           activerow={activerow}
           rowkey={rowkey}
           style={
-            or_del_mr === "VS" ? vsStyle : or_del_mr === "VI" ? viStyle : {}
+            or_del_mp === "VS"
+              ? vsStyle
+              : or_del_mp === "VI" && !validating
+              ? viStyle
+              : validating
           }
         >
           {new Intl.NumberFormat("en-US", {
@@ -295,7 +338,11 @@ export default function MeasureRow({
           activerow={activerow}
           rowkey={rowkey}
           style={
-            or_rec_mr === "VS" ? vsStyle : or_rec_mr === "VI" ? viStyle : {}
+            or_del_mp === "VS"
+              ? vsStyle
+              : or_del_mp === "VI" && !validating
+              ? viStyle
+              : validating
           }
         >
           {new Intl.NumberFormat("en-US", {
@@ -322,13 +369,13 @@ export default function MeasureRow({
               or_del_mr === "VI" ||
               or_rec_mr === "VI" ? (
                 <Button
-                  variation="check"
+                  variation={validating ? "secondary" : "check"}
                   size="small"
-                  tooltip="Validar fila"
+                  tooltip={validating ? "Revertir validación" : "Validar fila"}
                   onClick={handleEditableDivInput}
-                  value="validar"
+                  value={validating ? "Cancelar" : "Validar"}
                 >
-                  <IoCheckbox />
+                  {validating ? <LuUndo /> : <IoCheckbox />}
                 </Button>
               ) : (
                 ""

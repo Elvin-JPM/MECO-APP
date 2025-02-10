@@ -7,17 +7,38 @@ const sizes = {
     text-transform: uppercase;
     font-weight: 600;
     text-align: center;
+    white-space: nowrap;
+    @media (max-width: 1200px) {
+      font-size: 1.3rem;
+    }
+    @media (max-width: 768px) {
+      font-size: 1.1rem;
+    }
   `,
   medium: css`
     font-size: 1.6rem;
-
     padding: 1.2rem 1.6rem;
     font-weight: 600;
+    white-space: nowrap;
+    @media (max-width: 1200px) {
+      font-size: 1.3rem;
+    }
+    @media (max-width: 768px) {
+      font-size: 1.1rem;
+    }
   `,
   large: css`
     font-size: 1.8rem;
+
     padding: 1.2rem 2.4rem;
     font-weight: 500;
+    white-space: nowrap;
+    @media (max-width: 1200px) {
+      font-size: 1.3rem;
+    }
+    @media (max-width: 768px) {
+      font-size: 1.1rem;
+    }
   `,
 };
 
@@ -47,7 +68,7 @@ const variations = {
 
   check: css`
     color: var(--color-green-300);
-    background-color: var(--color-brand-300);
+    background-color: var(--color-institucional-celeste);
     border: 1px solid var(--color-grey-200);
   `,
 };
@@ -55,11 +76,10 @@ const variations = {
 const Button = styled.button.attrs((props) => ({
   title: props.tooltip, // Adds the tooltip text as a `title` attribute (optional)
 }))`
-
   color: var(--color-grey-700);
+  border-radius: var(--border-radius-md);
   border: none;
-  border-radius: var(--border-radius-sm);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
   transition: opacity 0.2s ease, transform 0.2s ease;
   position: relative; // Required for positioning the tooltip
   ${(props) => sizes[props.size]}
@@ -86,7 +106,11 @@ const Button = styled.button.attrs((props) => ({
 
   &:hover {
     opacity: 0.8;
-    //transform: translateX(-1%) translateY(-2px); /* Slight upward animation */
+    /* transform: scale(1.01); Slight upward animation */
+  }
+
+  &:focus {
+    outline: none;
   }
 `;
 
