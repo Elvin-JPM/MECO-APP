@@ -51,7 +51,7 @@ const StyledFormRow = styled.div`
   @media (max-width: 768px) {
     gap: 0;
     padding: 0.2rem 0;
-    font-size: 0.9rem;
+    font-size: 1.2rem;
     grid-template-columns: 1fr 1fr;
   }
 `;

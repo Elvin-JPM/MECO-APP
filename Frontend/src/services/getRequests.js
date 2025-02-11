@@ -57,3 +57,8 @@ export async function getAgente(idPunto) {
   const response = await getData(`/agentes/${idPunto}`);
   return response;
 }
+
+export async function getReport(reportName) {
+  const response = await getData(`/report/${reportName}`);
+  return response;
+}

@@ -109,8 +109,12 @@ router.get("/measures", async (req, res) => {
               MAX(CASE WHEN ID_MEDIDOR = :medidorRespaldo AND TIPO_ENERGIA = :energiaGenerada THEN ORIGEN END) AS OR_DEL_MR,
               MAX(CASE WHEN ID_MEDIDOR = :medidorRespaldo AND TIPO_ENERGIA = :energiaGenerada THEN DATO_ENERGIA END) AS ENERGIA_DEL_MR,
               MAX(CASE WHEN ID_MEDIDOR = :medidorRespaldo AND TIPO_ENERGIA = :energiaConsumida THEN ORIGEN END) AS OR_REC_MR,
-              MAX(CASE WHEN ID_MEDIDOR = :medidorRespaldo AND TIPO_ENERGIA = :energiaConsumida THEN DATO_ENERGIA END) AS ENERGIA_REC_MR
-            FROM 
+              MAX(CASE WHEN ID_MEDIDOR = :medidorRespaldo AND TIPO_ENERGIA = :energiaConsumida THEN DATO_ENERGIA END) AS ENERGIA_REC_MR,
+              MAX(CASE WHEN ID_MEDIDOR = :medidorPrincipal AND TIPO_ENERGIA = :energiaGenerada THEN REPORTE_VALIDACION END) AS RV_DEL_MP,
+              MAX(CASE WHEN ID_MEDIDOR = :medidorPrincipal AND TIPO_ENERGIA = :energiaConsumida THEN REPORTE_VALIDACION END) AS RV_REC_MP,
+              MAX(CASE WHEN ID_MEDIDOR = :medidorRespaldo AND TIPO_ENERGIA = :energiaGenerada THEN REPORTE_VALIDACION END) AS RV_DEL_MR,
+              MAX(CASE WHEN ID_MEDIDOR = :medidorRespaldo AND TIPO_ENERGIA = :energiaConsumida THEN REPORTE_VALIDACION END) AS RV_REC_MR
+              FROM 
               MCAM_MEDICIONES
             WHERE 
               (ID_MEDIDOR = :medidorPrincipal OR ID_MEDIDOR = :medidorRespaldo)
@@ -153,6 +157,10 @@ router.get("/measures", async (req, res) => {
         ENERGIA_DEL_MR,
         OR_REC_MR,
         ENERGIA_REC_MR,
+        RV_DEL_MP,
+        RV_REC_MP,
+        RV_DEL_MR,
+        RV_REC_MR,
       ]) => ({
         fecha: FECHA,
         or_del_mp: OR_DEL_MP,
@@ -163,6 +171,10 @@ router.get("/measures", async (req, res) => {
         energia_del_mr: ENERGIA_DEL_MR,
         or_rec_mr: OR_REC_MR,
         energia_rec_mr: ENERGIA_REC_MR,
+        rv_del_mp: RV_DEL_MP,
+        rv_rec_mp: RV_REC_MP,
+        rv_del_mr: RV_DEL_MR,
+        rv_rec_mr: RV_REC_MR,
       })
     );
 

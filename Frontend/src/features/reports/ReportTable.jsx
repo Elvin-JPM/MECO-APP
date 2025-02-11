@@ -31,7 +31,6 @@ export const Table = styled.div`
   }
 `;
 
-
 export const TableHeader = styled.header`
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr 0.3fr;
@@ -55,11 +54,9 @@ export const TableHeader = styled.header`
     column-gap: 0.5rem;
     letter-spacing: 0.1px;
   }
-
 `;
 
 function ReportTable({
-
   reportData,
   energyTags = ["KWH DEL MP", "KWH REC MP", "KWH DEL MR", "KWH REC MR"],
   tipoMedicion,
@@ -222,8 +219,9 @@ function ReportTable({
     });
   };
 
-  const onUpdateMeasures = () => {
+  const onUpdateMeasures = (nombreReporte) => {
     if (rowsToEdit?.length > 0) {
+      rowsToEdit.push(nombreReporte);
       console.log("Rows to edit on onUpdateMeasures : ", rowsToEdit);
       updateMeasures(rowsToEdit);
     } else {

@@ -66,13 +66,13 @@ const Form = styled.form`
         width: 36rem;
         height: 50rem;
         justify-content: center;
-        gap: 0.5rem;
+        /* gap: 0.7rem; */
       }
       @media (max-width: 480px) and (min-width: 320px) {
         width: 34rem;
         height: 46rem;
         justify-content: center;
-        gap: 0.3rem;
+        /* gap: 0.5rem; */
       }
     `}
   overflow: hidden;

@@ -17,6 +17,7 @@ const getMeterRoute = require("./routes/getMeterRoute");
 const getIntegratedMetersRoute = require("./routes/getIntegratedMetersRoute");
 const getMeterMesasuresRoute = require("./routes/getMeterMeasuresRoute");
 const getAgenteRoute = require("./routes/getAgenteRoute");
+const getReportRoute = require("./routes/getReportRoute");
 
 const updateMeterRoute = require("./routes/updateMeterRoute");
 const updateMeasuresRoute = require("./routes/updateMeasuresRoute");
@@ -84,6 +85,7 @@ app.use("/api", getMeterRoute);
 app.use("/api", getIntegratedMetersRoute);
 app.use("/api", getMeterMesasuresRoute);
 app.use("/api", getAgenteRoute);
+app.use("/api", getReportRoute);
 app.use("/api", updateMeasuresRoute);
 app.use("/api", updateMeterRoute);
 
@@ -110,7 +112,7 @@ app.use("/api", meRoute);
 
     console.log(pythonScriptPath);
     // Schedule a cron job to run every day at 1:00 AM
-    cron.schedule("16 13 * * *", () => {
+    cron.schedule("50 7 * * *", () => {
       console.log("Running the Python script at 1:00 AM");
 
       // Pass parameters to the Python script, handle spaces in the path by quoting it

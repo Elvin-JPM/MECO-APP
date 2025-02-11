@@ -1,6 +1,8 @@
 import styled from "styled-components";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Button from "../../ui/Button";
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
 
 import { MdEdit } from "react-icons/md";
 import { MdCancel } from "react-icons/md";
@@ -12,6 +14,12 @@ import { useUser } from "../authentication/UserProvider";
 import "../../styles/loading.css";
 import PropTypes from "prop-types";
 import { toast } from "react-hot-toast";
+import { FaEye } from "react-icons/fa";
+import Modal from "../../ui/Modal";
+import Heading from "../../ui/Heading";
+import { useQuery } from "@tanstack/react-query";
+import { getReport } from "../../services/getRequests";
+import base64ToFile from "../../utils/base64ToFile";
 
 const TableRow = styled.div`
   display: grid;
@@ -85,7 +93,13 @@ export default function MeasureRow({
   activerow,
 }) {
   const [validating, setValidating] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [fetchReportPDF, setFetchReportPDF] = useState(false);
   const { userData } = useUser();
+
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const pdfRef = useRef(null);
+
   // Referencias a los inputs
   const fechaRef = useRef(null);
   const energiaDelMpRef = useRef(null);
@@ -134,7 +148,53 @@ export default function MeasureRow({
     energia_del_mr,
     or_rec_mr,
     energia_rec_mr,
+    rv_del_mp,
+    rv_rec_mp,
+    rv_del_mr,
+    rv_rec_mr,
   } = measure;
+
+  const reportName = measure?.rv_del_mp
+    ? measure?.rv_del_mp
+    : measure?.rv_rec_mp
+    ? measure?.rv_rec_mp
+    : measure?.rv_del_mr
+    ? measure?.rv_del_mr
+    : measure?.rv_del_mr
+    ? measure?.rv_del_mr
+    : measure?.rv_rec_mr
+    ? measure?.rv_rec_mr
+    : null;
+
+  const { isLoading: isLoadingReport, data: reportPDF } = useQuery({
+    queryKey: ["reportPDF", reportName],
+    queryFn: () => getReport(reportName),
+    enabled: !!reportName,
+  });
+
+  useEffect(() => {
+    if (reportPDF?.data[0]?.validacion_pdf) {
+      const processPDF = async () => {
+        try {
+          const pdfData = atob(reportPDF.data[0].validacion_pdf);
+          const byteArray = new Uint8Array(
+            Array.from(pdfData, (char) => char.charCodeAt(0))
+          );
+
+          const blob = new Blob([byteArray], { type: "application/pdf" });
+          const url = URL.createObjectURL(blob);
+
+          // Store URL in ref and state
+          pdfRef.current = url;
+          setPdfUrl(url);
+        } catch (error) {
+          console.error("Error processing PDF:", error);
+        }
+      };
+
+      processPDF();
+    }
+  }, [reportPDF]);
 
   // Funcion para actualizar los valores que van cambiando en los inputs cuando son editables
   // La actualizacion se realiza mediante useRef a cada valor de energia
@@ -263,6 +323,24 @@ export default function MeasureRow({
     handleIsEditableRow(!isEditableRow, rowkey, buttonValue);
   };
 
+  const handleOpenReport = () => {
+    if (!reportPDF?.data[0]?.validacion_pdf) {
+      toast.error("El informe aún se está cargando. Por favor, espera.");
+      return;
+    }
+
+    const pdfData = atob(reportPDF.data[0].validacion_pdf);
+    const byteArray = new Uint8Array(
+      Array.from(pdfData, (char) => char.charCodeAt(0))
+    );
+    const blob = new Blob([byteArray], { type: "application/pdf" });
+    const pdfUrl = URL.createObjectURL(blob);
+
+    window.open(pdfUrl, "_blank");
+  };
+
+  const handleShowModal = () => {};
+
   return (
     <>
       {/* Original row */}
@@ -380,12 +458,32 @@ export default function MeasureRow({
               ) : (
                 ""
               )}
+              {or_del_mp === "VS" ||
+              or_rec_mp === "VS" ||
+              or_del_mr === "VS" ||
+              or_rec_mr === "VS" ? (
+                <Button
+                  variation="secondary"
+                  size="small"
+                  tooltip="Ver reporte"
+                  onClick={handleOpenReport}
+                >
+                  <FaEye />
+                </Button>
+              ) : (
+                ""
+              )}
             </ButtonArray>
           ) : (
             ""
           )}
         </Column>
       </TableRow>
+      {showModal && (
+        <Modal onClose={handleShowModal}>
+          <Heading as="h2">Reporte de Validación y Sustitución</Heading>
+        </Modal>
+      )}
     </>
   );
 }

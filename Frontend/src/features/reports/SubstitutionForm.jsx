@@ -11,6 +11,7 @@ import Spinner from "../../ui/Spinner";
 import CreatePdfReport from "./CreatePdfReport";
 import useCreateSubstitutionReport from "./useCreateSubstitutionReport";
 import { useUser } from "../../features/authentication/userProvider";
+import { newReportName } from "../../utils/dateFunctions";
 
 function SubstitutionForm({
   idPuntoMedicion,
@@ -75,7 +76,7 @@ function SubstitutionForm({
     setShowPdfReport((c) => !c);
   }
 
-  function saveReportData() {
+  function saveReportData(nombreReporte) {
     const formDataBackend = new FormData();
     formDataBackend.append("file", pdfFile, "generated.pdf");
     Object.entries(formData).forEach(([key, value]) => {
@@ -83,6 +84,8 @@ function SubstitutionForm({
     });
 
     formDataBackend.append("validadoPor", userData.username);
+    // Adjuntar el nombre del reporte
+    formDataBackend.append("nombreReporte", nombreReporte);
 
     console.log("saveReportData: ");
     // Log all entries in the FormData
@@ -92,6 +95,7 @@ function SubstitutionForm({
 
     createSubstitutionReport(formDataBackend);
   }
+  
 
   if (isLoadingAgente) return <Spinner />;
   return (
@@ -251,8 +255,9 @@ function SubstitutionForm({
           <Button
             type="button"
             onClick={() => {
-              onUpdateMeasures();
-              saveReportData();
+              const reportName = newReportName();
+              onUpdateMeasures(reportName);
+              saveReportData(reportName);
               handleShowModal();
             }}
           >

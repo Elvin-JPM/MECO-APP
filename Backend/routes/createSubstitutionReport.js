@@ -27,6 +27,7 @@ router.post(
       fechaInicial,
       fechaFinal,
       validadoPor,
+      nombreReporte,
     } = req.body;
 
     const pdfFile = req.file ? req.file.buffer : null; // Ensure this is handled properly
@@ -57,7 +58,8 @@ router.post(
               RAZON_PROBLEMA,
               PROCEDIMIENTO,
               FECHA_CREACION,
-              VALIDADO_POR
+              VALIDADO_POR,
+              NOMBRE_REPORTE
           )
         VALUES
           (   2,
@@ -76,7 +78,8 @@ router.post(
               :razonProblema,
               :procedimiento,
               SYSDATE,
-              :validadoPor
+              :validadoPor,
+              :nombreReporte
           )
       `;
 
@@ -101,6 +104,7 @@ router.post(
           razonProblema,
           procedimiento,
           validadoPor,
+          nombreReporte,
         },
         { autoCommit: true }
       );
