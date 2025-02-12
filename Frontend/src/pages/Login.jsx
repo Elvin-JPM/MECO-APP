@@ -12,6 +12,8 @@ import useLoginProtected from "../features/authentication/useLoginProtected";
 import { Link, useNavigate } from "react-router-dom";
 import Spinner from "../ui/Spinner";
 import Ribbon from "../ui/Ribbon";
+import Background from "../ui/Background";
+import { useDarkMode } from "../context/DarkModeContext";
 
 // Styled Component for the star field
 const StyledLogin = styled.div`
@@ -22,7 +24,7 @@ const StyledLogin = styled.div`
   overflow: hidden;
   //overflow-y: scroll;
   position: relative;
-  background: url("../../public/white-abstract-bg.jpg") center / cover;
+  /* background: url("../../public/white-abstract-bg.jpg") center / cover; */
 
   > * {
     margin-top: 0;
@@ -35,7 +37,7 @@ const StyledLogin = styled.div`
 
 function Login() {
   const { register, handleSubmit, formState, setValue, watch } = useForm();
-
+  const { isDarkMode } = useDarkMode();
   const [isLoading, setIsLoading] = useState(false);
 
   const { errors } = formState;
@@ -80,6 +82,7 @@ function Login() {
 
   return (
     <>
+      <Background isDarkMode={isDarkMode} />
       <Ribbon />
       <StyledLogin>
         <Form type={"login"} onSubmit={handleSubmit(onSubmit)}>

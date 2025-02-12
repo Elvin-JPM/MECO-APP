@@ -8,10 +8,11 @@ const StyledHeader = styled.header`
   position: relative;
   top: 0;
   left: 0;
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: var(--color-grey-0);
+  opacity: 0.9;
   padding: 1.2rem 4.8rem;
   border-bottom: 1px solid var(--color-grey-50);
-  backdrop-filter: blur(10px);
+  /* backdrop-filter: blur(10px); */
 
   @media (max-width: 1200px) and (min-width: 820px) {
     font-size: 1rem;

@@ -15,8 +15,9 @@ const PageInput = styled.input`
   text-align: center;
   padding: 0.5rem;
   font-size: 1.4rem;
-  border: 1px solid var(--color-grey-300);
+  border: 1px solid var(--color-grey-200);
   border-radius: 4px;
+  background-color: var(--color-grey-50);
 
   &:focus {
     outline: none;

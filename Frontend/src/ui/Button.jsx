@@ -42,14 +42,32 @@ const sizes = {
   `,
 };
 
+const IconColors = {
+  basic: css`
+    & > svg {
+      color: var(--color-grey-500);
+    }
+  `,
+  check: css`
+    & > svg {
+      color: var(--color-brand-600);
+    }
+  `,
+  cancel: css`
+    & > svg {
+      color: var(--color-red-100);
+    }
+  `,
+};
+
 const variations = {
   primary: css`
-    //color: var(--color-brand-50);
-    background-color: var(--color-institucional-celeste);
+    color: var(--color-grey-50);
+    background-color: var(--color-grey-800);
   `,
 
   secondary: css`
-    //color: var(--color-grey-600);
+    color: var(--color-grey-600);
     background-color: var(--color-grey-0);
     border: 1px solid var(--color-grey-200);
 
@@ -68,22 +86,34 @@ const variations = {
 
   check: css`
     color: var(--color-green-300);
-    background-color: var(--color-institucional-celeste);
+    background-color: var(--color-grey-0);
     border: 1px solid var(--color-grey-200);
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+
+    & > svg {
+      font-size: 3rem;
+      color: var(--color-brand-500);
+    }
   `,
 };
 
 const Button = styled.button.attrs((props) => ({
   title: props.tooltip, // Adds the tooltip text as a `title` attribute (optional)
 }))`
+  display: flex;
+  justify-content: center;
+  align-items: center;
   color: var(--color-grey-700);
-  border-radius: var(--border-radius-md);
+  border-radius: var(--border-radius-lg);
   border: none;
   box-shadow: var(--shadow-md);
   transition: opacity 0.2s ease, transform 0.2s ease;
   position: relative; // Required for positioning the tooltip
   ${(props) => sizes[props.size]}
   ${(props) => variations[props.variation]}
+  ${(props) => IconColors[props.color]}
 
   /* Tooltip styles */
   &::after {
@@ -106,7 +136,7 @@ const Button = styled.button.attrs((props) => ({
 
   &:hover {
     opacity: 0.8;
-    /* transform: scale(1.01); Slight upward animation */
+    transform: scale(0.98);
   }
 
   &:focus {
@@ -117,6 +147,7 @@ const Button = styled.button.attrs((props) => ({
 Button.defaultProps = {
   variation: "primary",
   size: "medium",
+  iconColor: "basic",
 };
 
 export default Button;

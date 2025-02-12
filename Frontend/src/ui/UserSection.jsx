@@ -6,6 +6,9 @@ import { useUser } from "../features/authentication/UserProvider";
 import { logout } from "../services/postRequests";
 import toast from "react-hot-toast";
 import Spinner from "./Spinner";
+import DarkModeToggle from "./DarkModeToggle";
+import IconButton from "./IconButton";
+import { FiLogOut } from "react-icons/fi";
 
 const StyledUserSection = styled.div`
   display: flex;
@@ -21,8 +24,6 @@ const StyledUserSection = styled.div`
     font-size: 1.1rem;
   }
 `;
-
-
 
 function UserSection() {
   const navigate = useNavigate();
@@ -67,14 +68,15 @@ function UserSection() {
         <span>
           <p>Bienvenid@, {userData?.username}</p>
         </span>
-        <Button
+        <DarkModeToggle />
+        <IconButton
           size="small"
           variation="danger"
           onClick={handleLogout}
           disabled={logoutMutation.isLoading}
         >
-          {logoutMutation.isLoading ? "Saliendo..." : "Cerrar sesión"}
-        </Button>
+          {logoutMutation.isLoading ? "Saliendo..." : <FiLogOut />}
+        </IconButton>
       </StyledUserSection>
     </div>
   );

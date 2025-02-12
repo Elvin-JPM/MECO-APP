@@ -3,6 +3,7 @@ import { useRef, useState, useEffect } from "react";
 import Button from "../../ui/Button";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
+import { ImCancelCircle } from "react-icons/im";
 
 import { MdEdit } from "react-icons/md";
 import { MdCancel } from "react-icons/md";
@@ -70,7 +71,7 @@ const Column = styled.div.attrs((props) => ({
     props.contentEditable ? "1px 1px 3px 1px var(--color-grey-300)" : "none"};
   cursor: ${(props) => (props.contentEditable ? "text" : "default")};
   color: ${(props) =>
-    props.contentEditable ? "var(--color-brand-900)" : "inherit"};
+    props.contentEditable ? "var(--color-brand-700)" : "inherit"};
   transition: background-color 0.3s ease, box-shadow 0.3s ease,
     padding 0.3s ease;
 
@@ -123,7 +124,8 @@ export default function MeasureRow({
   let viStyle = {
     padding: "5px 3px",
     backgroundColor: "var(--color-red-100)",
-    //color: "var(--color-red-500)",
+    // color: "var(--color-red-500)",
+    color: "red",
     fontStyle: "italic",
     border: "1px solid var(--color-rojo-300)",
     textAlign: "center",
@@ -133,8 +135,8 @@ export default function MeasureRow({
 
   const vsStyle = {
     padding: "0.4rem 0.3rem",
-    backgroundColor: "var(--color-green-100)",
-    color: "var(--color-green-800)",
+    backgroundColor: "var(--color-brand-200)",
+    color: "var(--color-brand-900)",
     //border: "1px solid var(--color-institucional-celeste)",
   };
 
@@ -435,20 +437,22 @@ export default function MeasureRow({
                 onClick={() => {
                   handleEditRow(isEditableRow ? "Cancelar" : "Editar");
                 }}
-                variation="secondary"
+                variation="check"
                 size="small"
+                color={!isEditableRow ? "basic" : "cancel"}
                 tooltip={!isEditableRow ? "Editar" : "Cancelar"}
                 // disabled={!canAddRow(fecha, -1)}
               >
-                {isEditableRow ? "Cancel" : <MdEdit />}
+                {isEditableRow ? <ImCancelCircle /> : <MdEdit />}
               </Button>
               {or_del_mp === "VI" ||
               or_rec_mp === "VI" ||
               or_del_mr === "VI" ||
               or_rec_mr === "VI" ? (
                 <Button
-                  variation={validating ? "secondary" : "check"}
+                  variation={"check"}
                   size="small"
+                  color={validating ? "cancel" : "check"}
                   tooltip={validating ? "Revertir validación" : "Validar fila"}
                   onClick={handleEditableDivInput}
                   value={validating ? "Cancelar" : "Validar"}
@@ -463,8 +467,9 @@ export default function MeasureRow({
               or_del_mr === "VS" ||
               or_rec_mr === "VS" ? (
                 <Button
-                  variation="secondary"
+                  variation="check"
                   size="small"
+                  color="basic"
                   tooltip="Ver reporte"
                   onClick={handleOpenReport}
                 >
