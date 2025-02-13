@@ -8,10 +8,15 @@ const StyledHeader = styled.header`
   position: relative;
   top: 0;
   left: 0;
-  background-color: var(--color-grey-0);
-  opacity: 0.9;
+  z-index: 1;
+  background-color: var(--color-grey-0); 
+  
+  opacity: 0.7;
+  backdrop-filter: blur(10px);
   padding: 1.2rem 4.8rem;
+  margin: 1rem 1rem 0;
   border-bottom: 1px solid var(--color-grey-50);
+  border-radius: 10px;
   /* backdrop-filter: blur(10px); */
 
   @media (max-width: 1200px) and (min-width: 820px) {
@@ -20,6 +25,12 @@ const StyledHeader = styled.header`
   }
   @media (max-width: 820px) and (min-width: 480px) {
     font-size: 0.8rem;
+  }
+
+  @media (max-width: 500px){
+    font-size: 1rem;
+    justify-content: space-between;
+    align-items: center;
   }
 `;
 

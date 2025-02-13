@@ -8,9 +8,9 @@ const Tooltip = styled.div`
   padding: ${({ padding }) => padding || "8px 12px"};
   border-radius: 6px;
   font-size: ${({ fontSize }) => fontSize || "14px"};
+  font-weight: 600;
   white-space: nowrap;
-  z-index: 1000;
-  opacity: 0;
+  z-index: 3000;
   visibility: hidden;
   transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -117,9 +117,13 @@ const Tooltip = styled.div`
       }};
     `}
 
-  @media (min-width: 769px) {
-    display: none;
-  }
+  ${({ sidebar }) =>
+    sidebar &&
+    css`
+      @media (min-width: 769px) {
+        display: none;
+      }
+    `}
 `;
 
 export default Tooltip;

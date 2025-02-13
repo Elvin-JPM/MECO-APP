@@ -39,6 +39,8 @@ const StyledFormRow = styled.div`
       &:not(:last-child) {
         border-bottom: none;
       }
+      color: var(--color-grey-900);
+      font-weight: 500;
     `}
 
   @media (max-width: 1200px) {
@@ -47,12 +49,20 @@ const StyledFormRow = styled.div`
     font-size: 1.3rem;
   }
 
-
   @media (max-width: 768px) {
     gap: 0;
     padding: 0.2rem 0;
     font-size: 1.2rem;
     grid-template-columns: 1fr 1fr;
+  }
+  @media (max-width: 500px) {
+    padding: 0.2rem 0;
+    font-size: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 0.3rem;
+
   }
 `;
 
@@ -70,7 +80,7 @@ const Label = styled.label`
 
 const Error = styled.span`
   font-size: 1.4rem;
-  color: var(--color-red-700);
+  color: var(--color-red-600);
 `;
 
 function FormRow({ label, error, type, children }) {

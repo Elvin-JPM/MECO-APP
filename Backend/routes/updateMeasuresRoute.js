@@ -55,6 +55,31 @@ router.put("/updateMeasures", async (req, res) => {
         energiaConsumida = "KVARH_REC_INT";
       }
 
+      console.log(
+        "Comparacion kwh_del_mp: ",
+        parseFloat(rowToEdit.energia_del_mp) === energia_del_mp_new,
+        parseFloat(rowToEdit.energia_del_mp),
+        energia_del_mp_new
+      );
+      console.log(
+        "Comparacion kwh_rec_mp: ",
+        parseFloat(rowToEdit.energia_rec_mp) === energia_rec_mp_new,
+        parseFloat(rowToEdit.energia_rec_mp),
+        energia_rec_mp_new
+      );
+      console.log(
+        "Comparacion kwh_del_mr: ",
+        parseFloat(rowToEdit.energia_del_mr) === energia_del_mr_new,
+        parseFloat(rowToEdit.energia_del_mr),
+        energia_del_mr_new
+      );
+      console.log(
+        "Comparacion kwh_rec_mr: ",
+        parseFloat(rowToEdit.energia_rec_mr) === energia_rec_mr_new,
+        parseFloat(rowToEdit.energia_rec_mr),
+        energia_rec_mr_new
+      );
+
       let queryPrincipal = `
   BEGIN
     UPDATE MCAM_MEDICIONES
@@ -95,11 +120,16 @@ router.put("/updateMeasures", async (req, res) => {
         fecha: rowToEdit.fecha,
       };
 
-      // Only add reportName if it was used in the query
       if (
         parseFloat(rowToEdit.energia_del_mp) !== energia_del_mp_new ||
-        rowToEdit.filaValidadaCompleta ||
-        parseFloat(rowToEdit.energia_rec_mp) !== energia_rec_mp_new
+        rowToEdit.filaValidadaCompleta
+      ) {
+        bindParamsPrincipal.reportName = reportName;
+      }
+
+      if (
+        parseFloat(rowToEdit.energia_rec_mp) !== energia_rec_mp_new ||
+        rowToEdit.filaValidadaCompleta
       ) {
         bindParamsPrincipal.reportName = reportName;
       }
@@ -128,8 +158,8 @@ router.put("/updateMeasures", async (req, res) => {
     SET
       DATO_ENERGIA = :energia_rec_mr_new
       ${
-        parseFloat(rowToEdit.energia_rec_mr) !== energia_rec_mr_new ||
-        rowToEdit.filaValidadaCompleta
+        parseFloat(rowToEdit.energia_rec_mr) !==
+          parseFloat(energia_rec_mr_new) || rowToEdit.filaValidadaCompleta
           ? ", ORIGEN = 'VS', REPORTE_VALIDACION = :reportName"
           : ""
       }
@@ -148,11 +178,16 @@ router.put("/updateMeasures", async (req, res) => {
         fecha: rowToEdit.fecha,
       };
 
-      // Only add reportName if it was used in the query
       if (
         parseFloat(rowToEdit.energia_del_mr) !== energia_del_mr_new ||
-        rowToEdit.filaValidadaCompleta ||
-        parseFloat(rowToEdit.energia_rec_mr) !== energia_rec_mr_new
+        rowToEdit.filaValidadaCompleta
+      ) {
+        bindParamsRespaldo.reportName = reportName;
+      }
+
+      if (
+        parseFloat(rowToEdit.energia_rec_mr) !== energia_rec_mr_new ||
+        rowToEdit.filaValidadaCompleta
       ) {
         bindParamsRespaldo.reportName = reportName;
       }

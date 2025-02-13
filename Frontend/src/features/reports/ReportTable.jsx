@@ -23,17 +23,22 @@ export const Table = styled.div`
   background-color: var(--color-grey-0);
   border-radius: 7px;
   overflow: hidden;
-  @media (max-width: 1200px) and (min-width: 768px) {
+
+  @media (max-width: 1200px) {
     font-size: 1.2rem;
   }
-  @media (max-width: 768px) and (min-width: 480px) {
+  @media (max-width: 810px) {
     font-size: 1rem;
+  }
+
+  @media (max-width: 500px) {
+    font-size: 0.7rem;
   }
 `;
 
 export const TableHeader = styled.header`
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 0.3fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 0.4fr;
   column-gap: 2.4rem;
   align-items: center;
 
@@ -44,15 +49,25 @@ export const TableHeader = styled.header`
   font-weight: 600;
   color: var(--color-grey-600);
   padding: 1.6rem 2.4rem;
-  @media (max-width: 1200px) and (min-width: 768px) {
-    font-size: 1.2rem;
+`;
+
+export const ColumnHeader = styled.div`
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @media (max-width: 1200px) {
+    font-size: 1.1rem;
     column-gap: 0.5rem;
     letter-spacing: 0.2px;
   }
-  @media (max-width: 768px) and (min-width: 480px) {
-    font-size: 1.1rem;
+  @media (max-width: 810px) {
+    font-size: 1rem;
     column-gap: 0.5rem;
     letter-spacing: 0.1px;
+  }
+  @media (max-width: 500px) {
+    max-width: 50rem; /* Adjust based on your layout */
   }
 `;
 
@@ -265,13 +280,14 @@ function ReportTable({
           <TableHeader role="row">
             <div>FECHA</div>
             {energyTags?.map((energyTag) => (
-              <div key={energyTag}>{energyTag}</div>
+              <ColumnHeader key={energyTag}>{energyTag}</ColumnHeader>
             ))}
             <ButtonArray>
               <Button
                 disabled={allMeasuresMutation.isLoading}
                 onClick={exportToExcel}
                 tooltip="Descargar perfil"
+                size="medium"
               >
                 <FaDownload />
               </Button>

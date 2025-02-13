@@ -9,19 +9,12 @@ import { HiOutlineCog6Tooth } from "react-icons/hi2";
 import { HiOutlineDocumentReport } from "react-icons/hi";
 import { FaRegFolderOpen } from "react-icons/fa";
 import Tooltip from "./Tooltip";
+import IconContainer from "./IconContainer";
 
 const NavList = styled.ul`
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
-`;
-
-const IconContainer = styled.div`
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
 `;
 
 const SidebarIcon = styled.div`
@@ -55,8 +48,9 @@ const StyledNavLink = styled(NavLink)`
     color: var(--color-grey-600);
     font-size: 1.6rem;
     font-weight: 500;
-    padding: 1.2rem 2.4rem;
+    padding: 1.2rem 1.5rem;
     transition: all 0.3s;
+    border-radius: 0px;
   }
 
   &:hover {
@@ -68,7 +62,7 @@ const StyledNavLink = styled(NavLink)`
     color: var(--color-grey-900);
     background-color: var(--color-grey-200);
     border-radius: var(--border-radius-sm);
-    border-bottom-right-radius: 0px;
+    /* border-bottom-right-radius: 0px; */
   }
 
   & svg {
@@ -90,7 +84,7 @@ const StyledNavLink = styled(NavLink)`
 
   &:hover svg {
     color: var(--color-grey-800);
-    transform: scale(1.2);
+    transform: scale(1.1);
   }
   &:active svg,
   &.active:link svg,
@@ -209,6 +203,7 @@ function MainNav() {
                   <item.icon />
                 </SidebarIcon>
                 <Tooltip
+                  sidebar
                   id={`tooltip-${index}`}
                   className="tooltip"
                   position="right"

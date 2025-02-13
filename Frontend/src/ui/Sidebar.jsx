@@ -22,6 +22,10 @@ const StyledSidebar = styled.aside`
     align-items: center;
     box-shadow: 3px 2px 2px  rgba(0, 0, 0, 0.2);
   }
+
+  @media (max-width: 500px){
+    display:none;
+  }
 `;
 
 function Sidebar() {

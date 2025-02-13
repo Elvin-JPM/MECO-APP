@@ -88,13 +88,29 @@ const variations = {
     color: var(--color-green-300);
     background-color: var(--color-grey-0);
     border: 1px solid var(--color-grey-200);
-    width: 3.5rem;
-    height: 3.5rem;
+    width: 3rem;
+    height: 3rem;
     border-radius: 50%;
 
     & > svg {
-      font-size: 3rem;
+      font-size: 2.5rem;
       color: var(--color-brand-500);
+    }
+
+    @media (max-width: 1200px) {
+      width: 2.5rem;
+      height: 2.5rem;
+      & > svg {
+        font-size: 2.3rem;
+      }
+    }
+
+    @media (max-width: 900px) {
+      width: 2.3rem;
+      height: 2.3rem;
+      & > svg {
+        font-size: 2.2rem;
+      }
     }
   `,
 };

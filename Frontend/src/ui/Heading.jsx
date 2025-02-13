@@ -58,6 +58,11 @@ const StyledHeading = styled.h1`
   @media (max-width: 1200px) {
     font-size: 2rem;
   }
+  @media (max-width: 500px) {
+    & > span {
+      display: none;
+    }
+  }
 `;
 
 function Heading({ children }) {

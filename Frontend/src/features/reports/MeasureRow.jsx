@@ -24,7 +24,7 @@ import base64ToFile from "../../utils/base64ToFile";
 
 const TableRow = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 0.3fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 0.4fr;
   column-gap: 2.4rem;
   align-items: center;
   padding: 1.4rem 2.4rem;
@@ -135,8 +135,8 @@ export default function MeasureRow({
 
   const vsStyle = {
     padding: "0.4rem 0.3rem",
-    backgroundColor: "var(--color-brand-200)",
-    color: "var(--color-brand-900)",
+    backgroundColor: "var(--color-brand-400)",
+    color: "var(--color-brand-950)",
     //border: "1px solid var(--color-institucional-celeste)",
   };
 
@@ -160,8 +160,6 @@ export default function MeasureRow({
     ? measure?.rv_del_mp
     : measure?.rv_rec_mp
     ? measure?.rv_rec_mp
-    : measure?.rv_del_mr
-    ? measure?.rv_del_mr
     : measure?.rv_del_mr
     ? measure?.rv_del_mr
     : measure?.rv_rec_mr
@@ -378,9 +376,9 @@ export default function MeasureRow({
           activerow={activerow}
           rowkey={rowkey}
           style={
-            or_del_mp === "VS"
+            or_rec_mp === "VS"
               ? vsStyle
-              : or_del_mp === "VI" && !validating
+              : or_rec_mp === "VI" && !validating
               ? viStyle
               : validating
           }
@@ -398,9 +396,9 @@ export default function MeasureRow({
           activerow={activerow}
           rowkey={rowkey}
           style={
-            or_del_mp === "VS"
+            or_del_mr === "VS"
               ? vsStyle
-              : or_del_mp === "VI" && !validating
+              : or_del_mr === "VI" && !validating
               ? viStyle
               : validating
           }
@@ -418,9 +416,9 @@ export default function MeasureRow({
           activerow={activerow}
           rowkey={rowkey}
           style={
-            or_del_mp === "VS"
+            or_rec_mr === "VS"
               ? vsStyle
-              : or_del_mp === "VI" && !validating
+              : or_rec_mr === "VI" && !validating
               ? viStyle
               : validating
           }

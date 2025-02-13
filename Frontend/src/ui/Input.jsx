@@ -16,9 +16,10 @@ const Input = styled.input`
     props.inputuse === "login" &&
     css`
       width: 80%;
-      background-color: var(--color-grey-100);
-      backdrop-filter: blur(10px);
+      background-color: var(--color-grey-200);
+      //backdrop-filter: blur(10px);
       height: 4.5rem;
+      border: 1px solid var(--color-grey-400);
     `}
 `;
 
