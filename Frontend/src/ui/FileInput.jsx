@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { forwardRef } from "react";
 
-const StyledFileInput = styled.input.attrs({type: "file"})`
+const StyledFileInput = styled.input.attrs({ type: "file" })`
   font-size: 1.4rem;
   border-radius: var(--border-radius-sm);
 
@@ -23,15 +23,10 @@ const StyledFileInput = styled.input.attrs({type: "file"})`
   }
 `;
 
-// Use forwardRef to forward the ref to the input
 const FileInput = forwardRef(({ onChange, ...props }, ref) => {
-  return (
-    <StyledFileInput
-      ref={ref}
-      onChange={onChange}
-      {...props} // Spread other props to support register
-    />
-  );
+  return <StyledFileInput ref={ref} onChange={onChange} {...props} />;
 });
+
+FileInput.displayName = "FileInput";
 
 export default FileInput;

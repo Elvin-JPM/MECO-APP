@@ -1,7 +1,7 @@
 import { useDarkMode } from "../context/DarkModeContext";
 import styled from "styled-components";
 
-const Background = styled.div`
+const StyledBackground = styled.div`
   position: fixed;
   top: 0;
   left: 0;
@@ -18,5 +18,10 @@ const Background = styled.div`
   filter: blur(5px);
   z-index: -1;
 `;
+
+function Background() {
+  const { isDarkMode } = useDarkMode();
+  return <StyledBackground isDarkMode={isDarkMode}></StyledBackground>;
+}
 
 export default Background;

@@ -59,11 +59,16 @@ const GlobalStyles = createGlobalStyle`
   --color-brand-900: #064E3B;
   --color-brand-950: #022C22;
 
-    --color-red-50: #fef2f2;
-    --color-red-100: #fee2e2;
-    --color-red-600: #dc2626;
-    --color-red-700: #b91c1c;
-    --color-red-800: #991b1b;
+    --color-red-0: #ffffff;   /* Background */
+  --color-red-100: #fef2f2;
+  --color-red-200: #fee2e2;
+  --color-red-300: #fecaca;
+  --color-red-400: #fca5a5;
+  --color-red-500: #f87171;  /* Base Red */
+  --color-red-600: #f05252;
+  --color-red-700: #e02424;
+  --color-red-800: #c81e1e;
+  --color-red-900: #9b1c1c;
 
     --backdrop-color: rgba(255, 255, 255, 0.1);
 
@@ -114,9 +119,16 @@ const GlobalStyles = createGlobalStyle`
     --color-brand-900: #d1fae5;
     --color-brand-950: #ecfdf5;
 
-    --color-red-100: #fee2e2;
-    --color-red-700: #b91c1c;
-    --color-red-800: #991b1b;
+    --color-red-0: #1f1f1f;   /* Background */
+    --color-red-100: #9f2626;
+    --color-red-200: #e91c1c;
+    --color-red-300: #f24d4d;
+    --color-red-400: #ff5757;
+    --color-red-500: #ff8181;  /* Base Red */
+    --color-red-600: #ff9a9a;
+    --color-red-700: #f6b0b0;
+    --color-red-800: #eac5c5;
+    --color-red-900: #f0dbdb;
 
     --backdrop-color: rgba(0, 0, 0, 0.3);
 

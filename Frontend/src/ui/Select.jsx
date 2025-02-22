@@ -4,6 +4,7 @@ const Select = styled.select`
   font-size: 1.4rem;
   padding: 0.8rem 1.2rem;
   border: 1px solid var(--color-grey-300);
+  border-left: 4px solid var(--color-grey-400);
   border-radius: var(--border-radius-sm);
   background-color: var(--color-grey-100);
   font-weight: 500;
@@ -51,13 +52,20 @@ const Select = styled.select`
   @media (max-width: 1200px) {
     min-width: 23.5rem;
     font-size: 1.1rem;
-    padding: 0.6rem 1rem;
+    padding: 0.7rem 1.1rem;
   }
 
   @media (max-width: 768px) {
-    min-width: 5rem;
-    font-size: 0.9rem;
-    padding: 0.4rem 0.7rem;
+    min-width: 10rem;
+    font-size: 1rem;
+    padding: 0.7rem 0.9rem;
+  }
+
+  @media (max-width: 500px) {
+    min-width: 25rem;
+    height: 3.5rem;
+    font-size: 1.1rem;
+    padding: 0.6rem 0.8rem;
   }
 `;
 

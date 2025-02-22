@@ -5,8 +5,12 @@ const router = express.Router();
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 const { getConnection } = require("../db");
-
+const { v4: uuidv4 } = require("uuid");
 const ActiveDirectory = require("activedirectory");
+
+const generateRefreshToken = () => {
+  return uuidv4();
+};
 
 // Configuracion para Active Directory
 const config = {
@@ -35,7 +39,6 @@ const getUserData = async (username) => {
       ldap_user,
       nombre,
       id_departamento,
-      //   id_cargo,
     })
   );
   console.debug("user data obtained: ", userData);
@@ -81,18 +84,30 @@ router.post("/login", async (req, res) => {
           username: userData.username,
           nombre: userData.nombre,
           id_departamento: userData.id_departamento,
-          //   id_cargo: userData.id_cargo,
         },
         JWT_SECRET,
-        { expiresIn: "3h" } // Token validity
+        { expiresIn: "5m" } // Token validity
       );
+
+      // Generate refresh token
+      const refreshToken = generateRefreshToken();
+      storeRefreshToken(userData.username, refreshToken);
 
       res.cookie("auth_token", token, {
         path: "/",
         httpOnly: true,
         secure: true,
         sameSite: "none",
-        maxAge: 3600000,
+        maxAge: 300000, //El token expira en 5 minutos
+      });
+
+      // Set the refresh token in a separate cookie
+      res.cookie("refresh_token", refreshToken, {
+        path: "/",
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        maxAge: 604800000, // El refresh token durara 7 dias (milisegundos), luego de eso el usuario sera forzado a hacer log in
       });
 
       return res.status(200).json({
@@ -105,5 +120,17 @@ router.post("/login", async (req, res) => {
     }
   });
 });
+
+// Function to store refresh token in the database
+const storeRefreshToken = async (username, refreshToken) => {
+  let connection = await getConnection();
+  const query = `INSERT INTO MCAM_REFRESH_TOKENS (username, refresh_token)
+                 VALUES (:username, :refreshToken)`;
+  await connection.execute(
+    query,
+    { username, refreshToken },
+    { autoCommit: true }
+  );
+};
 
 module.exports = router;

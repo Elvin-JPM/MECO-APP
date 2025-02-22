@@ -23,12 +23,15 @@ export const Table = styled.div`
   background-color: var(--color-grey-0);
   border-radius: 7px;
   overflow: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
 
   @media (max-width: 1200px) {
     font-size: 1.2rem;
   }
   @media (max-width: 810px) {
     font-size: 1rem;
+    overflow-x: scroll;
   }
 
   @media (max-width: 500px) {
@@ -42,7 +45,7 @@ export const TableHeader = styled.header`
   column-gap: 2.4rem;
   align-items: center;
 
-  background-color: var(--color-grey-50);
+  background-color: var(--color-grey-100);
   border-bottom: 1px solid var(--color-grey-100);
   text-transform: uppercase;
   letter-spacing: 0.4px;
@@ -81,7 +84,6 @@ function ReportTable({
   const [rowsToEdit, setRowsToEdit] = useState([]);
   const [isEditableRow, setIsEditableRow] = useState(false);
   const [editableRowKey, setEditableRowKey] = useState(null);
-  //const [activeRow, setActiveRow] = useState(null);
   const [modifiedRows, setModifiedRows] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const { isUpdating, updateMeasures } = useUpdateMeasures(
@@ -91,8 +93,6 @@ function ReportTable({
   const [showToast, setShowToast] = useState({ type: null, message: null });
 
   const { allMeasuresMutation } = useAllMeasuresStyling(reportData, energyTags);
-  //const [isDownloadReady, setIsDownloadReady] = useState(false);
-  //const [currentPage, setCurrentPage] = useState(1);
   const totalPagesRef = useRef(null);
   const pageNumberRef = useRef(1);
 
@@ -305,9 +305,10 @@ function ReportTable({
               modifiedrows={modifiedRows}
               activerow={editableRowKey}
               key={measuresArray.indexOf(measure)}
-              rowkey={measuresArray.indexOf(measure)}
+              rowkey={`${measuresArray.indexOf(measure)}_${pageNumber}`}
               isEditableRow={
-                editableRowKey == measuresArray.indexOf(measure)
+                editableRowKey ==
+                `${measuresArray.indexOf(measure)}_${pageNumber}`
                   ? isEditableRow
                   : false
               }

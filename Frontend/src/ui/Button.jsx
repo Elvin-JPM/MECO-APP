@@ -55,7 +55,7 @@ const IconColors = {
   `,
   cancel: css`
     & > svg {
-      color: var(--color-red-100);
+      color: var(--color-red-600);
     }
   `,
 };
@@ -87,7 +87,7 @@ const variations = {
   check: css`
     color: var(--color-green-300);
     background-color: var(--color-grey-0);
-    border: 1px solid var(--color-grey-200);
+    border: 1px solid var(--color-grey-300);
     width: 3rem;
     height: 3rem;
     border-radius: 50%;

@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import Button from "./Button";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useUser } from "../features/authentication/UserProvider";
@@ -39,19 +38,23 @@ function UserSection() {
   const logoutMutation = useMutation({
     mutationFn: logout, // Provide the function for mutation
     onSuccess: () => {
-      toast.success("¡Saliste exitosamente!", {
+      toast.success("¡Saliste!", {
         style: {
           border: "1px solid #FF8000",
           padding: "16px",
-          //   color: "#FF8000",
         },
         iconTheme: {
           primary: "#FF8000",
           secondary: "#FFFAEE",
         },
       });
-      navigate("/login");
+
+      navigate("/login", { replace: true });
+      setTimeout(() => {
+        window.location.replace("/login");
+      }, 100);
     },
+
     onError: () => {
       toast.error("No se pudo completar la operación.");
     },
@@ -109,18 +112,19 @@ function UserSection() {
           onBlur={handleBlur}
         >
           <DarkModeToggle />
+
           <Tooltip
             id={`tooltip-${1}`}
             className="tooltip"
             position="bottom"
-            bgColor={`linear-gradient(to bottom, #6a11cb, #2575fc)`}
+            bgColor={`linear-gradient(to bottom, #EB3349, #F45C43)`}
             fontSize="12px"
             padding="8px 12px"
             isVisible={tooltipVisible === 1}
             role="tooltip"
-            aria-hidden={!tooltipVisible === 1}
+            aria-hidden={tooltipVisible !== 1}
           >
-            {isDarkMode ? "Modo claro": "Modo oscuro"}
+            {isDarkMode ? "Modo claro" : "Modo oscuro"}
           </Tooltip>
         </IconContainer>
         <IconContainer
@@ -134,18 +138,18 @@ function UserSection() {
             onClick={handleLogout}
             disabled={logoutMutation.isLoading}
           >
-            {logoutMutation.isLoading ? "Saliendo..." : <FiLogOut />}
+            {logoutMutation.isLoading ? toast("Saliendo...") : <FiLogOut />}
           </IconButton>
           <Tooltip
             id={`tooltip-${2}`}
             className="tooltip"
             position="bottom"
-            bgColor="linear-gradient(to bottom, #6a11cb, #2575fc)"
+            bgColor="linear-gradient(to bottom, #EB3349, #F45C43)"
             fontSize="12px"
             padding="8px 12px"
             isVisible={tooltipVisible === 2}
             role="tooltip"
-            aria-hidden={!tooltipVisible === 2}
+            aria-hidden={tooltipVisible !== 2}
           >
             Cerrar sesion
           </Tooltip>

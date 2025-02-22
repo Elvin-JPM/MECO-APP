@@ -1,10 +1,5 @@
 import styled, { css, keyframes } from "styled-components";
 
-// const test = css`
-//   text-align: center;
-//   ${10 > 5 && "background-color: yellow;"}
-// `;
-
 const animatedText = keyframes`
   0% {
     background-position: 0 50%;
@@ -18,13 +13,12 @@ const animatedText = keyframes`
 `;
 
 const StyledHeading = styled.h1`
-  /* color: var(--color-brand-900); */
   text-align: center;
   background: linear-gradient(
     45deg,
     var(--color-grey-500),
     var(--color-grey-700),
-    var(--color-grey-800)
+    var(--color-grey-900)
   );
   background-clip: text;
   -webkit-background-clip: text;
@@ -67,7 +61,6 @@ const StyledHeading = styled.h1`
 
 function Heading({ children }) {
   return (
-
     <div>
       <StyledHeading>{children}</StyledHeading>
     </div>

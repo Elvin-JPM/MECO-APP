@@ -1,33 +1,43 @@
 import styled, { keyframes } from "styled-components";
 
 const rotate = keyframes`
-  to {
-    transform: rotate(1turn);
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
   }
 `;
 
-const Spinner = styled.div`
-  margin: 4.8rem auto;
-
-  width: ${(props) => {
-    if (props.size === "small") return "2.4rem";
-    if (props.size === "large") return "9.6rem";
-    return "6.4rem"; // Default to medium
-  }};
-  aspect-ratio: 1;
+const OuterCircle = styled.div`
+  width: 5rem;
+  height: 5rem;
+  background-color: transparent;
   border-radius: 50%;
-  background: radial-gradient(
-        farthest-side,
-        ${(props) => props.color || "var(--color-brand-600)"} 94%,
-        #0000
-      )
-      top/10px 10px no-repeat,
-    conic-gradient(
-      #0000 30%,
-      ${(props) => props.color || "var(--color-brand-600)"}
-    );
-  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 10px), #000 0);
-  animation: ${rotate} 1.5s infinite linear;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* Border with dual colors */
+  /*   border: 0.4rem solid #FF9D3D; */
+  border-top: 0.3rem solid orangered;
+  border-right: 0.2rem solid orangered;
+
+  /* Rotate the border */
+  animation: ${rotate} 1s linear infinite;
+`;
+const InnerCircle = styled.div`
+  width: 4rem;
+  height: 4rem;
+  background-color: #eb8317;
+  border-radius: 50%;
 `;
 
+const Spinner = () => {
+  return (
+    <OuterCircle>
+      <InnerCircle />
+    </OuterCircle>
+  );
+};
 export default Spinner;

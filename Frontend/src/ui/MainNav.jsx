@@ -207,12 +207,12 @@ function MainNav() {
                   id={`tooltip-${index}`}
                   className="tooltip"
                   position="right"
-                  bgColor="linear-gradient(45deg, #6a11cb, #2575fc)"
+                  bgColor="linear-gradient(to bottom right, #EB3349, #F45C43)"
                   fontSize="12px"
                   padding="8px 12px"
                   isVisible={tooltipVisible === index}
                   role="tooltip"
-                  aria-hidden={!tooltipVisible === index}
+                  aria-hidden={tooltipVisible !== index}
                 >
                   {item.tooltip}
                 </Tooltip>

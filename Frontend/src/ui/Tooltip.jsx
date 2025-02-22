@@ -1,7 +1,9 @@
 import styled, { css } from "styled-components";
 
+
 const Tooltip = styled.div`
   position: absolute;
+  top: 0;
   background: ${({ bgColor }) =>
     bgColor || "linear-gradient(45deg, #6a11cb, #2575fc)"};
   color: white;
@@ -10,10 +12,15 @@ const Tooltip = styled.div`
   font-size: ${({ fontSize }) => fontSize || "14px"};
   font-weight: 600;
   white-space: nowrap;
-  z-index: 3000;
-  visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 10000;
+  opacity: ${({ isVisible }) => (isVisible ? 1 : 0)};
+  visibility: ${({ isVisible }) => (isVisible ? "visible" : "hidden")};
+  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+
+  /* This ensures it ignores the parent's opacity */
+  will-change: opacity;
+  backdrop-filter: none;
 
   /* Arrow (pointer) */
   &::after {
@@ -37,7 +44,7 @@ const Tooltip = styled.div`
             left: 50%;
             transform: translateX(-50%);
             border-top-color: ${({ bgColor }) =>
-              bgColor ? "#6a11cb" : "#2575fc"};
+              bgColor ? "#EB3349" : "#2575fc"};
           }
         `;
       case "bottom":
@@ -50,7 +57,7 @@ const Tooltip = styled.div`
             left: 50%;
             transform: translateX(-50%);
             border-bottom-color: ${({ bgColor }) =>
-              bgColor ? "#6a11cb" : "#2575fc"};
+              bgColor ? "#EB3349" : "#2575fc"};
           }
         `;
       case "left":
@@ -63,7 +70,7 @@ const Tooltip = styled.div`
             left: 100%;
             transform: translateY(-50%);
             border-left-color: ${({ bgColor }) =>
-              bgColor ? "#6a11cb" : "#2575fc"};
+              bgColor ? "#EB3349" : "#2575fc"};
           }
         `;
       case "right":
@@ -76,7 +83,7 @@ const Tooltip = styled.div`
             right: 100%;
             transform: translateY(-50%);
             border-right-color: ${({ bgColor }) =>
-              bgColor ? "#6a11cb" : "#2575fc"};
+              bgColor ? "#EB3349" : "#2575fc"};
           }
         `;
       default:
@@ -89,7 +96,7 @@ const Tooltip = styled.div`
             left: 50%;
             transform: translateX(-50%);
             border-bottom-color: ${({ bgColor }) =>
-              bgColor ? "#6a11cb" : "#2575fc"};
+              bgColor ? "#EB3349" : "#2575fc"};
           }
         `;
     }

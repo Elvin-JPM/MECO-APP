@@ -5,23 +5,26 @@ const JWT_SECRET = process.env.JWT_SECRET || "SECRET_KEY";
 
 // Middleware to verify JWT
 const verifyJWT = (req, res, next) => {
-  console.log("Cookies received at verifyJWT:", req.cookies); // Log the cookies
-  console.log("Authorization header:", req.headers.authorization);
-  const token = req.cookies.auth_token; // Read token from cookie
-  if (!token) {
-    console.log("No auth_token found in cookies");
+  const accessToken = req.cookies.auth_token;
+
+  if (!accessToken) {
     return res.status(401).json({ error: "Authentication required" });
   }
 
-  jwt.verify(token, JWT_SECRET, (err, decoded) => {
-    if (err) {
-      console.error("Error verifying token:", err);
-      return res.status(403).json({ error: "Invalid or expired token" });
-    }
-    console.log("Decoded token:", decoded);
+  try {
+    // Verify the access token
+    const decoded = jwt.verify(accessToken, JWT_SECRET);
     req.user = decoded; // Attach user data to the request
-    next();
-  });
+    next(); // Proceed to the next middleware/route
+  } catch (err) {
+    if (err.name === "TokenExpiredError") {
+      // Access token is expired
+      return res.status(401).json({ error: "Access token expired" });
+    } else {
+      // Other JWT verification errors (e.g., invalid token)
+      return res.status(403).json({ error: "Invalid token" });
+    }
+  }
 };
 
 module.exports = verifyJWT;

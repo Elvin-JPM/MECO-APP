@@ -33,19 +33,12 @@ const Form = styled.form`
     props.type === "login" &&
     css`
       padding: 2.4rem 4rem;
-
-      /* Box */
-      /* background: linear-gradient(
-        to top right,
-        var(--color-grey-0),
-        var(--color-grey-400)
-      ); */
       background-color: var(--color-grey-100);
-      opacity: 0.75;
+      opacity: 0.8;
       backdrop-filter: blur(10px);
       border: 2px solid var(--color-grey-300);
       border-radius: var(--border-radius-lg);
-      --box-shadow: 2px 2px var(--color-grey-200);
+      box-shadow: 2px 2px 3px  var(--color-grey-200);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -64,25 +57,21 @@ const Form = styled.form`
         height: 50rem;
         justify-content: center;
       }
-
       @media (max-width: 768px) and (min-width: 480px) {
         width: 36rem;
         height: 50rem;
         justify-content: center;
-        /* gap: 0.7rem; */
       }
       @media (max-width: 480px) and (min-width: 320px) {
         width: 34rem;
         height: 46rem;
         justify-content: center;
-        /* gap: 0.5rem; */
       }
     `}
   overflow: hidden;
   font-size: 1.4rem;
   margin-bottom: 2rem;
   backdrop-filter: blur(1px);
-
 `;
 
 export default Form;

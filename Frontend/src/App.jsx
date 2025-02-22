@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { Suspense, lazy } from "react";
 
 import Dashboard from "./pages/Dashboard";
 import Meters from "./pages/Meters";
@@ -19,6 +20,7 @@ import Authentication from "./features/authentication/Authentication";
 import { RequireAuth } from "./features/authentication/RequireAuth";
 import { UserProvider } from "./features/authentication/UserProvider";
 import { DarkModeProvider } from "./context/DarkModeContext";
+import Spinner from "./ui/Spinner";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -52,8 +54,8 @@ function App() {
               <Route path="users" element={<Users />} />
               <Route path="settings" element={<Settings />} />
               <Route path="reports" element={<Reports />} />
+              <Route path="locations" element={<Locations />} />
             </Route>
-            <Route path="locations" element={<Locations />} />
 
             <Route path="login" element={<Authentication />} />
             <Route path="signup" element={<SignUp />} />

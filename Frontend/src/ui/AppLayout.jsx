@@ -5,8 +5,6 @@ import styled from "styled-components";
 import Heading from "./Heading";
 import Ribbon from "./Ribbon";
 import UserSection from "./UserSection";
-import { ThemeProvider } from "styled-components";
-import { useDarkMode } from "../context/DarkModeContext";
 import Background from "./Background";
 import { RxHamburgerMenu } from "react-icons/rx";
 import IconButton from "./IconButton";
@@ -40,8 +38,6 @@ const StyledAppLayout = styled.div`
   }
   scrollbar-width: none;
   -ms-overflow-style: none;
-  /* position: relative;
-  z-index: 2500; */
   @media (max-width: 1200px) and (min-width: 768px) {
     grid-template-columns: 18rem 1fr;
   }
@@ -71,7 +67,6 @@ const BurgerMenu = styled.div`
 `;
 
 function AppLayout() {
-  const { isDarkMode } = useDarkMode();
   const [showMenu, setShowMenu] = useState(false);
   const handleShowMenu = () => {
     setShowMenu((c) => !c);
@@ -79,7 +74,7 @@ function AppLayout() {
   return (
     <AppBody>
       {showMenu && <Menu CloseMenu={handleShowMenu} />}
-      <Background isDarkMode={isDarkMode} />
+      <Background />
       <Ribbon />
       <StyledAppLayout>
         <Header>
