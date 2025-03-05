@@ -66,7 +66,7 @@ function Login() {
       //localStorage.setItem("username", response.user.username);
       //localStorage.setItem("user_department_id", response.user.id_departamento);
       handleIsLoggin();
-      navigate("/meters");
+      navigate("/");
     }
   };
 

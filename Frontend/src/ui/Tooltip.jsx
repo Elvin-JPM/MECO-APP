@@ -15,7 +15,7 @@ const Tooltip = styled.div`
   z-index: 10000;
   opacity: ${({ isVisible }) => (isVisible ? 1 : 0)};
   visibility: ${({ isVisible }) => (isVisible ? "visible" : "hidden")};
-  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.5s ease, visibility 0.2s ease, transform 0.2s ease;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 
   /* This ensures it ignores the parent's opacity */

@@ -9,21 +9,21 @@ router.get("/plantssubs", async (req, res) => {
     const result = await connection.execute(
       `
         SELECT 
-    MIN(ID) AS ID, -- Pick one ID (e.g., the smallest) for each unique name
-    NOMBRE
-FROM (
-    SELECT 
-        ID_PLANTA || '-PLANTA' AS ID, 
-        NOMBRE_PLANTA AS NOMBRE 
-    FROM ODS_DEV.BTR_PLANTAS 
-    UNION 
-    SELECT 
-        ID_SUBESTACION || '-SUBESTACION' AS ID, 
-        SUBESTACION AS NOMBRE 
-    FROM ODS_DEV.BTR_SUBESTACIONES
-)
-GROUP BY NOMBRE
-ORDER BY NOMBRE
+          MIN(ID) AS ID, -- Pick one ID (e.g., the smallest) for each unique name
+          NOMBRE
+        FROM (
+            SELECT 
+                ID_PLANTA || '-PLANTA' AS ID, 
+                NOMBRE_PLANTA AS NOMBRE 
+            FROM ODS_DEV.BTR_PLANTAS 
+            UNION 
+            SELECT 
+                ID_SUBESTACION || '-SUBESTACION' AS ID, 
+                SUBESTACION AS NOMBRE 
+            FROM ODS_DEV.BTR_SUBESTACIONES
+        )
+        GROUP BY NOMBRE
+        ORDER BY NOMBRE
       `
     );
     const plantsAndSubstations = result.rows.map(([id, nombre]) => {

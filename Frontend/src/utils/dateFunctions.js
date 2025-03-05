@@ -31,3 +31,11 @@ export function newReportName() {
 
   return `VS_${year}_${month}_${day}_${hour}_${minute}_${second}`;
 }
+
+export function getOclockDate(fecha) {
+  const year = fecha.getFullYear();
+  const month = String(fecha.getMonth() + 1).padStart(2, "0");
+  const day = String(fecha.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day} 00:00`;
+}

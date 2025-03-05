@@ -158,6 +158,7 @@ const Button = styled.button.attrs((props) => ({
   &:focus {
     outline: none;
   }
+  
 `;
 
 Button.defaultProps = {

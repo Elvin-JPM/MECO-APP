@@ -62,3 +62,9 @@ export async function getReport(reportName) {
   const response = await getData(`/report/${reportName}`);
   return response;
 }
+
+export async function getStatistics(data) {
+  console.log("Data received at getStatistics: ", data);
+  const response = await getData(`/statistics`, {}, data);
+  return response;
+}

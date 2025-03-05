@@ -3,8 +3,8 @@ import styled from "styled-components";
 const Select = styled.select`
   font-size: 1.4rem;
   padding: 0.8rem 1.2rem;
-  border: 1px solid var(--color-grey-300);
-  border-left: 4px solid var(--color-grey-400);
+  border: 1px solid var(--color-grey-400);
+  /* border-left: 4px solid var(--color-grey-400); */
   border-radius: var(--border-radius-sm);
   background-color: var(--color-grey-100);
   font-weight: 500;
@@ -46,7 +46,7 @@ const Select = styled.select`
 
   /* Add responsive styles */
   @media (min-width: 1200px) {
-    min-width: 40rem;
+    min-width: 38rem;
   }
 
   @media (max-width: 1200px) {

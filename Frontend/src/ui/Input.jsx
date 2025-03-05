@@ -6,7 +6,7 @@ const Input = styled.input`
   background-color: var(--color-grey-100);
   border-radius: var(--border-radius-sm);
   padding: 0.8rem 1.2rem;
-  border-left: 4px solid var(--color-grey-400);
+  /* border-left: 4px solid var(--color-grey-400); */
 
   &:focus {
     caret-color: var(--color-institucional-amarillo);
