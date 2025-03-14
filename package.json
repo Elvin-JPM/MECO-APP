@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-    "@tanstack/react-query": "^5.60.6",
-    "@tanstack/react-query-devtools": "^5.60.6",
-    "axios": "^1.7.7",
-    "exceljs": "^4.4.0",
-    "oracledb": "^6.7.0"
-  }
-}

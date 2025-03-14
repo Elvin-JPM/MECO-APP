@@ -112,27 +112,58 @@ app.use("/api", refreshTokenRoute);
       console.log(`Server is running on http://localhost:${PORT}`);
     });
 
+    // Path to the Python executable
+    const pythonExecutable = path.join(
+      __dirname,
+      "../Data Loading/myenv/Scripts/python.exe"
+    );
+
     const pythonScriptPath = path.join(__dirname, "../Data Loading/main.py");
 
-    console.log(pythonScriptPath);
+    console.log(`Python Executable: ${pythonExecutable}`);
+    console.log(`Python Script Path: ${pythonScriptPath}`);
     // Schedule a cron job to run every day at 1:00 AM
-    cron.schedule("00 08 * * *", () => {
+    cron.schedule("2,17,32,47 * * * *", () => {
       console.log("Running the Python script at 1:00 AM");
 
       // Pass parameters to the Python script, handle spaces in the path by quoting it
-      exec(`python "${pythonScriptPath}"`, (error, stdout, stderr) => {
-        console.log(pythonScriptPath);
-        if (error) {
-          console.error(`Error executing script: ${error}`);
-          return;
+      exec(
+        `"${pythonExecutable}" "${pythonScriptPath}" 1`,
+        (error, stdout, stderr) => {
+          console.log(pythonScriptPath);
+          if (error) {
+            console.error(`Error executing script: ${error}`);
+            return;
+          }
+          if (stderr) {
+            console.error(`stderr: ${stderr}`);
+            return;
+          }
+          console.log("Python script finished executing!");
+          console.log(`Output: ${stdout}`);
         }
-        if (stderr) {
-          console.error(`stderr: ${stderr}`);
-          return;
+      );
+    });
+    cron.schedule("50 7 * * *", () => {
+      console.log("Running the Python script for 7 days back AM");
+
+      // Pass parameters to the Python script, handle spaces in the path by quoting it
+      exec(
+        `"${pythonExecutable}" "${pythonScriptPath}" 2`,
+        (error, stdout, stderr) => {
+          console.log(pythonScriptPath);
+          if (error) {
+            console.error(`Error executing script: ${error}`);
+            return;
+          }
+          if (stderr) {
+            console.error(`stderr: ${stderr}`);
+            return;
+          }
+          console.log("Python script finished executing!");
+          console.log(`Output: ${stdout}`);
         }
-        console.log("Python script finished executing!");
-        console.log(`Output: ${stdout}`);
-      });
+      );
     });
   } catch (error) {
     console.error("Error starting server: ", error);
