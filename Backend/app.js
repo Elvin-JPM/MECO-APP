@@ -57,7 +57,7 @@ app.use((req, res, next) => {
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "http://localhost",
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: [
       "Content-Type",
@@ -115,16 +115,16 @@ app.use("/api", refreshTokenRoute);
     // Path to the Python executable
     const pythonExecutable = path.join(
       __dirname,
-      "../Data Loading/myenv/Scripts/python.exe"
+      "../Data_Loading/myenv/Scripts/python.exe"
     );
 
-    const pythonScriptPath = path.join(__dirname, "../Data Loading/main.py");
+    const pythonScriptPath = path.join(__dirname, "../Data_Loading/main.py");
 
     console.log(`Python Executable: ${pythonExecutable}`);
     console.log(`Python Script Path: ${pythonScriptPath}`);
     // Schedule a cron job to run every day at 1:00 AM
     cron.schedule("2,17,32,47 * * * *", () => {
-      console.log("Running the Python script at 1:00 AM");
+      console.log("Running the Python script to retrieve the latest data");
 
       // Pass parameters to the Python script, handle spaces in the path by quoting it
       exec(
@@ -144,12 +144,12 @@ app.use("/api", refreshTokenRoute);
         }
       );
     });
-    cron.schedule("50 7 * * *", () => {
-      console.log("Running the Python script for 7 days back AM");
+    cron.schedule("10 1 * * *", () => {
+      console.log("Running the Python script for 7 days back");
 
       // Pass parameters to the Python script, handle spaces in the path by quoting it
       exec(
-        `"${pythonExecutable}" "${pythonScriptPath}" 2`,
+        `"${pythonExecutable}" "${pythonScriptPath}" 7`,
         (error, stdout, stderr) => {
           console.log(pythonScriptPath);
           if (error) {

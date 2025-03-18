@@ -1,1 +1,4 @@
-myenv
+Data Loading/myenv/
+node_modules
+.git
+.DS_Store

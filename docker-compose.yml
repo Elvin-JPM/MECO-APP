@@ -1,22 +1,23 @@
-version: '3'
-
 services:
   backend:
-    build: ./backend
+    build:
+      context: . # Use the parent directory (MECO APP) as the build context
+      dockerfile: ./Backend/Dockerfile
     container_name: backend
-    env_file: ./backend/.env
+    env_file: ./Backend/.env
     ports:
       - "3000:3000"
     volumes:
-      # Optionally mount the data-loading folder if you want to update it without rebuilding:
-      - ./data-loading:/app/data-loading
+      - "./Data_Loading:/app/Data_Loading"
     networks:
       - app-network
 
   frontend:
-    build: ./frontend
+    build:
+      context: . # This points to the root of your project, so everything in the parent directory will be accessible
+      dockerfile: ./Frontend/Dockerfile
     container_name: frontend
-    env_file: ./frontend/.env
+    env_file: ./Frontend/.env
     ports:
       - "80:80"
     networks:
@@ -26,9 +27,9 @@ services:
     image: nginx:alpine
     container_name: proxy
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro # Mount the full nginx.conf file
     ports:
-      - "80:80"
+      - "8080:80"
     depends_on:
       - backend
       - frontend

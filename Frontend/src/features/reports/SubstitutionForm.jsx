@@ -10,7 +10,7 @@ import Textarea from "../../ui/Textarea";
 import Spinner from "../../ui/Spinner";
 import CreatePdfReport from "./CreatePdfReport";
 import useCreateSubstitutionReport from "./useCreateSubstitutionReport";
-import { useUser } from "../../features/authentication/userProvider";
+import { useUser } from "../../features/authentication/UserProvider";
 import { newReportName } from "../../utils/dateFunctions";
 
 function SubstitutionForm({
@@ -95,7 +95,6 @@ function SubstitutionForm({
 
     createSubstitutionReport(formDataBackend);
   }
-  
 
   if (isLoadingAgente) return <Spinner />;
   return (
