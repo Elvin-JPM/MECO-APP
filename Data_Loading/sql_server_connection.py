@@ -8,11 +8,11 @@ load_dotenv()
 # Connection string
 SERVER = os.getenv('MSSQL_SERVER')
 DATABASE = os.getenv('MSSQL_DATABASE')
-DRIVER = os.getenv('MSSQL_DRIVER')
+DRIVER = os.getenv('MSSQL_DRIVER').replace(" ", "+")  # Replace spaces with +
 USERNAME = os.getenv('MSSQL_USERNAME')
 PASSWORD = os.getenv('MSSQL_PASSWORD')
 DATABASE_CONNECTION = (
-    f"mssql+pyodbc://{USERNAME}:{PASSWORD}@{SERVER}/{DATABASE}?driver={DRIVER}"
+    f"mssql+pyodbc://{USERNAME}:{PASSWORD}@{SERVER}/{DATABASE}?driver={DRIVER}&TrustServerCertificate=yes"
 )
 
 # Engine creation

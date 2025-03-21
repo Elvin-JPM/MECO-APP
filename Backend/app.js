@@ -5,6 +5,7 @@ const path = require("path");
 const cors = require("cors");
 const app = express();
 const cookieParser = require("cookie-parser");
+require("dotenv").config();
 const { initOracleDb } = require("./db");
 const { initSqlServer } = require("./sqlServerConnection");
 
@@ -57,7 +58,18 @@ app.use((req, res, next) => {
 
 app.use(
   cors({
-    origin: "http://localhost",
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g., mobile apps, curl requests)
+      if (!origin) return callback(null, true);
+
+      // Check if the origin is from localhost (any port)
+      if (/^https?:\/\/localhost(:\d+)?$/.test(origin)) {
+        return callback(null, true);
+      }
+
+      // Reject all other origins
+      return callback(new Error("Not allowed by CORS"));
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: [
       "Content-Type",
@@ -68,8 +80,6 @@ app.use(
       "User-Agent",
       "Origin",
       "X-CSRF-Token",
-
-      //"headers",
     ],
     credentials: true,
     exposedHeaders: ["set-cookie"],
@@ -113,17 +123,36 @@ app.use("/api", refreshTokenRoute);
     });
 
     // Path to the Python executable
-    const pythonExecutable = path.join(
-      __dirname,
-      "../Data_Loading/myenv/Scripts/python.exe"
-    );
+    // const pythonExecutable = path.join(
+    //   __dirname,
+    //   "../Data_Loading/myenv/Scripts/python.exe"
+    // );
 
-    const pythonScriptPath = path.join(__dirname, "../Data_Loading/main.py");
+    //------      Use this executable for local tests   -------
+    // const pythonExecutable =
+    //   "C:\\Users\\eposadas\\AppData\\Local\\Programs\\Python\\Python313\\python.exe";
+    // const pythonScriptPath = path.join(__dirname, "../Data_Loading/main.py");
 
-    console.log(`Python Executable: ${pythonExecutable}`);
+    //------      Use this other executable for the docker container  ------
+    //const pythonExecutable = "python3"
+
+    // console.log(`Python Executable: ${pythonExecutable}`);
+
+    // Determine the Python script path
+    const pythonScriptPath =
+      process.env.IS_DOCKER === "true"
+        ? "/app/Data_Loading/main.py" // Absolute path inside Docker container
+        : path.join(__dirname, "../Data_Loading/main.py"); // Relative path for local development
+
+    // Determine the Python executable
+    const pythonExecutable =
+      process.env.IS_DOCKER === "true"
+        ? "python3" // Use `python3` in Docker
+        : "C:\\Users\\eposadas\\AppData\\Local\\Programs\\Python\\Python313\\python.exe"; // Local Python executable
+
     console.log(`Python Script Path: ${pythonScriptPath}`);
     // Schedule a cron job to run every day at 1:00 AM
-    cron.schedule("2,17,32,47 * * * *", () => {
+    cron.schedule("2,17,32,47,9 * * * *", () => {
       console.log("Running the Python script to retrieve the latest data");
 
       // Pass parameters to the Python script, handle spaces in the path by quoting it

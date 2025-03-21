@@ -5,12 +5,15 @@ services:
       dockerfile: ./Backend/Dockerfile
     container_name: backend
     env_file: ./Backend/.env
+    environment:
+      - IS_DOCKER=true
     ports:
       - "3000:3000"
     volumes:
       - "./Data_Loading:/app/Data_Loading"
     networks:
       - app-network
+    restart: always
 
   frontend:
     build:
@@ -22,6 +25,7 @@ services:
       - "80:80"
     networks:
       - app-network
+    restart: always
 
   proxy:
     image: nginx:alpine
@@ -35,6 +39,7 @@ services:
       - frontend
     networks:
       - app-network
+    restart: always
 
 networks:
   app-network:

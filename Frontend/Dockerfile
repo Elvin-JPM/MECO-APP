@@ -1,5 +1,9 @@
 # Stage 1: Build Vite app
 FROM node:18 as build
+
+ENV TZ=America/Tegucigalpa
+RUN apt-get update && apt-get install -y tzdata && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Set npm registry (optional)
