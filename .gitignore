@@ -19,4 +19,7 @@ Thumbs.db
 *.swo
 
 # python files
-/Data Loading/.env
+Data_Loading/.env
+
+*.env
+**/*.env
