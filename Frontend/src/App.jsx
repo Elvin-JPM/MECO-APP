@@ -12,6 +12,7 @@ import AppLayout from "./ui/AppLayout";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import Users from "./pages/Users";
+import Demanda from "./pages/Demanda";
 import Settings from "./pages/Settings";
 import Locations from "./pages/Locations";
 import { Toaster } from "react-hot-toast";
@@ -51,7 +52,7 @@ function App() {
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="meters" element={<Meters />} />
               <Route path="communications" element={<Communications />} />
-              <Route path="users" element={<Users />} />
+              <Route path="demanda" element={<Demanda />} />
               <Route path="settings" element={<Settings />} />
               <Route path="reports" element={<Reports />} />
               <Route path="locations" element={<Locations />} />

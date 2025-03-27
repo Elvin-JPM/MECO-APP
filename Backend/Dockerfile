@@ -84,7 +84,12 @@ COPY ./Backend ./
 COPY ./Data_Loading /app/Data_Loading
 
 # Install Python dependencies
+COPY ./Data_Loading/requirements.txt /app/Data_Loading/requirements.txt
 RUN pip3 install --no-cache-dir -r /app/Data_Loading/requirements.txt
+
+# Secure .env handling
+RUN chmod 600 /app/Data_Loading/.env && \
+    chown node:node /app/Data_Loading/.env
 
 # Expose ports
 EXPOSE 3000

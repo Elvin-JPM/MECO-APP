@@ -22,8 +22,15 @@ RUN npm install
 # Copy the rest of the frontend code
 COPY ./Frontend ./
 
+
+# Copy frontend .env for build-time variables
+COPY ./Frontend/.env .
+
 # Build the Vite app
 RUN npm run build
+
+# Remove .env from final image
+RUN rm .env
 
 # Ensure the build folder exists before proceeding
 RUN ls -la /app/dist || (echo "Dist directory not found!" && exit 1)

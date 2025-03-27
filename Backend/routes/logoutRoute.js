@@ -11,13 +11,15 @@ router.post("/logout", async (req, res) => {
 
   res.clearCookie("auth_token", {
     httpOnly: true,
-    sameSite: "None",
-    secure: true,
+    // sameSite: "None",
+    sameSite: "Lax",
+    secure: false,
   });
   res.clearCookie("refreshToken", {
     httpOnly: true,
-    sameSite: "None",
-    secure: true,
+    // sameSite: "None",
+    sameSite: "Lax",
+    secure: false,
   });
   res.status(200).json({ message: "Saliste de la aplicacion!" });
 });

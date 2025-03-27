@@ -7,6 +7,8 @@ import { HiSignal } from "react-icons/hi2";
 import { SlLocationPin } from "react-icons/sl";
 import { HiOutlineCog6Tooth } from "react-icons/hi2";
 import { HiOutlineDocumentReport } from "react-icons/hi";
+import { VscGraphLine } from "react-icons/vsc";
+import { SlGraph } from "react-icons/sl";
 import { FaRegFolderOpen } from "react-icons/fa";
 import Tooltip from "./Tooltip";
 import IconContainer from "./IconContainer";
@@ -161,10 +163,10 @@ function MainNav() {
       tooltip: "Comunicaciones",
     },
     {
-      to: "/users",
-      icon: HiOutlineUsers,
-      text: "Usuarios",
-      tooltip: "Usuarios",
+      to: "/demanda",
+      icon: SlGraph,
+      text: "Demanda",
+      tooltip: "Demanda",
     },
     {
       to: "/Locations",

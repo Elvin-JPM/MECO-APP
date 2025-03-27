@@ -96,8 +96,8 @@ router.post("/login", async (req, res) => {
       res.cookie("auth_token", token, {
         path: "/",
         httpOnly: true,
-        secure: true,
-        sameSite: "none",
+        secure: false,
+        sameSite: "Lax",
         maxAge: 300000, //El token expira en 5 minutos
       });
 
@@ -105,8 +105,8 @@ router.post("/login", async (req, res) => {
       res.cookie("refresh_token", refreshToken, {
         path: "/",
         httpOnly: true,
-        secure: true,
-        sameSite: "none",
+        secure: false,
+        sameSite: "Lax",
         maxAge: 604800000, // El refresh token durara 7 dias (milisegundos), luego de eso el usuario sera forzado a hacer log in
       });
 

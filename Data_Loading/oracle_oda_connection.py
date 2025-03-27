@@ -58,9 +58,9 @@ def get_meters_data():
 ###### Function to insert energy data into the Oracle database
 def insert_datos(data_to_insert):
     try:
-        print(f"Total records to process: {len(data_to_insert)}")
-        print("\nSample of input data:")
-        print(data_to_insert.head())
+        # print(f"Total records to process: {len(data_to_insert)}")
+        # print("\nSample of input data:")
+        # print(data_to_insert.head())
 
         # Convert FECHA and HORA_ACTUALIZACION to datetime if not already
         data_to_insert['FECHA'] = pd.to_datetime(data_to_insert['FECHA'])
@@ -72,10 +72,10 @@ def insert_datos(data_to_insert):
             max_date = data_to_insert['FECHA'].max()
             meter_id = int(data_to_insert['ID_MEDIDOR'].iloc[0])  # Convert numpy.int64 to native int
             
-            print(f"\nDate range check:")
-            print(f"Min date: {min_date} (type: {type(min_date)})")
-            print(f"Max date: {max_date} (type: {type(max_date)})")
-            print(f"Meter ID: {meter_id} (type: {type(meter_id)})")
+            # print(f"\nDate range check:")
+            # print(f"Min date: {min_date} (type: {type(min_date)})")
+            # print(f"Max date: {max_date} (type: {type(max_date)})")
+            # print(f"Meter ID: {meter_id} (type: {type(meter_id)})")
             
             # Modified query to also fetch ORIGEN and DATO_ENERGIA columns
             existing_records_query = f"""
@@ -87,7 +87,7 @@ def insert_datos(data_to_insert):
             """
             
             existing_records = pd.read_sql(existing_records_query, connection)
-            print(f"Found {len(existing_records)} existing records")
+            # print(f"Found {len(existing_records)} existing records")
             
             # Create a dictionary to store existing records with their keys for efficient lookup
             existing_records_dict = {}
@@ -105,7 +105,7 @@ def insert_datos(data_to_insert):
                 
                 # Skip records with NaN in DATO_ENERGIA (critical field)
                 if pd.isna(row['DATO_ENERGIA']):
-                    print(f"Skipping record with NaN DATO_ENERGIA: {key}")
+                    # print(f"Skipping record with NaN DATO_ENERGIA: {key}")
                     continue
                     
                 if key not in existing_records_dict:
@@ -125,18 +125,18 @@ def insert_datos(data_to_insert):
             df_to_update = pd.DataFrame(records_to_update) if records_to_update else pd.DataFrame()
             df_to_update_p_r = pd.DataFrame(records_to_update_p_r) if records_to_update_p_r else pd.DataFrame()
             
-            print(f"\nRecords to insert: {len(df_to_insert)}")
-            print(f"Records to update (ORIGEN='VI'): {len(df_to_update)}")
-            print(f"Records to update (ORIGEN='P' or 'R'): {len(df_to_update_p_r)}")
+            # print(f"\nRecords to insert: {len(df_to_insert)}")
+            # print(f"Records to update (ORIGEN='VI'): {len(df_to_update)}")
+            # print(f"Records to update (ORIGEN='P' or 'R'): {len(df_to_update_p_r)}")
             
             # Insert new records
             if not df_to_insert.empty:
-                print("Sample record to insert:")
-                print(df_to_insert.iloc[0])
+                # print("Sample record to insert:")
+                # print(df_to_insert.iloc[0])
                 
-                # Debugging: Print all records to insert
-                print("All records to insert:")
-                print(df_to_insert)
+                # # Debugging: Print all records to insert
+                # print("All records to insert:")
+                # print(df_to_insert)
                 
                 df_to_insert.to_sql(
                     'mcam_mediciones',
@@ -158,7 +158,7 @@ def insert_datos(data_to_insert):
             # Update existing records with ORIGEN='VI'
             if not df_to_update.empty:
                 print("Sample record to update (ORIGEN='VI'):")
-                print(df_to_update.iloc[0])
+                # print(df_to_update.iloc[0])
                 for _, row in df_to_update.iterrows():
                     # Create a dictionary of parameters with NULL handling
                     params = {
@@ -195,7 +195,7 @@ def insert_datos(data_to_insert):
             # Update existing records with ORIGEN='P' or 'R'
             if not df_to_update_p_r.empty:
                 print("Sample record to update (ORIGEN='P' or 'R'):")
-                print(df_to_update_p_r.iloc[0])
+                # print(df_to_update_p_r.iloc[0])
                 
                 for _, row in df_to_update_p_r.iterrows():
                     # Create a dictionary of parameters with NULL handling
@@ -245,11 +245,11 @@ def insert_datos(data_to_insert):
             """)
 
             # Debugging: Print the delete query and parameters
-            print("Delete Query:")
-            print(delete_query)
+            # print("Delete Query:")
+            # print(delete_query)
 
-            print("Parameters:")
-            print({'current_date': current_date_str, 'meter_id': meter_id})
+            # print("Parameters:")
+            # print({'current_date': current_date_str, 'meter_id': meter_id})
 
             # Debugging: Check if there are records to delete
             check_query = text("""

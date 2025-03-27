@@ -23,7 +23,9 @@ empty_energy_meters = []
 hoy = datetime.now().replace(second=0, microsecond=0).strftime('%Y-%m-%d %H:%M')
 
 # Obtiene la fecha actual y le resta la cantidad de dias que viene de node js
-ayer = (datetime.now() - timedelta(days=days_back)).replace(second=0, microsecond=0).strftime('%Y-%m-%d %H:%M')
+# ayer = (datetime.now() - timedelta(days=days_back)).replace(second=0, microsecond=0).strftime('%Y-%m-%d %H:%M')
+ayer = (datetime.now() - timedelta(days=87)).replace(second=0, microsecond=0).strftime('%Y-%m-%d %H:%M')
+
 
 # Se definen las fecha inicial y final y se convierten a datetime
 start_date = ayer
@@ -227,7 +229,7 @@ def fill_lost_registers(accumulated_energy, meter_data):
         else:
             accumulated_energy = pd.DataFrame()  # Create an empty DataFrame if all are empty
             
-    print("Accumulated energy: ",accumulated_energy[(accumulated_energy["TIPO_ENERGIA"] == "KWH_REC")])
+    # print("Accumulated energy: ",accumulated_energy[(accumulated_energy["TIPO_ENERGIA"] == "KWH_REC")])
 
     return accumulated_energy
 
@@ -253,7 +255,7 @@ def transform_energy_to_intervals(meter_energy):
     
     data_to_insert = pd.concat([meter_energy, meter_energy_interval], axis=0, ignore_index=True)
 
-    print(data_to_insert)
+    # print(data_to_insert)
     return data_to_insert
 
 ###########################################################################################################################################################
@@ -267,7 +269,7 @@ for meter_data in meters_data:
             start_date, 
             end_date
         )
-    print("data extracted from sql server: ", meter_energy)
+    # print("data extracted from sql server: ", meter_energy)
     
     energy_table.append(meter_energy)
     if not meter_energy.empty:

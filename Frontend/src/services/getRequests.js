@@ -68,3 +68,16 @@ export async function getStatistics(data) {
   const response = await getData(`/statistics`, {}, data);
   return response;
 }
+
+export async function getHourlyDemand() {
+  const response = await getData(`/demanda_nacional`);
+  console.log("Data received at getHourlyDemand: ", response);
+  return response;
+}
+
+export async function getNodesNames() {
+  const response = await getData(`/nodes_names`);
+  console.log("Data received at getNodesNames ", response);
+  return response;
+}
+
