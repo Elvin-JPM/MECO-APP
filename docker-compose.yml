@@ -4,7 +4,7 @@ services:
       context: . # Use the parent directory (MECO APP) as the build context
       dockerfile: ./Backend/Dockerfile
     container_name: backend
-    env_file: 
+    env_file:
       - ./Backend/.env
       - ./Data_Loading/.env
     environment:

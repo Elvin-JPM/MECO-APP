@@ -18,7 +18,7 @@ router.put("/updateMeasures", async (req, res) => {
 
     // Use a for...of loop for async/await
     for (const rowToEdit of rowsToEdit) {
-      // Preprocess numeric values to remove commas
+      // Remplaza las comas por un caracter vacio y convierte la cadena de caracteres a un float
       const energia_del_mp_new = parseFloat(
         rowToEdit.energia_del_mp_new.replace(/,/g, "")
       );
@@ -41,6 +41,7 @@ router.put("/updateMeasures", async (req, res) => {
       let energiaGenerada = "";
       let energiaConsumida = "";
 
+      // Revision del tipo de energia que es el dato
       if (rowToEdit.tipoMedicion === "energiaActivaAcumulada") {
         energiaGenerada = "KWH_DEL";
         energiaConsumida = "KWH_REC";
@@ -81,33 +82,37 @@ router.put("/updateMeasures", async (req, res) => {
       );
 
       let queryPrincipal = `
-  BEGIN
-    UPDATE MCAM_MEDICIONES
-    SET
-      DATO_ENERGIA = :energia_del_mp_new
-      ${
-        parseFloat(rowToEdit.energia_del_mp) !== energia_del_mp_new ||
-        rowToEdit.filaValidadaCompleta
-          ? ", ORIGEN = 'VS', REPORTE_VALIDACION = :reportName"
-          : ""
-      }
-    WHERE ID_MEDIDOR = :idPrincipal
-    AND TIPO_ENERGIA = :energiaGenerada
-    AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI');
+        BEGIN
+          UPDATE MCAM_MEDICIONES
+          SET
+            DATO_ENERGIA = :energia_del_mp_new
+            ${
+              parseFloat(rowToEdit.energia_del_mp) !== energia_del_mp_new ||
+              (Number(parseFloat(rowToEdit.energia_del_mp)) === 0) &
+                (Number(energia_del_mp_new) === 0) ||
+              rowToEdit.filaValidadaCompleta
+                ? ", ORIGEN = 'VS', REPORTE_VALIDACION = :reportName"
+                : ""
+            }
+          WHERE ID_MEDIDOR = :idPrincipal
+          AND TIPO_ENERGIA = :energiaGenerada
+          AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI');
 
-    UPDATE MCAM_MEDICIONES
-    SET
-      DATO_ENERGIA = :energia_rec_mp_new
-      ${
-        parseFloat(rowToEdit.energia_rec_mp) !== energia_rec_mp_new ||
-        rowToEdit.filaValidadaCompleta
-          ? ", ORIGEN = 'VS', REPORTE_VALIDACION = :reportName"
-          : ""
-      }
-    WHERE ID_MEDIDOR = :idPrincipal
-    AND TIPO_ENERGIA = :energiaConsumida
-    AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI');
-  END;
+          UPDATE MCAM_MEDICIONES
+          SET
+            DATO_ENERGIA = :energia_rec_mp_new
+            ${
+              parseFloat(rowToEdit.energia_rec_mp) !== energia_rec_mp_new ||
+              (Number(parseFloat(rowToEdit.energia_rec_mp)) === 0) &
+                (Number(energia_rec_mp_new) === 0) ||
+              rowToEdit.filaValidadaCompleta
+                ? ", ORIGEN = 'VS', REPORTE_VALIDACION = :reportName"
+                : ""
+            }
+          WHERE ID_MEDIDOR = :idPrincipal
+          AND TIPO_ENERGIA = :energiaConsumida
+          AND FECHA = TO_DATE(:fecha, 'DD-MM-YYYY HH24:MI');
+        END;
 `;
 
       // Build parameters dynamically
@@ -122,6 +127,8 @@ router.put("/updateMeasures", async (req, res) => {
 
       if (
         parseFloat(rowToEdit.energia_del_mp) !== energia_del_mp_new ||
+        (Number(parseFloat(rowToEdit.energia_del_mp)) === 0) &
+          (Number(energia_del_mp_new) === 0) ||
         rowToEdit.filaValidadaCompleta
       ) {
         bindParamsPrincipal.reportName = reportName;
@@ -129,6 +136,8 @@ router.put("/updateMeasures", async (req, res) => {
 
       if (
         parseFloat(rowToEdit.energia_rec_mp) !== energia_rec_mp_new ||
+        (Number(parseFloat(rowToEdit.energia_rec_mp)) === 0) &
+          (Number(energia_rec_mp_new) === 0) ||
         rowToEdit.filaValidadaCompleta
       ) {
         bindParamsPrincipal.reportName = reportName;
@@ -146,6 +155,8 @@ router.put("/updateMeasures", async (req, res) => {
       DATO_ENERGIA = :energia_del_mr_new
       ${
         parseFloat(rowToEdit.energia_del_mr) !== energia_del_mr_new ||
+        (Number(parseFloat(rowToEdit.energia_del_mr)) === 0) &
+          (Number(energia_del_mr_new) === 0) ||
         rowToEdit.filaValidadaCompleta
           ? ", ORIGEN = 'VS', REPORTE_VALIDACION = :reportName"
           : ""
@@ -159,7 +170,10 @@ router.put("/updateMeasures", async (req, res) => {
       DATO_ENERGIA = :energia_rec_mr_new
       ${
         parseFloat(rowToEdit.energia_rec_mr) !==
-          parseFloat(energia_rec_mr_new) || rowToEdit.filaValidadaCompleta
+          parseFloat(energia_rec_mr_new) ||
+        (Number(parseFloat(rowToEdit.energia_rec_mr)) === 0) &
+          (Number(energia_rec_mr_new) === 0) ||
+        rowToEdit.filaValidadaCompleta
           ? ", ORIGEN = 'VS', REPORTE_VALIDACION = :reportName"
           : ""
       }
@@ -180,6 +194,8 @@ router.put("/updateMeasures", async (req, res) => {
 
       if (
         parseFloat(rowToEdit.energia_del_mr) !== energia_del_mr_new ||
+        (Number(parseFloat(rowToEdit.energia_del_mr)) === 0) &
+          (Number(energia_del_mr_new) === 0) ||
         rowToEdit.filaValidadaCompleta
       ) {
         bindParamsRespaldo.reportName = reportName;
@@ -187,6 +203,8 @@ router.put("/updateMeasures", async (req, res) => {
 
       if (
         parseFloat(rowToEdit.energia_rec_mr) !== energia_rec_mr_new ||
+        (Number(parseFloat(rowToEdit.energia_rec_mr)) === 0) &
+          (Number(energia_rec_mr_new) === 0) ||
         rowToEdit.filaValidadaCompleta
       ) {
         bindParamsRespaldo.reportName = reportName;

@@ -24,7 +24,7 @@ hoy = datetime.now().replace(second=0, microsecond=0).strftime('%Y-%m-%d %H:%M')
 
 # Obtiene la fecha actual y le resta la cantidad de dias que viene de node js
 # ayer = (datetime.now() - timedelta(days=days_back)).replace(second=0, microsecond=0).strftime('%Y-%m-%d %H:%M')
-ayer = (datetime.now() - timedelta(days=87)).replace(second=0, microsecond=0).strftime('%Y-%m-%d %H:%M')
+ayer = (datetime.now() - timedelta(days=7)).replace(second=0, microsecond=0).strftime('%Y-%m-%d %H:%M')
 
 
 # Se definen las fecha inicial y final y se convierten a datetime
@@ -119,14 +119,14 @@ while current_time <= end_datetime:
 
 
 #### Funcion para rellenar los registros perdidos en los medidores
-#### Si el registro se ha perdido, se rellenara con cero (0) para luego ser editado desde la interfaz
+#### Si el registro se ha perdido, se rellenara con cero (0) para luego ser editado desde la app
 def fill_lost_registers(accumulated_energy, meter_data):
  
     ### Separando los tipos de energia para el medidor principal y respaldo
-    del_active_energy = accumulated_energy[(accumulated_energy["TIPO_ENERGIA"] == "KWH_DEL")]
-    rec_active_energy = accumulated_energy[(accumulated_energy["TIPO_ENERGIA"] == "KWH_REC")]
-    del_reactive_energy = accumulated_energy[(accumulated_energy["TIPO_ENERGIA"] == "KVARH_DEL")]
-    rec_reactive_energy = accumulated_energy[(accumulated_energy["TIPO_ENERGIA"] == "KVARH_REC")]
+    del_active_energy = accumulated_energy[(accumulated_energy["TIPO_ENERGIA"] == "KWH_DEL") & (accumulated_energy["DATO_ENERGIA"] != 0)]
+    rec_active_energy = accumulated_energy[(accumulated_energy["TIPO_ENERGIA"] == "KWH_REC") & (accumulated_energy["DATO_ENERGIA"] != 0)]
+    del_reactive_energy = accumulated_energy[(accumulated_energy["TIPO_ENERGIA"] == "KVARH_DEL") & (accumulated_energy["DATO_ENERGIA"] != 0)]
+    rec_reactive_energy = accumulated_energy[(accumulated_energy["TIPO_ENERGIA"] == "KVARH_REC") & (accumulated_energy["DATO_ENERGIA"] != 0)]
 
     ### Si existe algun valor faltante se ejecutara todo este codigo, adjuntando las nuevas filas a accumulated_energy
     ### Si no hay valores faltantes, entonces se retorna directamente accumulated_energy al final de la funcion
@@ -143,6 +143,7 @@ def fill_lost_registers(accumulated_energy, meter_data):
 
         ### Encontrando los valores faltantes y convirtiendolos a una lista de Timestamp como vienen de SQL Server 
         ### La comparacion se hace entre time_list la cual es una variable global que se crea a partir de las variables start_date y end_date
+        ### Estas listas guardan las fechas que hubiesen tenido las filas que no existen actualmente en la tabla
         del_active_values_to_insert =   list(pd.to_datetime([date_missing for date_missing in time_list if date_missing not in del_active_fecha], format='%Y-%m-%d %H:%M'))
         rec_active_values_to_insert =   list(pd.to_datetime([date_missing for date_missing in time_list if date_missing not in rec_active_fecha], format='%Y-%m-%d %H:%M'))
         del_reactive_values_to_insert = list(pd.to_datetime([date_missing for date_missing in time_list if date_missing not in del_reactive_fecha], format='%Y-%m-%d %H:%M'))
@@ -157,8 +158,8 @@ def fill_lost_registers(accumulated_energy, meter_data):
         ### ENERGIA ACTIVA
         for value_to_insert_del_active in del_active_values_to_insert:
             data_to_insert_row = []
-            data_to_insert_row.append(value_to_insert_del_active)
-            data_to_insert_row.append(meter_data["description"])
+            data_to_insert_row.append(value_to_insert_del_active) # Adjunta la fecha del registro faltante
+            data_to_insert_row.append(meter_data["description"])  # Adjunta la descripcion del registro faltante
             data_to_insert_row.append(meter_data["id"])
             data_to_insert_row.append(0)
             data_to_insert_row.append("KWH_DEL")
@@ -211,7 +212,7 @@ def fill_lost_registers(accumulated_energy, meter_data):
             lists_to_insert_rec_reactive.append(data_to_insert_row)
 
         df_values_to_insert_rec_reactive = pd.DataFrame(lists_to_insert_rec_reactive, columns = accumulated_energy.columns)
-        
+        accumulated_energy = accumulated_energy[(accumulated_energy["DATO_ENERGIA"] != 0)]
         dataframes = [
             accumulated_energy, 
             df_values_to_insert_del_active, 
@@ -220,17 +221,21 @@ def fill_lost_registers(accumulated_energy, meter_data):
             df_values_to_insert_rec_reactive
         ]
 
-# Filter out empty or all-NaN DataFrames
+        # Filter out empty or all-NaN DataFrames
         non_empty_dfs = [df for df in dataframes if not df.empty and not df.isna().all(axis=None)]
 
-# Concatenate only the valid DataFrames
+        # Concatenate only the valid DataFrames
         if non_empty_dfs:  # If there are valid DataFrames to concatenate
             accumulated_energy = pd.concat(non_empty_dfs, ignore_index=True)
         else:
             accumulated_energy = pd.DataFrame()  # Create an empty DataFrame if all are empty
             
-    # print("Accumulated energy: ",accumulated_energy[(accumulated_energy["TIPO_ENERGIA"] == "KWH_REC")])
-
+        # print("Accumulated energy: ",accumulated_energy[(accumulated_energy["TIPO_ENERGIA"] == "KWH_REC")])
+    else:
+        #aqui debe ir el codigo que detecte cuando una valor de energia acumulada o recibida sea cero
+        #debe colocarlo como VI
+        pass
+    print("Data to insert after filling: ", accumulated_energy)
     return accumulated_energy
 
     
@@ -269,7 +274,7 @@ for meter_data in meters_data:
             start_date, 
             end_date
         )
-    # print("data extracted from sql server: ", meter_energy)
+    print("data extracted from sql server: ", meter_energy)
     
     energy_table.append(meter_energy)
     if not meter_energy.empty:

@@ -1,6 +1,7 @@
 # Node.js (Backend)
 Backend/node_modules/
 Backend/.env
+Backend/.env.production
 Backend/logs/
 Backend/*.log
 

@@ -13,11 +13,11 @@ const animatedText = keyframes`
 `;
 
 const StyledHeading = styled.h1`
-  text-align: center;
+  text-align: left;
   background: linear-gradient(
-    45deg,
-    var(--color-grey-500),
+    30deg,
     var(--color-grey-700),
+    var(--color-grey-800),
     var(--color-grey-900)
   );
   background-clip: text;

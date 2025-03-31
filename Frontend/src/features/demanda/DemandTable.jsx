@@ -1,34 +1,36 @@
-import React from "react";
+import React, { useEffect } from "react";
 import styled from "styled-components";
 import { useQuery } from "@tanstack/react-query";
 import Spinner from "../../ui/Spinner";
 import { getHourlyDemand, getNodesNames } from "../../services/getRequests";
 import DemandRow from "./DemandRow";
+import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 
 const TableContainer = styled.div`
   border: 1px solid var(--color-grey-200);
   font-size: 1.4rem;
   background-color: var(--color-grey-0);
   border-radius: 7px;
-  overflow: auto; // Enable scrolling
-  max-height: 80vh; // Set a maximum height
+  overflow: auto;
+  max-height: 80vh;
 `;
 
 const Table = styled.table`
   width: 100%;
-  border-collapse: collapse; // Ensure table borders are collapsed
+  border-collapse: collapse;
 `;
 
 const TableHeader = styled.thead`
   position: sticky;
-  top: 0; // Stick to the top
-  z-index: 2; // Ensure the header stays above the rows
+  top: 0;
+  z-index: 2;
   background-color: var(--color-grey-50);
 `;
 
 const HeaderRow = styled.tr`
   display: grid;
-  grid-template-columns: 130px 80px repeat(77, minmax(100px, 1fr)); // Match the row layout
+  grid-template-columns: 130px 80px repeat(77, minmax(100px, 1fr));
 `;
 
 const HeaderCell = styled.th`
@@ -41,33 +43,34 @@ const HeaderCell = styled.th`
   white-space: nowrap;
   border-bottom: 1px solid var(--color-grey-200);
 
-  // Make the first column sticky
   &:nth-child(1) {
     position: sticky;
     left: 0;
-    z-index: 3; // Ensure the header column stays above the rows
-    background-color: var(--color-grey-50); // Match the header background
+    z-index: 3;
+    background-color: var(--color-grey-50);
   }
 
-  // Make the second column sticky
   &:nth-child(2) {
     position: sticky;
-    left: 130px; // Offset by the width of the first column
-    z-index: 3; // Ensure the header column stays above the rows
-    background-color: var(--color-grey-50); // Match the header background
-    border-right: 1px solid var(--color-grey-100); // Add a border to separate sticky columns
+    left: 130px;
+    z-index: 3;
+    background-color: var(--color-grey-50);
+    border-right: 1px solid var(--color-grey-100);
   }
 `;
 
 const TableBody = styled.tbody`
-  display: block; // Allow scrolling within the table body
+  display: block;
 `;
 
-function DemandTable() {
+function DemandTable({ fecha, isDownloadReport }) {
+  console.log("fecha recibida: ", fecha);
+
   const { isLoading: isLoadingDemand, data: demand } = useQuery({
-    queryKey: ["demand"],
-    queryFn: () => getHourlyDemand(),
+    queryKey: ["demand", fecha],
+    queryFn: () => getHourlyDemand(fecha),
     keepPreviousData: true,
+    enabled: !!fecha,
   });
 
   const { isLoading: isLoadingNodes, data: nodes } = useQuery({
@@ -76,7 +79,82 @@ function DemandTable() {
     keepPreviousData: true,
   });
 
+  useEffect(() => {
+    if (isDownloadReport && demand && nodes) {
+      exportToExcel({ fecha, demand, nodes });
+    }
+  }, [isDownloadReport, demand, nodes, fecha]);
+
   if (isLoadingNodes || isLoadingDemand) return <Spinner />;
+
+  const exportToExcel = async ({ fecha, demand, nodes }) => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Demanda Activa Nodal");
+
+    // Header Row
+    const headerRow = ["FECHA", "HORA", ...nodes.map((node) => node[1])];
+    worksheet.addRow(headerRow);
+
+    // Data Rows
+    demand?.forEach((demand_hour) => {
+      const row = [
+        demand_hour[0],
+        demand_hour[1],
+        ...nodes.map((node, index) => demand_hour[index + 2] || 0),
+      ];
+      worksheet.addRow(row);
+    });
+
+    // Styling Header Row
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFF29100" },
+      };
+      cell.border = {
+        bottom: { style: "thick", color: { argb: "FF000000" } },
+      };
+      cell.alignment = { horizontal: "center" }; // Center headers
+    });
+
+    worksheet.getRow(1).font = { bold: true };
+
+    // Styling Data Rows (Left Justify)
+    for (let i = 2; i <= demand.length + 1; i++) {
+      // Start from row 2 (data rows)
+      worksheet.getRow(i).eachCell((cell) => {
+        cell.alignment = { horizontal: "left" }; // Left justify data
+      });
+    }
+
+    worksheet.columns.forEach((column) => {
+      column.width = 15;
+    });
+
+    // Date and time styling
+    worksheet.getColumn("A").numFmt = "dd-mmm-yyyy hh:mm";
+    worksheet.getColumn("B").alignment = { horizontal: "center" };
+
+    // Filename
+    const dateParts = fecha.split("-");
+    const day = dateParts[2].padStart(2, "0");
+    const month = dateParts[1].padStart(2, "0");
+    const year = dateParts[0];
+    const filename = `${day}_${month}_${year}_demanda.xlsx`;
+
+    // Download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
 
   return (
     <TableContainer>

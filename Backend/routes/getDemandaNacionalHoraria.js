@@ -5,6 +5,8 @@ const router = express.Router();
 router.get("/demanda_nacional", async (req, res) => {
   let connection;
   try {
+    const { fecha } = req.query;
+    console.log("Fecha en demanda backend: ", fecha);
     connection = await getConnection();
     const result = await connection.execute(
       `
@@ -15,7 +17,11 @@ router.get("/demanda_nacional", async (req, res) => {
                 ID_NODO,
                 POTENCIA
             FROM E##POSADAS.MCAM_DATOS_DEMANDA_HORARIA_BARRA
-            WHERE DAY_DATE = TRUNC(SYSDATE) - 2
+            WHERE DAY_DATE = ${
+              fecha
+                ? "TO_DATE(:fechaParam, 'YYYY-MM-DD')"
+                : "TRUNC(SYSDATE) - 1"
+            }
         )
                 SELECT 
                     N1.FECHA,
@@ -176,9 +182,10 @@ router.get("/demanda_nacional", async (req, res) => {
                 LEFT JOIN NODO_DATA N77 ON N1.FECHA = N77.FECHA AND N77.ID_NODO = 77
                 WHERE N1.ID_NODO = 1
                 ORDER BY N1.HORA
-        `
+        `,
+      fecha ? { fechaParam: fecha } : {}
     );
-    console.log("Demanda nacional: ", result.rows);
+    console.log("Demanda nacional: ", result.rows[0]);
     res.json(result.rows);
   } catch (error) {
     console.error("Database query error: ", error);

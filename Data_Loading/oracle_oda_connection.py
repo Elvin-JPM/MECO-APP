@@ -72,10 +72,10 @@ def insert_datos(data_to_insert):
             max_date = data_to_insert['FECHA'].max()
             meter_id = int(data_to_insert['ID_MEDIDOR'].iloc[0])  # Convert numpy.int64 to native int
             
-            # print(f"\nDate range check:")
-            # print(f"Min date: {min_date} (type: {type(min_date)})")
-            # print(f"Max date: {max_date} (type: {type(max_date)})")
-            # print(f"Meter ID: {meter_id} (type: {type(meter_id)})")
+            print(f"\nDate range check:")
+            print(f"Min date: {min_date} (type: {type(min_date)})")
+            print(f"Max date: {max_date} (type: {type(max_date)})")
+            print(f"Meter ID: {meter_id} (type: {type(meter_id)})")
             
             # Modified query to also fetch ORIGEN and DATO_ENERGIA columns
             existing_records_query = f"""
@@ -87,7 +87,7 @@ def insert_datos(data_to_insert):
             """
             
             existing_records = pd.read_sql(existing_records_query, connection)
-            # print(f"Found {len(existing_records)} existing records")
+            print(f"Found {len(existing_records)} existing records")
             
             # Create a dictionary to store existing records with their keys for efficient lookup
             existing_records_dict = {}
@@ -125,9 +125,9 @@ def insert_datos(data_to_insert):
             df_to_update = pd.DataFrame(records_to_update) if records_to_update else pd.DataFrame()
             df_to_update_p_r = pd.DataFrame(records_to_update_p_r) if records_to_update_p_r else pd.DataFrame()
             
-            # print(f"\nRecords to insert: {len(df_to_insert)}")
-            # print(f"Records to update (ORIGEN='VI'): {len(df_to_update)}")
-            # print(f"Records to update (ORIGEN='P' or 'R'): {len(df_to_update_p_r)}")
+            print(f"\nRecords to insert: {len(df_to_insert)}")
+            print(f"Records to update (ORIGEN='VI'): {len(df_to_update)}")
+            print(f"Records to update (ORIGEN='P' or 'R'): {len(df_to_update_p_r)}")
             
             # Insert new records
             if not df_to_insert.empty:

@@ -9,7 +9,7 @@ router.get("/nodes_names", async (req, res) => {
     const result = await connection.execute(
       `SELECT ID, NOMBRE_NODO FROM MCAM_NODOS_DEMANDA`
     );
-    console.log("Nodos de demanda: ", result.rows);
+    // console.log("Nodos de demanda: ", result.rows);
     res.json(result.rows);
   } catch (error) {
     console.error("Database query error: ", error);

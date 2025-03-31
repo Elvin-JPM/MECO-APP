@@ -6,7 +6,10 @@ const { initOracleDb } = require("./db");
 const { initSqlServer } = require("./sqlServerConnection");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT =
+  process.env.NODE_ENV === "development"
+    ? process.env.PORT_DEV
+    : process.env.PORT_PROD || 3002;
 
 // Middleware
 app.set("trust proxy", 1);

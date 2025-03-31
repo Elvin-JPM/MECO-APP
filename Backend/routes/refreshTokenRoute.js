@@ -51,8 +51,8 @@ router.post("/refresh-token", async (req, res) => {
   res.cookie("auth_token", newAccessToken, {
     path: "/",
     httpOnly: true,
-    secure: false,
-    sameSite: "Lax",
+    secure: process.env.NODE_ENV === "development",
+    sameSite: process.env.NODE_ENV === "development" ? "none" : "Lax",
     maxAge: 300000, // 5 minutes
   });
 

@@ -69,8 +69,8 @@ export async function getStatistics(data) {
   return response;
 }
 
-export async function getHourlyDemand() {
-  const response = await getData(`/demanda_nacional`);
+export async function getHourlyDemand(fecha) {
+  const response = await getData(`/demanda_nacional`, {}, {fecha: fecha});
   console.log("Data received at getHourlyDemand: ", response);
   return response;
 }
