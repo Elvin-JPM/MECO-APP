@@ -16,8 +16,8 @@ const StyledHeading = styled.h1`
   text-align: left;
   background: linear-gradient(
     30deg,
+    var(--color-grey-500),
     var(--color-grey-700),
-    var(--color-grey-800),
     var(--color-grey-900)
   );
   background-clip: text;
@@ -60,11 +60,7 @@ const StyledHeading = styled.h1`
 `;
 
 function Heading({ children }) {
-  return (
-    <div>
-      <StyledHeading>{children}</StyledHeading>
-    </div>
-  );
+  return <StyledHeading>{children}</StyledHeading>;
 }
 
 export default Heading;

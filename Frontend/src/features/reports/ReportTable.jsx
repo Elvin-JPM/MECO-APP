@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import TableSkeleton from "../../ui/TableSkeleton";
 import { useRef } from "react";
 import useAllMeasuresStyling from "./useXlsxStyling";
+import { formatDate } from "../../utils/dateFunctions";
 
 export const Table = styled.div`
   border: 1px solid var(--color-grey-200);
@@ -91,14 +92,34 @@ function ReportTable({
     reportData
   );
   const [showToast, setShowToast] = useState({ type: null, message: null });
+  const [rowsForReport, setRowsForReport] = useState([]);
 
+  useEffect(() => {
+    if (showToast.type && showToast.message) {
+      if (showToast.type === "success") {
+        toast.success(showToast.message, {
+          style: {
+            border: "1px solid #713200",
+            padding: "16px",
+            color: "#713200",
+          },
+          iconTheme: {
+            primary: "#713200",
+            secondary: "#FFFAEE",
+          },
+        });
+      } else if (showToast.type === "error") {
+        toast.error(showToast.message);
+      }
+      // Reset the toast state
+      setShowToast({ type: null, message: null });
+    }
+  }, [showToast]);
+
+  //---------------------------------- QUERIES ------------------------------------
+
+  // Este custom hook trae los datos del periodo seleccionado, sin paginacion
   const { allMeasuresMutation } = useAllMeasuresStyling(reportData, energyTags);
-  const totalPagesRef = useRef(null);
-  const pageNumberRef = useRef(1);
-
-  console.log(modifiedRows);
-
-  console.log("Report data at report table: ", reportData);
 
   // Extrae los datos de energia de la base de datos, con la paginacion adecuada
   const { isLoading: isLoadingMeasures, data: measures } = useQuery({
@@ -106,6 +127,19 @@ function ReportTable({
     queryFn: () => getMeasures(reportData, pageNumber),
     keepPreviousData: true,
   });
+
+  const { isLoading: isLoadingAllMeasures, data: allMeasures } = useQuery({
+    queryKey: ["measures", reportData],
+    queryFn: () => getMeasures(reportData, -1),
+    keepPreviousData: true,
+  });
+
+  const totalPagesRef = useRef(null);
+  const pageNumberRef = useRef(1);
+
+  console.log(modifiedRows);
+
+  console.log("Report data at report table: ", reportData);
 
   console.log("Measures: ", measures?.data);
 
@@ -128,7 +162,129 @@ function ReportTable({
     );
   };
 
+  function getMinMaxDatesWithOffset(objects) {
+    if (!objects || objects.length === 0) {
+      return { minDate: null, maxDate: null };
+    }
+
+    let minDate = new Date(8640000000000000);
+    let maxDate = new Date(-8640000000000000);
+
+    for (const obj of objects) {
+      if (typeof obj.fecha === "string") {
+        const parts = obj.fecha.split(/[- :]/);
+        if (parts.length >= 3) {
+          const year = parts[2];
+          const month = parts[1];
+          const day = parts[0];
+          const time = parts.slice(3).join(":");
+          const isoDateString = `${year}-${month}-${day}T${time}`;
+          const parsedDate = new Date(isoDateString);
+
+          if (!isNaN(parsedDate)) {
+            minDate = parsedDate < minDate ? parsedDate : minDate;
+            maxDate = parsedDate > maxDate ? parsedDate : maxDate;
+          } else {
+            console.error("Invalid date after conversion:", obj.fecha);
+          }
+        } else {
+          console.error("Invalid date format:", obj.fecha);
+        }
+      } else if (obj.fecha instanceof Date) {
+        minDate = obj.fecha < minDate ? obj.fecha : minDate;
+        maxDate = obj.fecha > maxDate ? obj.fecha : maxDate;
+      } else {
+        console.error("Invalid fecha type", obj.fecha);
+      }
+    }
+
+    // Apply 15-minute offset.
+    if (minDate && maxDate) {
+      const minDateWithOffset = new Date(minDate.getTime() - 15 * 60 * 1000); // Subtract 15 minutes.
+      const maxDateWithOffset = new Date(maxDate.getTime() + 15 * 60 * 1000); // Add 15 minutes.
+
+      return { minDate: minDateWithOffset, maxDate: maxDateWithOffset };
+    }
+
+    return { minDate: null, maxDate: null }; // Return null if minDate or maxDate is null.
+  }
+
+  const transformStringToDate = (stringDate) => {
+    if (typeof stringDate === "string") {
+      const parts = stringDate.split(/[- :]/);
+      if (parts.length >= 3) {
+        const year = parts[2];
+        const month = parts[1];
+        const day = parts[0];
+        const time = parts.slice(3).join(":");
+        const isoDateString = `${year}-${month}-${day}T${time}`;
+        const parsedDate = new Date(isoDateString);
+        return parsedDate;
+      } else {
+        console.error("Invalid date format:", stringDate);
+        return null;
+      }
+    }
+  };
+
   const handleShowModal = () => {
+    console.log("xxxxxxxxxxxxx: ", rowsToEdit);
+    const { minDate, maxDate } = getMinMaxDatesWithOffset(rowsToEdit);
+    console.log("Fechas minimas y maximas: ", minDate, " and ", maxDate);
+    console.log("All meter measures: ", allMeasures?.data);
+    const newRows = allMeasures?.data.map((measure) => {
+      measure.fecha = new Date(measure.fecha);
+      return measure;
+    });
+    console.log(newRows);
+    const filteredRows = newRows?.filter((row) => {
+      return row.fecha >= minDate && row.fecha <= maxDate;
+    });
+    console.log("Filtered rows: ", filteredRows);
+
+    const notEditedRows = filteredRows.filter((row) => {
+      for (const editedRow of rowsToEdit) {
+        if (
+          transformStringToDate(editedRow.fecha).getTime() ===
+          row.fecha.getTime()
+        ) {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    const notEditedRowsFormatted = notEditedRows.map((row) => {
+      row.fecha = formatDate(row.fecha);
+      row.energia_del_mp_new = row.energia_del_mp;
+      row.energia_del_mr_new = row.energia_del_mr;
+      row.energia_rec_mp_new = row.energia_rec_mp;
+      row.energia_rec_mr_new = row.energia_rec_mr;
+      row.filaValidadaCompleta = false;
+      row.idPrincipal = reportData.medidorPrincipal;
+      row.idRespaldo = reportData.medidorRespaldo;
+      row.key = null;
+      row.tipoMedicion = reportData.tipoMedida;
+      const {
+        rv_del_mp,
+        rv_del_mr,
+        rv_rec_mp,
+        rv_rec_mr,
+        or_del_mp,
+        or_del_mr,
+        or_rec_mp,
+        or_rec_mr,
+        ...newRow
+      } = row;
+
+      return newRow;
+    });
+
+    console.log("Filas no editadas formateadas: ", notEditedRowsFormatted);
+
+    console.log("Filas que no han sido editadas: ", notEditedRows);
+    console.log(reportData);
+    setRowsForReport([...rowsToEdit, ...notEditedRowsFormatted]);
     setShowModal((show) => !show);
   };
 
@@ -168,16 +324,22 @@ function ReportTable({
   };
 
   const handleRowChange = useCallback((newRow) => {
+    // Se hara todo el procedimiento que esta dentro de la funcion para realiza asignarle el valor a la variable RowsToEdit
     setRowsToEdit((prevRows) => {
+      // Si la clave (key) del elemento "newRow" existe en el arreglo "prevRows" entonces existingRowIndex almacenara el indice
+      // en el cual esta almacenado. Si la clave del elemento no existe, entonce findIndex retorna -1
       const existingRowIndex = prevRows.findIndex(
         (row) => row.key === newRow.key
       );
 
       let updatedRows;
+      // En caso de que el elemento exista...
       if (existingRowIndex !== -1) {
+        // Se compara si el elemento existente es diferente al valor de newRow
         const isDifferent =
           JSON.stringify(prevRows[existingRowIndex]) !== JSON.stringify(newRow);
-
+        // Si son diferentes entonces se actualiza el elemento existente con los valores de newRow
+        // Sino, se deja como estaba
         if (isDifferent) {
           updatedRows = [...prevRows];
           updatedRows[existingRowIndex] = newRow;
@@ -185,6 +347,7 @@ function ReportTable({
           updatedRows = prevRows;
         }
       } else {
+        // En el caso de que el elemento no exista en "prevRows" entonces se adjunta
         updatedRows = [...prevRows, newRow];
       }
 
@@ -194,28 +357,7 @@ function ReportTable({
     });
   }, []);
 
-  useEffect(() => {
-    if (showToast.type && showToast.message) {
-      if (showToast.type === "success") {
-        toast.success(showToast.message, {
-          style: {
-            border: "1px solid #713200",
-            padding: "16px",
-            color: "#713200",
-          },
-          iconTheme: {
-            primary: "#713200",
-            secondary: "#FFFAEE",
-          },
-        });
-      } else if (showToast.type === "error") {
-        toast.error(showToast.message);
-      }
-      // Reset the toast state
-      setShowToast({ type: null, message: null });
-    }
-  }, [showToast]);
-
+  // Esta funcion borra una fila de las filas a modificar, no borra filas del reporte o de la base de datos
   const handleDeleteRow = (rowKey) => {
     console.log("handleDeleteRow called for rowKey:", rowKey);
     setRowsToEdit((prevRows) => {
@@ -262,11 +404,11 @@ function ReportTable({
             <Button
               onClick={() => {
                 //onUpdateMeasures();
-                setShowModal(true);
+                handleShowModal();
               }}
               tooltip="Guardar cambios"
             >
-              GUARDAR CAMBIOS
+              IR A FORMULARIO DE VALIDACION
             </Button>
           ) : null}
           <PaginationWrapper
@@ -332,7 +474,7 @@ function ReportTable({
           <SubstitutionForm
             idPuntoMedicion={reportData?.puntoMedicion}
             onUpdateMeasures={onUpdateMeasures}
-            rowsToEdit={rowsToEdit}
+            rowsToEdit={rowsForReport}
             handleShowModal={handleShowModal}
           ></SubstitutionForm>
         </Modal>

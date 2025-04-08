@@ -218,13 +218,91 @@ function CreatePdfReport({ formData, rowsToEdit, getPdfFile }) {
             // Add more column styles as needed
           },
           didParseCell: (cellData) => {
-            const { row, column, cell, section } = cellData;
+            const { row, column, cell, section, table } = cellData;
 
-            // Apply styles only to the body section (exclude header)
             if (section === "body") {
-              const redTextColumns = [1, 2, 3, 4]; // 0-based column indices for red text
-              if (redTextColumns.includes(column.index)) {
-                cell.styles.textColor = [255, 0, 0]; // Set text color to red
+              console.log("table.body:", table.body);
+              console.log("row.index:", row.index);
+              console.log("Row2 object:", table.body[row.index]);
+
+              if (
+                table.body &&
+                table.body[row.index] &&
+                table.body[row.index].cells &&
+                table.body[row.index].cells[0] &&
+                table.body[row.index].cells[0].text
+              ) {
+                const currentRowFechaString =
+                  table.body[row.index].cells[0].text[0];
+                console.log("currentRowFechaString:", currentRowFechaString);
+
+                const editedRow = rowsToEdit.find((editedRow) => {
+                  if (editedRow.fecha.length !== currentRowFechaString.length) {
+                    return false;
+                  }
+                  for (let i = 0; i < editedRow.fecha.length; i++) {
+                    if (editedRow.fecha[i] !== currentRowFechaString[i]) {
+                      return false;
+                    }
+                  }
+                  return true;
+                });
+
+                console.log("editedRow:", editedRow);
+
+                const redTextColumns = [1, 2, 3, 4];
+                if (redTextColumns.includes(column.index)) {
+                  if (editedRow) {
+                    let originalValue, newValue;
+
+                    switch (column.index) {
+                      case 1:
+                        originalValue = parseFloat(
+                          String(editedRow.energia_del_mp).replace(/,/g, "")
+                        );
+                        newValue = parseFloat(
+                          String(editedRow.energia_del_mp_new).replace(/,/g, "")
+                        );
+                        break;
+                      case 2:
+                        originalValue = parseFloat(
+                          String(editedRow.energia_rec_mp).replace(/,/g, "")
+                        );
+                        newValue = parseFloat(
+                          String(editedRow.energia_rec_mp_new).replace(/,/g, "")
+                        );
+                        break;
+                      case 3:
+                        originalValue = parseFloat(
+                          String(editedRow.energia_del_mr).replace(/,/g, "")
+                        );
+                        newValue = parseFloat(
+                          String(editedRow.energia_del_mr_new).replace(/,/g, "")
+                        );
+                        break;
+                      case 4:
+                        originalValue = parseFloat(
+                          String(editedRow.energia_rec_mr).replace(/,/g, "")
+                        );
+                        newValue = parseFloat(
+                          String(editedRow.energia_rec_mr_new).replace(/,/g, "")
+                        );
+                        break;
+                      default:
+                        break;
+                    }
+
+                    if (originalValue !== newValue) {
+                      cell.styles.textColor = [255, 0, 0]; // Red text if values are different
+                    } else {
+                      cell.styles.textColor = [60, 60, 60]; // Black text if values are the same
+                    }
+                  } else {
+                    cell.styles.textColor = [60, 60, 60]; // Black text if no editedRow found
+                  }
+                }
+              } else {
+                console.log("Skipping row due to undefined data.");
               }
             }
           },

@@ -9,8 +9,10 @@ services:
       - ./Data_Loading/.env
     environment:
       - IS_DOCKER=true
+      - NODE_ENV=production
     ports:
       - "3000:3000"
+      # - "3004:3004"
     volumes:
       - "./Data_Loading:/app/Data_Loading"
     networks:

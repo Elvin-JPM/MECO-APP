@@ -87,13 +87,12 @@ export async function postData(endpoint, requestBody = {}, headers = {}) {
 
 export async function getData(endpoint, requestHeaders = {}, queryParams = {}) {
   try {
-    console.log("Data received at getData: ", requestHeaders);
+
     const response = await axios.get(BASE_URL + endpoint, {
       headers: requestHeaders,
       params: queryParams,
       withCredentials: true,
     });
-    console.log("response at getData: ", response);
     return response.data;
   } catch (error) {
     console.error("Error getting data:", error);

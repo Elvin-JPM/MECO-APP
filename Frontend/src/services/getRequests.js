@@ -70,7 +70,7 @@ export async function getStatistics(data) {
 }
 
 export async function getHourlyDemand(fecha) {
-  const response = await getData(`/demanda_nacional`, {}, {fecha: fecha});
+  const response = await getData(`/demanda_nacional`, {}, { fecha: fecha });
   console.log("Data received at getHourlyDemand: ", response);
   return response;
 }
@@ -81,3 +81,18 @@ export async function getNodesNames() {
   return response;
 }
 
+export async function getMetersInfo() {
+  const response = await getData(`/meters_info`);
+  console.log("Data received at getMetersInfo ", response);
+  return response;
+}
+
+export async function getMeterCommStatusPing(ipAddress) {
+  try {
+    const response = await getData(`/ping/${ipAddress}`);
+    return response;
+  } catch (error) {
+    console.error("Error in getMeterCommStatusPing:", error);
+    return { success: false, message: error.message || "Ping failed" };
+  }
+}

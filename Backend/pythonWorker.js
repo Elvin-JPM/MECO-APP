@@ -39,7 +39,11 @@ function runPythonScript(days) {
 }
 
 // Schedule jobs
-cron.schedule("2,17,32,47 * * * *", () => runPythonScript(1)); // Runs every 15 min
-cron.schedule("10 1 * * *", () => runPythonScript(7)); // Runs at 1:10 AM daily
-
+if (process.env.NODE_ENV === "production") {
+  cron.schedule("2,17,32,47 * * * *", () => runPythonScript(1)); // Runs every 15 min
+  cron.schedule("10 1 * * *", () => runPythonScript(7)); // Runs at 1:10 AM daily
+} else {
+  cron.schedule("8,23,39,54 * * * *", () => runPythonScript(1)); // Runs every 15 for testing
+  cron.schedule("40 1 * * *", () => runPythonScript(7)); // Runs once a day for testing
+}
 console.log("Python worker started. Waiting for scheduled tasks...");
