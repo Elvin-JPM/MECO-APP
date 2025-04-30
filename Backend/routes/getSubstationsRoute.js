@@ -7,8 +7,8 @@ router.get("/substations", async (req, res) => {
   try {
     connection = await getConnection();
     const result = await connection.execute(
-      "SELECT ID_SUBESTACION, SUBESTACION FROM ODS_DEV.BTR_SUBESTACIONES \
-       ORDER BY SUBESTACION"
+      `SELECT ID_SUBESTACION, SUBESTACION, NOMENCLATURA, LATITUD, LONGITUD FROM ODS_DEV.BTR_SUBESTACIONES
+       ORDER BY SUBESTACION`
     );
     res.json(result.rows);
   } catch (error) {

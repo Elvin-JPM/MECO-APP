@@ -1,11 +1,9 @@
 import pandas as pd
 from datetime import date,datetime, timedelta
-import pyodbc
-import cryptography
-from cryptography.hazmat.primitives.kdf import pbkdf2
+import sys
 from sql_server_connection import get_energy_data
 from oracle_oda_connection import insert_datos, get_meters_data
-import sys
+
 
 # Lee el argumento que viene desde /Backend/app.js
 if len(sys.argv) > 1:

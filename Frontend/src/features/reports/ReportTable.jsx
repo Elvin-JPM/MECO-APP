@@ -430,6 +430,7 @@ function ReportTable({
                 onClick={exportToExcel}
                 tooltip="Descargar perfil"
                 size="medium"
+                variation="primary"
               >
                 <FaDownload />
               </Button>

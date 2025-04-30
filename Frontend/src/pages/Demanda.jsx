@@ -80,7 +80,12 @@ function Demanda() {
             onChange={handleDateChange}
           />
         </div>
-        <Button onClick={handleDownloadClick} tooltip="Descargar" size="medium">
+        <Button
+          onClick={handleDownloadClick}
+          tooltip="Descargar"
+          size="medium"
+          variation="primary"
+        >
           <FaDownload />
         </Button>
       </StyledBar>

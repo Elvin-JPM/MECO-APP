@@ -2,11 +2,15 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
-const { initOracleDb } = require("./db");
+const { initOracleDb, cleanup } = require("./db");
 const { initSqlServer } = require("./sqlServerConnection");
 const http = require("http");
 const socketIo = require("socket.io");
 const { pingDevice } = require("./utils/pingUtils"); // Import from utilities
+
+if (process.env.NODE_ENV === "development") {
+  require("./pythonWorker.js");
+}
 
 const app = express();
 const PORT =
@@ -20,22 +24,16 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 const io = socketIo(server, {
   cors: {
-    // origin:
-    //   process.env.NODE_ENV === "production"
-    //     ? process.env.FRONTEND_URL_PROD
-    //     : process.env.FRONTEND_URL_DEV,
-    origin:
-      process.env.NODE_ENV === "production"
-        ? "http://10.10.5.40" // Explicitly allow frontend
-        : "*", // Allow all in dev
-
+    origin: process.env.NODE_ENV === "production" ? "http://10.10.5.40" : "*",
     methods: ["GET", "POST"],
     credentials: true,
   },
   path: "/socket.io",
-  transports: ["websocket"], // Force WebSocket
+  transports: ["websocket", "polling"],
   pingTimeout: 60000,
   pingInterval: 25000,
+  cookie: false,
+  serveClient: false,
 });
 
 // Middleware
@@ -95,6 +93,7 @@ const routes = [
   "logoutRoute",
   "meRoute",
   "refreshTokenRoute",
+  "getMeasurementPoints",
 ];
 
 routes.forEach((routeName) => {
@@ -109,26 +108,44 @@ routes.forEach((routeName) => {
 
 // WebSocket Connection Handler
 io.on("connection", (socket) => {
-  console.log("New WebSocket connection:", socket.id);
+  // console.log(
+  //   `New connection: ${socket.id} from ${socket.handshake.headers.origin}`
+  // );
+
+  socket.on("error", (err) => {
+    console.error(`Socket error (${socket.id}):`, err);
+  });
 
   socket.on("startPinging", async (ipAddresses) => {
     console.log("Starting ping for IPs:", ipAddresses);
+
+    // Clear previous interval if exists
+    if (socket.pingIntervalId) {
+      clearInterval(socket.pingIntervalId);
+    }
 
     const pingAndSendUpdates = async (ips) => {
       for (const ip of ips) {
         try {
           const result = await pingDevice(ip);
-          socket.emit("pingUpdate", {
-            ip,
-            success: result.success,
-            message: result.message,
-          });
+          // Ensure we're still connected before sending update
+          if (socket.connected) {
+            socket.emit("pingUpdate", {
+              ip,
+              success: result.success,
+              message: result.message,
+              timestamp: new Date().toISOString(),
+            });
+          }
         } catch (error) {
-          socket.emit("pingUpdate", {
-            ip,
-            success: false,
-            message: `Error pinging ${ip}: ${error.message}`,
-          });
+          if (socket.connected) {
+            socket.emit("pingUpdate", {
+              ip,
+              success: false,
+              message: `Error pinging ${ip}: ${error.message}`,
+              timestamp: new Date().toISOString(),
+            });
+          }
         }
       }
     };
@@ -136,16 +153,30 @@ io.on("connection", (socket) => {
     // Initial ping
     await pingAndSendUpdates(ipAddresses);
 
-    // Set up periodic pinging
-    const intervalId = setInterval(() => {
-      pingAndSendUpdates(ipAddresses);
-    }, 60000);
+    // Set up periodic pinging with shorter interval
+    socket.pingIntervalId = setInterval(() => {
+      if (socket.connected) {
+        pingAndSendUpdates(ipAddresses);
+      } else {
+        clearInterval(socket.pingIntervalId);
+      }
+    }, 60000); // Ping every 60 seconds
 
     // Clean up on disconnect
-    socket.on("disconnect", () => {
-      clearInterval(intervalId);
-      console.log("WebSocket disconnected:", socket.id);
+    socket.once("disconnect", () => {
+      if (socket.pingIntervalId) {
+        clearInterval(socket.pingIntervalId);
+      }
+      console.log(`WebSocket disconnected: ${socket.id}`);
     });
+  });
+
+  // Handle client disconnection
+  socket.on("disconnect", (reason) => {
+    console.log(`Client ${socket.id} disconnected: ${reason}`);
+    if (socket.pingIntervalId) {
+      clearInterval(socket.pingIntervalId);
+    }
   });
 });
 

@@ -1,6 +1,7 @@
 import styled, { keyframes } from "styled-components";
 import { io } from "socket.io-client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import PropTypes from "prop-types";
 
 // Pulsing animation
 const pulse = keyframes`
@@ -90,45 +91,37 @@ const sortGroupByIP = (group) => {
   });
 };
 
-function ComCard({ group, children, ...props }) {
+function ComCard({ group, ...props }) {
   const sortedGroup = sortGroupByIP(group);
   const [pingStatuses, setPingStatuses] = useState({});
   const [socket, setSocket] = useState(null);
   const [loadingStatuses, setLoadingStatuses] = useState({});
-  // const SOCKET_URL = import.meta.env.VITE_APP_SOCKET_IO_URL || "";
-  // const SOCKET_PORT = import.meta.env.VITE_APP_SOCKET_IO_PORT || "";
-
-  // useEffect(() => {
-  //   const newSocket = io(`${SOCKET_URL}:${SOCKET_PORT}`);
-  //   setSocket(newSocket);
-
-  //   return () => {
-  //     newSocket.disconnect();
-  //   };
-  // }, []);
+  const lastIpsRef = useRef([]);
 
   useEffect(() => {
     const socketOptions = {
       path: "/socket.io",
-      transports: ["websocket"],
+      transports: ["websocket", "polling"],
       withCredentials: true,
       reconnection: true,
-      autoConnect: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: Infinity,
       reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      randomizationFactor: 0.5,
+      autoConnect: true,
       forceNew: true,
       pingTimeout: 60000,
+      pingInterval: 25000,
     };
 
-    // Debug connection URL
     const socketUrl =
       import.meta.env.VITE_APP_ENV === "production"
         ? window.location.origin
         : `${import.meta.env.VITE_APP_SOCKET_IO_URL}:${
             import.meta.env.VITE_APP_SOCKET_IO_PORT
           }`;
-    console.log("Connecting to WebSocket at:", socketUrl);
 
+    console.log("Connecting to WebSocket at:", socketUrl);
     const newSocket = io(socketUrl, socketOptions);
 
     // Debugging events
@@ -149,30 +142,54 @@ function ComCard({ group, children, ...props }) {
     return () => {
       newSocket.off("connect");
       newSocket.off("connect_error");
+      newSocket.off("disconnect");
       newSocket.disconnect();
     };
   }, []);
 
-  // useEffect(() => {
-  //   const newSocket = io(SOCKET_URL);
-  //   setSocket(newSocket);
-
-  //   return () => {
-  //     newSocket.disconnect();
-  //   };
-  // }, []);
-
   useEffect(() => {
     if (socket && sortedGroup.length > 0) {
       const ips = sortedGroup.map((meter) => meter.ip);
-      setLoadingStatuses(ips.reduce((acc, ip) => ({ ...acc, [ip]: true }), {})); // Initialize loading to true for all IPs
 
-      socket.emit("startPinging", ips);
+      // Initialize loading states
+      const initialLoadingStates = ips.reduce(
+        (acc, ip) => ({ ...acc, [ip]: true }),
+        {}
+      );
+      setLoadingStatuses(initialLoadingStates);
 
-      socket.on("pingUpdate", (data) => {
-        setPingStatuses((prev) => ({ ...prev, [data.ip]: data }));
-        setLoadingStatuses((prev) => ({ ...prev, [data.ip]: false })); // Set loading to false when data arrives
-      });
+      // Only emit if IPs changed
+      if (JSON.stringify(ips) !== JSON.stringify(lastIpsRef.current)) {
+        console.log("Starting ping for IPs:", ips);
+        socket.emit("startPinging", ips);
+        lastIpsRef.current = ips;
+      }
+
+      const pingUpdateHandler = (data) => {
+        console.log(
+          "Received ping update for IP:",
+          data.ip,
+          "Success:",
+          data.success
+        );
+        setPingStatuses((prev) => ({
+          ...prev,
+          [data.ip]: {
+            ...data,
+            lastUpdate: new Date().toISOString(),
+          },
+        }));
+        setLoadingStatuses((prev) => ({
+          ...prev,
+          [data.ip]: false,
+        }));
+      };
+
+      socket.on("pingUpdate", pingUpdateHandler);
+
+      return () => {
+        socket.off("pingUpdate", pingUpdateHandler);
+      };
     }
   }, [socket, sortedGroup]);
 
@@ -184,28 +201,39 @@ function ComCard({ group, children, ...props }) {
     <StyledComCard {...props}>
       <CardTitle>{sortedGroup[0].description}</CardTitle>
       <MeterComIndicators>
-        {sortedGroup.map((meter) => (
-          <IndicatorContainer key={meter.id}>
-            <Indicator
-              className={loadingStatuses[meter.ip] ? "pulsing" : ""}
-              style={{
-                backgroundColor: loadingStatuses[meter.ip]
-                  ? "grey"
-                  : pingStatuses[meter.ip]?.success
-                  ? "var(--color-brand-500)"
-                  : "var(--color-red-400)",
-                transition: "background-color 2s ease",
-              }}
-            >
-              {meter.tipo === "PRINCIPAL" ? "P" : "R"}
-            </Indicator>
-            <IpText>{meter.ip}</IpText>
-          </IndicatorContainer>
-        ))}
+        {sortedGroup.map((meter) => {
+          const isPinging = loadingStatuses[meter.ip];
+          const pingStatus = pingStatuses[meter.ip];
+          const isSuccess = pingStatus?.success;
+
+          return (
+            <IndicatorContainer key={meter.id}>
+              <Indicator
+                className={isPinging ? "pulsing" : ""}
+                style={{
+                  backgroundColor: isPinging
+                    ? "grey"
+                    : isSuccess
+                    ? "var(--color-brand-500)"
+                    : "var(--color-red-400)",
+                  transition: "background-color 0.5s ease",
+                }}
+              >
+                {meter.tipo === "PRINCIPAL" ? "P" : "R"}
+              </Indicator>
+              <IpText>{meter.ip}</IpText>
+            </IndicatorContainer>
+          );
+        })}
       </MeterComIndicators>
     </StyledComCard>
   );
 }
+
+ComCard.propTypes = {
+  group: PropTypes.array.isRequired,
+  children: PropTypes.node,
+};
 
 export default ComCard;
 ComCard.displayName = "ComCard";

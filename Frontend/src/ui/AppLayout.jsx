@@ -12,7 +12,7 @@ import { useState } from "react";
 import Menu from "./Menu";
 
 const Main = styled.main`
-  padding: 3rem 3.2rem 6.1rem;
+  padding: 1.5rem 2.2rem 1rem 2.2rem;
   overflow: auto;
   position: relative;
   &::-webkit-scrollbar {

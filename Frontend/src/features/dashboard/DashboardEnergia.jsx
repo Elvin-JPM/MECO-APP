@@ -18,7 +18,6 @@ const StyledRegisters = styled.div`
   }
 `;
 
-
 function DashboardEnergia({ powerMP, powerMR }) {
   const formatter = new Intl.NumberFormat("en-US");
   return (

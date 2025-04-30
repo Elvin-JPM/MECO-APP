@@ -110,5 +110,3 @@ def get_energy_data(meter, start_date, end_date=None):
 
     # Execute query
     return pd.read_sql(sql, con=engine.connect(), params=params)
-
-

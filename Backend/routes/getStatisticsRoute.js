@@ -242,6 +242,15 @@ router.get("/statistics", async (req, res) => {
       })
     );
 
+    console.log("Query executed successfully", "Data: ", countMP, countMR);
+    console.log(
+      "Query executed successfully",
+      "Data: ",
+      totPowerMP,
+      totPowerMR
+    );
+    console.log("Query executed successfully", "Data: ", profMP, profMR);
+
     res.json({
       data: { countMP, countMR, totPowerMP, totPowerMR, profMP, profMR },
     });

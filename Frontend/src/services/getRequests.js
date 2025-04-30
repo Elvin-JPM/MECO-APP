@@ -96,3 +96,13 @@ export async function getMeterCommStatusPing(ipAddress) {
     return { success: false, message: error.message || "Ping failed" };
   }
 }
+
+export async function getMeasurementPoints() {
+  const response = await getData("/measurementPoints");
+  return response;
+}
+
+export async function getSubstations() {
+  const response = await getData("/substations");
+  return response;
+}

@@ -40,6 +40,8 @@ function PaginationWrapper({
         onClick={() => handlePageChange(pageNumber - 1)}
         disabled={pageNumber <= 1}
         tooltip="Anterior"
+        size="medium"
+        variation="primary"
       >
         <GrFormPrevious />
       </Button>
@@ -59,6 +61,8 @@ function PaginationWrapper({
         onClick={() => handlePageChange(pageNumber + 1)}
         disabled={pageNumber >= totalPages}
         tooltip="Siguiente"
+        size="medium"
+        variation="primary"
       >
         <MdOutlineNavigateNext />
       </Button>

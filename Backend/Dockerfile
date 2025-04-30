@@ -26,9 +26,13 @@ RUN apt-get update && apt-get install -y \
     curl \
     gnupg \
     libaio1 \
-    # Ensure unzip is installed
-    unzip \  
+    iputils-ping \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
+
+# Set capabilities for ping
+#RUN setcap cap_net_raw+ep /bin/ping
+RUN chmod +s /bin/ping
 
 # Install SQL Server ODBC Driver
 RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
@@ -43,15 +47,11 @@ COPY ./oracle-client /opt/oracle-client
 
 # Install Oracle Instant Client (Basic Light Package)
 RUN cd /opt/oracle-client \
-    # Use -o to overwrite files
-    && unzip -o instantclient-basiclite-linux.x64-21.17.0.0.0dbru.zip \  
-    # Use -o to overwrite files
-    && unzip -o instantclient-odbc-linux.x64-21.17.0.0.0dbru.zip \       
+    && unzip -o instantclient-basiclite-linux.x64-21.17.0.0.0dbru.zip \
+    && unzip -o instantclient-odbc-linux.x64-21.17.0.0.0dbru.zip \
     && rm -f *.zip \
-    # Remove existing symlink
-    && rm -f /opt/oracle-client/instantclient_21_17/libclntsh.so \      
-    # Remove existing symlink
-    && rm -f /opt/oracle-client/instantclient_21_17/libocci.so \         
+    && rm -f /opt/oracle-client/instantclient_21_17/libclntsh.so \
+    && rm -f /opt/oracle-client/instantclient_21_17/libocci.so \
     && ln -s /opt/oracle-client/instantclient_21_17/libclntsh.so.21.1 /opt/oracle-client/instantclient_21_17/libclntsh.so \
     && ln -s /opt/oracle-client/instantclient_21_17/libocci.so.21.1 /opt/oracle-client/instantclient_21_17/libocci.so \
     && echo "/opt/oracle-client/instantclient_21_17" > /etc/ld.so.conf.d/oracle-instantclient.conf \
@@ -87,9 +87,12 @@ COPY ./Data_Loading /app/Data_Loading
 COPY ./Data_Loading/requirements.txt /app/Data_Loading/requirements.txt
 RUN pip3 install --no-cache-dir -r /app/Data_Loading/requirements.txt
 
-# Secure .env handling
+# Secure .env handling and set permissions
 RUN chmod 600 /app/Data_Loading/.env && \
-    chown node:node /app/Data_Loading/.env
+    chown -R node:node /app
+
+# Switch to non-root user
+USER node
 
 # Expose ports
 EXPOSE 3000

@@ -12,7 +12,7 @@ const StyledHeader = styled.header`
   opacity: 0.95;
   backdrop-filter: blur(10px);
   padding: 1.2rem 4.8rem;
-  margin: 1rem 1rem 0;
+  margin: 1rem 1rem 0rem 1rem;
   border-bottom: 1px solid var(--color-grey-600);
   border-radius: 10px;
   box-shadow: 1px 1px 10px 1px var(--color-grey-500);

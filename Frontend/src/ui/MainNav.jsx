@@ -12,6 +12,7 @@ import { SlGraph } from "react-icons/sl";
 import { FaRegFolderOpen } from "react-icons/fa";
 import Tooltip from "./Tooltip";
 import IconContainer from "./IconContainer";
+import { MdOutlineDashboard } from "react-icons/md";
 
 const NavList = styled.ul`
   display: flex;
@@ -139,9 +140,9 @@ function MainNav() {
   const navItems = [
     {
       to: "/dashboard",
-      icon: HiOutlineHome,
-      text: "Inicio",
-      tooltip: "Inicio",
+      icon: MdOutlineDashboard,
+      text: "Dashboard",
+      tooltip: "Dashboard",
     },
     {
       to: "/meters",
@@ -155,7 +156,7 @@ function MainNav() {
       text: "Informes",
       tooltip: "Informes",
     },
-    { to: "/acts", icon: FaRegFolderOpen, text: "Actas", tooltip: "Actas" },
+    { to: "/actas", icon: FaRegFolderOpen, text: "Actas", tooltip: "Actas" },
     {
       to: "/communications",
       icon: HiSignal,
@@ -169,7 +170,7 @@ function MainNav() {
       tooltip: "Demanda",
     },
     {
-      to: "/Locations",
+      to: "/locations",
       icon: SlLocationPin,
       text: "Ubicaciones",
       tooltip: "Ubicaciones",

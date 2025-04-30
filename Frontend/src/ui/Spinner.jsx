@@ -3,9 +3,38 @@ import styled, { keyframes } from "styled-components";
 const rotate = keyframes`
   0% {
     transform: rotate(0deg);
+    border-top-color: var(--color-institucional-rojo);
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+    border-left-color: transparent;
+  }
+  25% {
+    transform: rotate(90deg);
+    border-top-color: var(--color-institucional-rojo);
+    border-right-color: var(--color-institucional-rojo);
+    border-bottom-color: transparent;
+    border-left-color: transparent;
+  }
+  50% {
+    transform: rotate(180deg);
+    border-top-color: var(--color-institucional-rojo);
+    border-right-color: var(--color-institucional-rojo);
+    border-bottom-color: var(--color-institucional-rojo);
+    border-left-color: transparent;
+  }
+  75% {
+    transform: rotate(270deg);
+    border-top-color: var(--color-institucional-rojo);
+    border-right-color: var(--color-institucional-rojo);
+    border-bottom-color: var(--color-institucional-rojo);
+    border-left-color: var(--color-institucional-rojo);
   }
   100% {
     transform: rotate(360deg);
+    border-top-color: var(--color-institucional-amarillo);
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+    border-left-color: transparent;
   }
 `;
 
@@ -17,20 +46,20 @@ const OuterCircle = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-
-  /* Border with dual colors */
-  /*   border: 0.4rem solid #FF9D3D; */
-  border-top: 0.3rem solid orangered;
-  border-right: 0.2rem solid orangered;
-
-  /* Rotate the border */
-  animation: ${rotate} 1s linear infinite;
+  position: relative;
+  border: 0.6rem solid transparent;
+  animation: ${rotate} 2s linear infinite;
 `;
+
 const InnerCircle = styled.div`
-  width: 4rem;
-  height: 4rem;
-  background-color: #eb8317;
+  width: 3.8rem;
+  height: 3.8rem;
+  background-color: transparent;
   border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 `;
 
 const Spinner = () => {
@@ -40,4 +69,5 @@ const Spinner = () => {
     </OuterCircle>
   );
 };
+
 export default Spinner;

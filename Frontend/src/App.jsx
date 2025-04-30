@@ -1,7 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { Suspense, lazy } from "react";
 
 import Dashboard from "./pages/Dashboard";
 import Meters from "./pages/Meters";
@@ -10,18 +9,17 @@ import PageNotFound from "./pages/PageNotFound";
 import GlobalStyles from "./styles/GlobalStyles";
 import AppLayout from "./ui/AppLayout";
 import SignUp from "./pages/SignUp";
-import Login from "./pages/Login";
-import Users from "./pages/Users";
 import Demanda from "./pages/Demanda";
 import Settings from "./pages/Settings";
 import Locations from "./pages/Locations";
+import Actas from "./pages/Actas";
 import { Toaster } from "react-hot-toast";
 import Reports from "./pages/Reports";
 import Authentication from "./features/authentication/Authentication";
 import { RequireAuth } from "./features/authentication/RequireAuth";
 import { UserProvider } from "./features/authentication/UserProvider";
 import { DarkModeProvider } from "./context/DarkModeContext";
-import Spinner from "./ui/Spinner";
+import ActasPuntoMedicion from "./features/actas/ActasPuntoMedicion";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,6 +54,8 @@ function App() {
               <Route path="settings" element={<Settings />} />
               <Route path="reports" element={<Reports />} />
               <Route path="locations" element={<Locations />} />
+              <Route path="actas" element={<Actas />} />
+              <Route path="actas/:id" element={<ActasPuntoMedicion />} />
             </Route>
 
             <Route path="login" element={<Authentication />} />

@@ -195,7 +195,7 @@ function GenerateReportForm({
         />
       </FormRow>
 
-      <Button type="submit" size="small">
+      <Button type="submit" size="medium" variation="primary">
         Generar Reporte
       </Button>
     </Form>

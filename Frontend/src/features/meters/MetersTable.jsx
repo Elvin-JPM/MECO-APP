@@ -109,7 +109,7 @@ function MetersTable() {
         <div>CODIGO DEL PUNTO</div>
         <div>SUBESTACION</div>
         <div>SERIE</div>
-        <Button onClick={exportToExcel}>
+        <Button size="medium" variation="primary" onClick={exportToExcel}>
           <FaDownload />
         </Button>
       </TableHeader>
