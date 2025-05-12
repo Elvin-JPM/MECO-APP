@@ -242,7 +242,7 @@ function SubstitutionForm({
           </div>
         </FormRow>
 
-        <Button type="submit">Crear Reporte</Button>
+        <Button type="submit" size="medium" variation="primary">Crear Reporte</Button>
       </Form>
       {showPdfReport && (
         <div>
@@ -253,6 +253,8 @@ function SubstitutionForm({
           />
           <Button
             type="button"
+            variation="primary"
+            size="medium"
             onClick={() => {
               const reportName = newReportName();
               onUpdateMeasures(reportName);

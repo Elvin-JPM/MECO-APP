@@ -402,6 +402,8 @@ function ReportTable({
         <Table role="table">
           {rowsToEdit?.length > 0 ? (
             <Button
+              size="medium"
+              variation="secondary"
               onClick={() => {
                 //onUpdateMeasures();
                 handleShowModal();

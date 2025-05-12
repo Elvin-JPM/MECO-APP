@@ -308,6 +308,22 @@ function CreatePdfReport({ formData, rowsToEdit, getPdfFile }) {
           },
         });
 
+        // Add space after the table
+        const finalY = doc.lastAutoTable.finalY + 30;
+
+        // Add signature line
+        doc.setDrawColor(0);
+        doc.line(70, finalY, 140, finalY);
+
+        // Add name below signature line
+        doc.setFont("times", "bold");
+        doc.setFontSize(10);
+        doc.text("Ing. Cristobal Padilla", 105, finalY + 6, { align: "center" });
+
+        // Add position below name
+        doc.setFont("times", "normal");
+        doc.text("Jefe de Medición Comercial", 105, finalY + 14, { align: "center" });
+
         const pdfBlob = doc.output("blob");
         console.log("pdf file at create pdfReport: ", pdfBlob);
         getPdfFile(pdfBlob);

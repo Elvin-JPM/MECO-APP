@@ -1,4 +1,42 @@
-Data Loading/myenv/
-node_modules
-.git
-.DS_Store
+# Data Loading/myenv/
+# node_modules
+# .git
+# .DS_Store
+
+
+#### nuevo
+# General
+**/.git
+**/.DS_Store
+**/node_modules
+**/npm-debug.log
+**/.env.local
+**/.env.development
+**/.env.test
+
+# Specific to your case
+**/Data_Loading/myenv/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.python-version
+**/.venv
+**/venv/
+
+# Build/CI files
+**/.dockerignore
+**/Dockerfile
+**/docker-compose*
+**/.github/
+
+# IDE files
+**/.vscode/
+**/.idea/
+
+
+**/.git
+**/__pycache__
+**/*.pyc
+**/node_modules
+**/oracle-client/*.zip
