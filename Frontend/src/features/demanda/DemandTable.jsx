@@ -2,10 +2,15 @@ import React, { useEffect } from "react";
 import styled from "styled-components";
 import { useQuery } from "@tanstack/react-query";
 import Spinner from "../../ui/Spinner";
-import { getHourlyDemand, getNodesNames } from "../../services/getRequests";
+import {
+  getHourlyDemand,
+  getNodesNames,
+  getHourlyGeneration,
+} from "../../services/getRequests";
 import DemandRow from "./DemandRow";
 import * as XLSX from "xlsx";
 import ExcelJS from "exceljs";
+import AreaChartDashboard from "../dashboard/AreaChartDashboard";
 
 const TableContainer = styled.div`
   border: 1px solid var(--color-grey-200);
@@ -72,6 +77,41 @@ function DemandTable({ fecha, isDownloadReport }) {
     keepPreviousData: true,
     enabled: !!fecha,
   });
+
+  const { isLoading: isLoadingGeneration, data: generation } = useQuery({
+    queryKey: ["generation", fecha],
+    queryFn: () => getHourlyGeneration(fecha),
+    keepPreviousData: true,
+    enabled: !!fecha,
+  });
+
+  const result = [];
+
+  if (isLoadingDemand) {
+    console.log("Cargando demanda...");
+  } else {
+    for (const innerArray of demand) {
+      let sum = 0;
+      for (let i = 2; i < innerArray.length; i++) {
+        sum += innerArray[i];
+      }
+      result.push({ fecha: innerArray[0], dato_energia: sum });
+    }
+
+    console.log("Demanda horaria: ", result); // Output: [12, 70, 4]
+  }
+
+  let generationArray = [];
+  if (isLoadingGeneration) {
+    console.log("Cargando generación...");
+  } else if (generation?.data) {
+    // Assuming generation.data is an array of arrays where each inner array has the format [hour, generationValue]
+    generationArray = generation.data.map((hourGeneration) => ({
+      fecha: hourGeneration[0],
+      dato_energia: hourGeneration[1],
+    }));
+    console.log("Generación:", generationArray); // Output: [12, 70, 4]
+  }
 
   const { isLoading: isLoadingNodes, data: nodes } = useQuery({
     queryKey: ["nodes"],
@@ -157,24 +197,34 @@ function DemandTable({ fecha, isDownloadReport }) {
   };
 
   return (
-    <TableContainer>
-      <Table>
-        <TableHeader>
-          <HeaderRow>
-            <HeaderCell>FECHA</HeaderCell>
-            <HeaderCell>HORA</HeaderCell>
-            {nodes?.map((node) => (
-              <HeaderCell key={node[0]}>{node[1]}</HeaderCell>
+    <>
+      <AreaChartDashboard
+        title="Generación Horaria vs Demanda Horaria"
+        profMP={generationArray}
+        profMR={result}
+        tipoGrafico="demanda"
+        // xAxisLabel="Hora"
+        // yAxisLabel="Generación (kW)"
+      />
+      <TableContainer>
+        <Table>
+          <TableHeader>
+            <HeaderRow>
+              <HeaderCell>FECHA</HeaderCell>
+              <HeaderCell>HORA</HeaderCell>
+              {nodes?.map((node) => (
+                <HeaderCell key={node[0]}>{node[1]}</HeaderCell>
+              ))}
+            </HeaderRow>
+          </TableHeader>
+          <TableBody>
+            {demand?.map((demand_hour, index) => (
+              <DemandRow demand_hour={demand_hour} key={index} />
             ))}
-          </HeaderRow>
-        </TableHeader>
-        <TableBody>
-          {demand?.map((demand_hour, index) => (
-            <DemandRow demand_hour={demand_hour} key={index} />
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
   );
 }
 

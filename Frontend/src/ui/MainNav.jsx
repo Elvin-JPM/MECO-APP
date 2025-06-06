@@ -13,6 +13,7 @@ import { FaRegFolderOpen } from "react-icons/fa";
 import Tooltip from "./Tooltip";
 import IconContainer from "./IconContainer";
 import { MdOutlineDashboard } from "react-icons/md";
+import { RiAdminLine } from "react-icons/ri";
 
 const NavList = styled.ul`
   display: flex;
@@ -176,10 +177,10 @@ function MainNav() {
       tooltip: "Ubicaciones",
     },
     {
-      to: "/settings",
-      icon: HiOutlineCog6Tooth,
-      text: "Configuración",
-      tooltip: "Configuración",
+      to: "/admin",
+      icon: RiAdminLine,
+      text: "Administración",
+      tooltip: "Administración",
     },
   ];
 

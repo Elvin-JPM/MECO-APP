@@ -22,7 +22,7 @@
     "dayjs": "^1.11.13",
     "exceljs": "^4.4.0",
     "jspdf": "^2.5.2",
-    "jspdf-autotable": "^3.8.4",
+    "jspdf-autotable": "^5.0.2",
     "leaflet": "^1.9.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

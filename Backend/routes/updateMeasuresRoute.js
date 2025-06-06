@@ -8,7 +8,9 @@ router.put("/updateMeasures", async (req, res) => {
   const rowsToEdit = reqBody.filter(
     (item) => typeof item === "object" && item !== null
   );
-  console.log("Rows to edit:", rowsToEdit);
+
+  // console.log("Rows to edit:", rowsToEdit);
+  console.log("Report name recived at updateMeasuresRoute.js: ", reqBody);
   const reportName = reqBody.filter((item) => typeof item === "string")[0];
   console.log(reportName);
 

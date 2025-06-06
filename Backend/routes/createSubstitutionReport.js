@@ -28,6 +28,7 @@ router.post(
       fechaFinal,
       validadoPor,
       nombreReporte,
+      rowsToEdit,
     } = req.body;
 
     const pdfFile = req.file ? req.file.buffer : null; // Ensure this is handled properly
@@ -57,9 +58,11 @@ router.post(
               DIAS_TIPO,
               RAZON_PROBLEMA,
               PROCEDIMIENTO,
-              FECHA_CREACION,
               VALIDADO_POR,
-              NOMBRE_REPORTE
+              FECHA_CREACION,
+              NOMBRE_REPORTE,
+              APROBADO,
+              FILAS_EDITADAS
           )
         VALUES
           (   2,
@@ -77,9 +80,11 @@ router.post(
               :diasTipo,
               :razonProblema,
               :procedimiento,
-              SYSDATE,
               :validadoPor,
-              :nombreReporte
+              SYSDATE,
+              :nombreReporte,
+              0,
+              :rowsToEdit
           )
       `;
 
@@ -105,6 +110,7 @@ router.post(
           procedimiento,
           validadoPor,
           nombreReporte,
+          rowsToEdit: { val: rowsToEdit, type: oracledb.CLOB },
         },
         { autoCommit: true }
       );

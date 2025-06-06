@@ -94,6 +94,10 @@ const routes = [
   "meRoute",
   "refreshTokenRoute",
   "getMeasurementPoints",
+  "editSubstitutionReport",
+  "getSubstitutionReportsRoute",
+  "updateReportApprovedRoute",
+  "getGeneracionNacionalHoraria",
 ];
 
 routes.forEach((routeName) => {

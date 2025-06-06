@@ -8,20 +8,23 @@ const StyledModal = styled.div`
   transform: translate(-50%, -50%);
   background-color: var(--color-grey-0);
   border-radius: var(--border-radius-lg);
-  /* box-shadow: 3px 2px 2px 2px var(--color-grey-100); */
-  padding: 3.2rem 4rem;
+  padding: ${(props) =>
+    props.$size === "small" ? "2.4rem 3rem" : "3.2rem 4rem"};
   transition: all 0.5s;
-  height: 95vh;
-  /* border: 1px solid var(--color-grey-200); */
-  overflow: auto; /* Allows scrolling */
-  z-index: 2000; /* Ensure modal is above the overlay */
+  height: ${(props) => (props.$size === "small" ? "auto" : "95vh")};
+  max-height: ${(props) => (props.$size === "small" ? "80vh" : "none")};
+  width: ${(props) => (props.$size === "small" ? "auto" : "auto")};
+  max-width: ${(props) => (props.$size === "small" ? "40rem" : "none")};
+  overflow: auto;
+  z-index: 2000;
+  box-shadow: 0 2rem 3rem rgba(0, 0, 0, 0.2);
 
   /* Hide scrollbar */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Internet Explorer and Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 
   &::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, and Opera */
+    display: none;
   }
 `;
 
@@ -32,7 +35,7 @@ const Overlay = styled.div`
   width: 100%;
   height: 100vh;
   background-color: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(3px); //Reduced blur, or remove this line entirely
+  backdrop-filter: blur(3px);
   z-index: 1;
   transition: all 0.5s;
 `;
@@ -55,17 +58,14 @@ const Button = styled.button`
   & svg {
     width: 2.4rem;
     height: 2.4rem;
-    /* Sometimes we need both */
-    /* fill: var(--color-grey-500);
-    stroke: var(--color-grey-500); */
     color: var(--color-grey-500);
   }
 `;
 
-function Modal({ onClose, children }) {
+function Modal({ onClose, children, size = "large" }) {
   return (
     <Overlay>
-      <StyledModal>
+      <StyledModal $size={size}>
         <Button onClick={onClose}>
           <HiXMark />
         </Button>

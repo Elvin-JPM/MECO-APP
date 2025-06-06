@@ -12,24 +12,31 @@ import CreatePdfReport from "./CreatePdfReport";
 import useCreateSubstitutionReport from "./useCreateSubstitutionReport";
 import { useUser } from "../../features/authentication/UserProvider";
 import { newReportName } from "../../utils/dateFunctions";
+import ConfirmationModal from "../../ui/ConfirmationModal";
+import Modal from "../../ui/Modal";
 
 function SubstitutionForm({
   idPuntoMedicion,
   onUpdateMeasures,
   rowsToEdit,
   handleShowModal,
+  handleReportInformation,
+  handleShowConfirmationModal,
 }) {
   const { iscreating, createSubstitutionReport } =
     useCreateSubstitutionReport();
-  const [pdfFile, setPdfFile] = useState(null);
+  // const [pdfFile, setPdfFile] = useState(null);
   const { userData } = useUser();
 
   const [formData, setFormData] = useState(null);
   const [showPdfReport, setShowPdfReport] = useState(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const { register, handleSubmit, formState, setValue } = useForm();
   const { errors } = formState;
 
-  console.log("Rows to edit on Substitution form: ", rowsToEdit);
+  useEffect(() => {
+    console.log("Rows to edit on Substitution form:", rowsToEdit);
+  }, [rowsToEdit]); // Only log when rowsToEdit actually changes
 
   const { data: agenteData, isLoading: isLoadingAgente } = useQuery({
     queryKey: ["agente", idPuntoMedicion],
@@ -43,9 +50,9 @@ function SubstitutionForm({
   const yesterday = new Date(today);
   yesterday.setDate(today.getDate() - 1);
 
-  function getPdfFile(pdfReport) {
-    setPdfFile(pdfReport);
-  }
+  // function getPdfFile(pdfReport) {
+  //   setPdfFile(pdfReport);
+  // }
 
   const formatDateForInput = (date) => {
     const year = date.getFullYear();
@@ -78,14 +85,15 @@ function SubstitutionForm({
 
   function saveReportData(nombreReporte) {
     const formDataBackend = new FormData();
-    formDataBackend.append("file", pdfFile, "generated.pdf");
+    // formDataBackend.append("file", pdfFile, "generated.pdf");
     Object.entries(formData).forEach(([key, value]) => {
       formDataBackend.append(key, value); // Add form data
     });
 
-    formDataBackend.append("validadoPor", userData.username);
+    formDataBackend.append("validadoPor", userData.fullname || userData.username);
     // Adjuntar el nombre del reporte
     formDataBackend.append("nombreReporte", nombreReporte);
+    formDataBackend.append("rowsToEdit", JSON.stringify(rowsToEdit));
 
     console.log("saveReportData: ");
     // Log all entries in the FormData
@@ -93,7 +101,8 @@ function SubstitutionForm({
       console.log(`${key}:`, value);
     }
 
-    createSubstitutionReport(formDataBackend);
+    //createSubstitutionReport(formDataBackend);
+    return formDataBackend;
   }
 
   if (isLoadingAgente) return <Spinner />;
@@ -242,14 +251,17 @@ function SubstitutionForm({
           </div>
         </FormRow>
 
-        <Button type="submit" size="medium" variation="primary">Crear Reporte</Button>
+        <Button type="submit" size="medium" variation="primary">
+          Crear Reporte
+        </Button>
       </Form>
       {showPdfReport && (
-        <div>
+        <>
+          <h2>Reporte de Sustitución</h2>
           <CreatePdfReport
             formData={formData}
             rowsToEdit={rowsToEdit}
-            getPdfFile={getPdfFile}
+            // getPdfFile={getPdfFile}
           />
           <Button
             type="button"
@@ -257,14 +269,19 @@ function SubstitutionForm({
             size="medium"
             onClick={() => {
               const reportName = newReportName();
-              onUpdateMeasures(reportName);
-              saveReportData(reportName);
-              handleShowModal();
+              const reportData = saveReportData(reportName);
+              // onUpdateMeasures(reportName);
+              console.log(
+                "Report data at SubstitutionForm when clicking guardar datos:",
+                reportData
+              );
+              handleReportInformation(reportData);
+              handleShowConfirmationModal();
             }}
           >
             Guardar datos
           </Button>
-        </div>
+        </>
       )}
     </>
   );

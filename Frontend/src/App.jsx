@@ -20,6 +20,7 @@ import { RequireAuth } from "./features/authentication/RequireAuth";
 import { UserProvider } from "./features/authentication/UserProvider";
 import { DarkModeProvider } from "./context/DarkModeContext";
 import ActasPuntoMedicion from "./features/actas/ActasPuntoMedicion";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -51,7 +52,7 @@ function App() {
               <Route path="meters" element={<Meters />} />
               <Route path="communications" element={<Communications />} />
               <Route path="demanda" element={<Demanda />} />
-              <Route path="settings" element={<Settings />} />
+              <Route path="admin" element={<Admin />} />
               <Route path="reports" element={<Reports />} />
               <Route path="locations" element={<Locations />} />
               <Route path="actas" element={<Actas />} />

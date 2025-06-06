@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { useRef, useState, useEffect} from "react";
+import { useRef, useState, useEffect } from "react";
 import Button from "../../ui/Button";
 import "jspdf-autotable";
 import { ImCancelCircle } from "react-icons/im";
@@ -17,6 +17,9 @@ import Modal from "../../ui/Modal";
 import Heading from "../../ui/Heading";
 import { useQuery } from "@tanstack/react-query";
 import { getReport } from "../../services/getRequests";
+import Spinner from "../../ui/Spinner";
+import CreatePdfReport from "./CreatePdfReport";
+import EditSubstitutionForm from "./EditSubstitutionForm";
 
 // Styled components
 const TableRow = styled.div`
@@ -103,6 +106,8 @@ export default function MeasureRow({
 }) {
   const [validating, setValidating] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showEditFormModal, setShowEditFormModal] = useState(false);
   const [fetchReportPDF, setFetchReportPDF] = useState(false);
   const { userData } = useUser();
 
@@ -134,27 +139,29 @@ export default function MeasureRow({
     measure?.rv_rec_mr ||
     null;
 
-  const { isLoading: isLoadingReport, data: reportPDF } = useQuery({
-    queryKey: ["reportPDF", reportName],
+  console.log("Report Name: ", reportName);
+
+  const { isLoading: isLoadingReport, data: retrievedPdfData } = useQuery({
+    queryKey: ["retrievedPdfData", reportName],
     queryFn: () => getReport(reportName),
     enabled: !!reportName,
   });
 
-  useEffect(() => {
-    if (reportPDF?.data[0]?.validacion_pdf) {
-      const pdfData = atob(reportPDF.data[0].validacion_pdf);
-      const byteArray = new Uint8Array(
-        Array.from(pdfData, (char) => char.charCodeAt(0))
-      );
-      const blob = new Blob([byteArray], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      // Store URL in ref and state
-      setFetchReportPDF(false);
-      setPdfUrl(url);
-    }
-  }, [reportPDF]);
+  // useEffect(() => {
+  //   if (reportPDF?.data[0]?.validacion_pdf) {
+  //     const pdfData = atob(reportPDF.data[0].validacion_pdf);
+  //     const byteArray = new Uint8Array(
+  //       Array.from(pdfData, (char) => char.charCodeAt(0))
+  //     );
+  //     const blob = new Blob([byteArray], { type: "application/pdf" });
+  //     const url = URL.createObjectURL(blob);
+  //     // Store URL in ref and state
+  //     setFetchReportPDF(false);
+  //     setPdfUrl(url);
+  //   }
+  // }, [reportPDF]);
 
-  const [pdfUrl, setPdfUrl] = useState(null);
+  // const [pdfUrl, setPdfUrl] = useState(null);
 
   // Helper to decide style based on status and validating
   const getStyle = (status) =>
@@ -231,25 +238,25 @@ export default function MeasureRow({
           energiaDelMpRef: formatEnergy(energia_del_mp),
           energiaRecMpRef: formatEnergy(energia_rec_mp),
           energiaDelMrRef: formatEnergy(energia_del_mr),
-          energiaRecMrRef: formatEnergy(energia_del_mr),
+          energiaRecMrRef: formatEnergy(energia_rec_mr),
         },
         energiaActivaAcumulada: {
           energiaDelMpRef: formatEnergy(energia_del_mp),
           energiaRecMpRef: formatEnergy(energia_rec_mp),
           energiaDelMrRef: formatEnergy(energia_del_mr),
-          energiaRecMrRef: formatEnergy(energia_del_mr),
+          energiaRecMrRef: formatEnergy(energia_rec_mr),
         },
         energiaReactivaAcumulada: {
           energiaDelMpRef: formatEnergy(energia_del_mp),
           energiaRecMpRef: formatEnergy(energia_rec_mp),
           energiaDelMrRef: formatEnergy(energia_del_mr),
-          energiaRecMrRef: formatEnergy(energia_del_mr),
+          energiaRecMrRef: formatEnergy(energia_rec_mr),
         },
         default: {
           energiaDelMpRef: formatEnergy(energia_del_mp),
           energiaRecMpRef: formatEnergy(energia_rec_mp),
           energiaDelMrRef: formatEnergy(energia_del_mr),
-          energiaRecMrRef: formatEnergy(energia_del_mr),
+          energiaRecMrRef: formatEnergy(energia_rec_mr),
         },
       };
       const selectedMapping = mapping[tipoMedicion] || mapping.default;
@@ -263,22 +270,24 @@ export default function MeasureRow({
   };
 
   const handleOpenReport = () => {
-    if (!reportPDF?.data[0]?.validacion_pdf) {
-      toast.error("El informe aún se está cargando. Por favor, espera.");
-      return;
-    }
-    const pdfData = atob(reportPDF.data[0].validacion_pdf);
-    const byteArray = new Uint8Array(
-      Array.from(pdfData, (char) => char.charCodeAt(0))
-    );
-    const blob = new Blob([byteArray], { type: "application/pdf" });
-    window.open(URL.createObjectURL(blob), "_blank");
+    // if (!reportPDF?.data[0]?.validacion_pdf) {
+    //   toast.error("El informe aún se está cargando. Por favor, espera.");
+    //   return;
+    // }
+    // const pdfData = atob(reportPDF.data[0].validacion_pdf);
+    // const byteArray = new Uint8Array(
+    //   Array.from(pdfData, (char) => char.charCodeAt(0))
+    // );
+    // const blob = new Blob([byteArray], { type: "application/pdf" });
+    // window.open(URL.createObjectURL(blob), "_blank");
+    console.log("Report pdf to check: ", retrievedPdfData);
+    setShowReportModal(true);
   };
 
   if (!measure) {
     return (
       <TableRow role="row" className="loading-row">
-        {Array(5)
+        {Array(30)
           .fill(0)
           .map((_, i) => (
             <div key={i} className="loading-cell"></div>
@@ -387,6 +396,45 @@ export default function MeasureRow({
       {showModal && (
         <Modal onClose={() => setShowModal(false)}>
           <Heading as="h2">Reporte de Validación y Sustitución</Heading>
+        </Modal>
+      )}
+      {showReportModal && (
+        <Modal onClose={() => setShowReportModal(false)}>
+          {isLoadingReport ? (
+            <Spinner />
+          ) : (
+            <>
+              <Heading as="h2">Reporte de Validación y Sustitución</Heading>
+              {userData?.departmentId === 18 && (
+                <Button
+                  variation="primary"
+                  size="medium"
+                  onClick={() => setShowEditFormModal(true)}
+                >
+                  Editar Reporte
+                </Button>
+              )}
+              <CreatePdfReport
+                formData={retrievedPdfData[0]}
+                rowsToEdit={retrievedPdfData[0].filas_editadas}
+              />
+            </>
+          )}
+        </Modal>
+      )}
+      {showEditFormModal && (
+        <Modal onClose={() => setShowEditFormModal(false)}>
+          {isLoadingReport ? (
+            <Spinner />
+          ) : (
+            <>
+              <Heading as="h2">Formulario de edición de reporte</Heading>
+              <EditSubstitutionForm
+                retrievedPdfData={retrievedPdfData[0]}
+                handleShowModal={setShowEditFormModal}
+              />
+            </>
+          )}
         </Modal>
       )}
     </>

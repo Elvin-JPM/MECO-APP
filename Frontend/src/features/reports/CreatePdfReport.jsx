@@ -1,18 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { jsPDF } from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 import { formatDate } from "../../utils/dateFunctions";
 import { useUser } from "../authentication/UserProvider";
 
-function CreatePdfReport({ formData, rowsToEdit, getPdfFile }) {
+function CreatePdfReport({ formData, rowsToEdit }) {
   const [pdfUrl, setPdfUrl] = useState(null);
-
   const { userData } = useUser();
+  const pdfGenerated = useRef(false);
 
-  console.log("User data received at pdf: ", userData);
-  console.log("Form data received at pdf: ", formData);
+  console.log("Rows to edit on CreatePdfReport:", rowsToEdit);
 
-  // Sort rowsToEdit by fecha
+  const approvedReport = formData?.aprobado === 1 ? true : false;
+  // Ordena las filas que vienen del formulario por fecha
   const sortedRows = [...rowsToEdit].sort((a, b) => {
     const parseDate = (dateString) => {
       const [datePart, timePart] = dateString.split(" ");
@@ -20,57 +20,94 @@ function CreatePdfReport({ formData, rowsToEdit, getPdfFile }) {
       const [hours, minutes] = timePart.split(":").map(Number);
       return new Date(year, month - 1, day, hours, minutes);
     };
-
-    const dateA = parseDate(a.fecha);
-    const dateB = parseDate(b.fecha);
-    return dateA - dateB; // Ascending order
+    return parseDate(a.fecha) - parseDate(b.fecha);
   });
 
-  console.log("Sorted rows: ", sortedRows);
-
   useEffect(() => {
-    const getFormattedDate = () => {
-      const today = new Date();
-      const day = String(today.getDate()).padStart(2, "0"); // Ensures 2 digits
-      const month = String(today.getMonth() + 1).padStart(2, "0"); // Months are zero-based
-      const year = today.getFullYear();
+    if (pdfGenerated.current) return;
+    pdfGenerated.current = true;
 
-      return `${day}-${month}-${year}`;
-    };
-
-    const formattedDate = getFormattedDate();
-
+    // Genera el PDF una vez que se tienen los datos del formulario y las filas a editar
     const generatePdf = async () => {
-      const doc = new jsPDF({
-        unit: "mm",
-        format: "a4",
-        orientation: "portrait",
-      });
-      const pageWidth = doc.internal.pageSize.width;
-      const maxWidth = 140;
+      try {
+        // Inicializa un nuevo documento PDF
+        const doc = new jsPDF({
+          unit: "mm",
+          format: "a4",
+          orientation: "portrait",
+        });
 
-      // Rectangle dimensions
-      const rectHeight = 4;
-      const rectWidth = pageWidth / 3;
+        const pageWidth = doc.internal.pageSize.width;
+        const maxWidth = 140;
+        const today = new Date();
+        const formattedDate = `${String(today.getDate()).padStart(
+          2,
+          "0"
+        )}-${String(today.getMonth() + 1).padStart(
+          2,
+          "0"
+        )}-${today.getFullYear()}`;
 
-      // Draw three rectangles with specified colors
-      doc.setFillColor(95, 208, 223); // #5fd0df
-      doc.rect(0, 0, rectWidth, rectHeight, "F");
-      doc.setFillColor(242, 145, 0); // #f29100
-      doc.rect(rectWidth, 0, rectWidth, rectHeight, "F");
-      doc.setFillColor(226, 6, 19); // #e20613
-      doc.rect(rectWidth * 2, 0, rectWidth, rectHeight, "F");
+        // Configura los tres rectángulos de colores en la parte superior
+        doc.setFillColor(95, 208, 223);
+        doc.rect(0, 0, pageWidth / 3, 4, "F");
+        doc.setFillColor(242, 145, 0);
+        doc.rect(pageWidth / 3, 0, pageWidth / 3, 4, "F");
+        doc.setFillColor(226, 6, 19);
+        doc.rect((pageWidth / 3) * 2, 0, pageWidth / 3, 4, "F");
 
-      // Add an image from the public folder
-      const imgUrl = `${window.location.origin}/logo-CND-horizontal.png`; // Adjust your image name
-      const imgData = await fetch(imgUrl).then((res) => res.blob());
-      const reader = new FileReader();
-      reader.readAsDataURL(imgData);
-      reader.onloadend = () => {
-        const base64data = reader.result;
-        doc.addImage(base64data, "PNG", 2, 7, 35, 6);
+        // Agrega el logo y los textos de encabezado
+        try {
+          const imgUrl = `${window.location.origin}/logo-CND-horizontal.png`;
+          const imgData = await fetch(imgUrl).then((res) => res.blob());
+          const base64data = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.readAsDataURL(imgData);
+          });
+          doc.addImage(base64data, "PNG", 2, 7, 35, 6);
+        } catch (error) {
+          console.warn("Could not load logo:", error);
+        }
 
-        // Nombres de las lineas
+        doc.setFont("times");
+        doc.setFontSize(10);
+        doc.text("Validación, Cálculo y Sustitución de mediciones", 132, 12);
+        doc.setFontSize(14);
+        doc.setFont("times", "bold");
+        doc.text("Validación, Cálculo y Sustitución de mediciones", 2, 25);
+
+        doc.setFont("times", "normal");
+        doc.setFontSize(10);
+        doc.text(
+          "Dirección:   Tecnoglogías de la Información y Telecomunicaciones",
+          2,
+          35
+        );
+        doc.text("Departamento:  Medición Comercial", 2, 40);
+        doc.text(
+          `Fecha: ${
+            formData?.fechaCreacion
+              ? formatDate(formData?.fechaCreacion)
+              : formattedDate
+          }`,
+          2,
+          45
+        );
+
+        doc.text(`${formData.agente}`, 65, 55);
+        doc.text(`${formData.nombreCentral}`, 65, 71);
+        doc.text(`${formData.codigoPunto}`, 65, 63);
+        doc.text(`${formData.designacion}`, 165, 71);
+
+        doc.setFont("times", "bold");
+        doc.setFontSize(11);
+
+        doc.text("Agente:", 2, 55);
+        doc.text("Nombre de la central:", 2, 71);
+        doc.text("Código del punto:", 2, 63);
+        doc.text("Designación:", 142, 71);
+
         const linesNames = [
           "Resumen del problema reportado:",
           "Razon del problema:",
@@ -84,16 +121,14 @@ function CreatePdfReport({ formData, rowsToEdit, getPdfFile }) {
           "Rango de datos sutituidos:",
         ];
 
-        // Valores a usar en las lineas
         const linesValues = [
           formData.resumenProblema,
           formData.razonProblema,
           formData.consecuencia,
-          userData.fullName,
+          formData.validadoPor || userData.fullName,
           "3.3.2 Sustitución;  El ODS solamente modificará toda o parte de las lecturas de mediciones comerciales (con propósitos de liquidaciones) ante datos faltantes o cuando la validación basada en calificadores indique que toda o parte de una medición es inválida.",
           formData.medicionesAfectadas,
           formData.medicionesDisponibles,
-
           formData.procedimiento,
           formData.diasTipo,
           formatDate(formData.fechaInicial) +
@@ -101,42 +136,10 @@ function CreatePdfReport({ formData, rowsToEdit, getPdfFile }) {
             formatDate(formData.fechaFinal),
         ];
 
-        // Add text below
-        doc.setFont("times");
-        doc.setFontSize(10);
-        doc.text("Validación, Cálculo y Sustitución de mediciones", 132, 12);
-        doc.setFontSize(14);
-        doc.setFont("times", "bold");
-        doc.text("Validación, Cálculo y Sustitución de mediciones", 2, 25);
-
-        doc.setFont("times", "normal");
-        doc.setFontSize(10);
-        doc.text(
-          `Dirección:   Tecnoglogías de la Información y Telecomunicaciones`,
-          2,
-          35
-        );
-        doc.text(`Departamento:  Medición Comercial`, 2, 40);
-        doc.text(`Fecha: ${formattedDate}`, 2, 45);
-        doc.text(`${formData.agente}`, 65, 55); // Nombre del agente
-        doc.text(`${formData.nombreCentral}`, 65, 63); // Nombre de la central
-        doc.text(`${formData.codigoPunto}`, 173, 55); // Codigo del punto
-        doc.text(`${formData.designacion}`, 165, 63); // Codigo del punto
-        // // Resumen del problema reportado
-
-        // // Textos en Negrita
-        doc.setFont("times", "bold");
-        doc.setFontSize(11);
-        doc.text("Agente:", 2, 55);
-        doc.text(`Código del punto:`, 142, 55);
-        doc.text("Nombre de la central:", 2, 63);
-        doc.text("Designación:", 142, 63);
-
-        let y = 73;
-
+        let y = 81;
         linesValues.forEach((line, index) => {
           const textLines = doc.splitTextToSize(line, maxWidth);
-          const textHeight = textLines.length * 4; // assuming 10 is the line height
+          const textHeight = textLines.length * 4;
 
           doc.setFont("times", "bold");
           doc.text(linesNames[index], 2, y);
@@ -145,6 +148,40 @@ function CreatePdfReport({ formData, rowsToEdit, getPdfFile }) {
 
           y += textHeight + 5;
         });
+
+        const formatEnergia = (value) =>
+          value ? parseFloat(value).toFixed(4) : "0.0000";
+
+        const tableData = sortedRows.map((row) => [
+          row.fecha,
+          formatEnergia(row.energia_del_mp),
+          formatEnergia(row.energia_rec_mp),
+          formatEnergia(row.energia_del_mr),
+          formatEnergia(row.energia_rec_mr),
+          formatEnergia(row.energia_del_mp_new),
+          formatEnergia(row.energia_rec_mp_new),
+          formatEnergia(row.energia_del_mr_new),
+          formatEnergia(row.energia_rec_mr_new),
+        ]);
+
+        y += 3;
+        doc.setFontSize(9);
+        doc.setFont("times", "bold");
+        doc.setFillColor(95, 208, 223);
+        const originalesWidth = doc.getTextWidth("VALORES ORIGINALES") + 40.7;
+        doc.rect(41.7, y - 4, originalesWidth - 0.5, 4, "F");
+        doc.text("VALORES ORIGINALES", 61, y - 1);
+
+        doc.setFillColor(95, 208, 223);
+        const sustitucionWidth = doc.getTextWidth("VALORES SUSTITUCIÓN") + 38.2;
+        doc.rect(
+          41.3 + originalesWidth + 1.4,
+          y - 4,
+          sustitucionWidth + 1.2,
+          4,
+          "F"
+        );
+        doc.text("VALORES SUSTITUCIÓN", 45 + originalesWidth + 16, y - 1);
 
         const headers = [
           [
@@ -166,184 +203,179 @@ function CreatePdfReport({ formData, rowsToEdit, getPdfFile }) {
           ],
         ];
 
-        let data = [];
-        for (const row of sortedRows) {
-          data.push([
-            row.fecha,
-            row.energia_del_mp,
-            row.energia_rec_mp,
-            row.energia_del_mr,
-            row.energia_rec_mr,
-            row.energia_del_mp_new,
-            row.energia_rec_mp_new,
-            row.energia_del_mr_new,
-            row.energia_rec_mr_new,
-          ]);
-        }
-
-        console.log("Data for the subs table: ", data);
-
-        y += 3;
-        doc.setFontSize(9);
-        doc.setFont("times", "bold");
-        doc.setFillColor(95, 208, 223);
-        doc.rect(41, y - 4, rectWidth + 6.3, 4, "F");
-        doc.rect(41 + rectWidth + 6.7, y - 4, rectWidth + 8.3, 4, "F");
-        doc.text("VALORES ORIGINALES", 61, y - 1);
-        doc.text("VALORES SUSTITUCIÓN", 138, y - 1);
-        // Create the table
-
-        doc.setFontSize(6);
-        doc.autoTable({
+        // Changed to use autoTable as a function
+        autoTable(doc, {
           head: headers,
-          body: data,
-          startY: y, // Position the table below the title
+          body: tableData,
+          startY: y,
           theme: "grid",
           styles: {
             fontSize: 7,
-            halign: "center", // Center align text in cells
+            halign: "center",
             valign: "middle",
+            cellPadding: 2,
+            lineWidth: 0.2,
+            lineColor: [0, 0, 0],
+            textColor: [0, 0, 0],
           },
           headStyles: {
-            fillColor: [241, 245, 249], // Header background color as RGB array
-            textColor: 0, // Header text color (black)
+            fillColor: [241, 245, 249],
+            textColor: 0,
             fontStyle: "normal",
+            cellPadding: 2,
+            lineWidth: 0.2,
+          },
+          bodyStyles: {
+            minCellHeight: 5,
+            cellPadding: 2,
+            lineWidth: 0.2,
           },
           alternateRowStyles: {
-            fillColor: [240, 240, 240], // Alternate row background color as RGB array
+            fillColor: [254, 254, 254],
           },
-          columnStyles: {
-            // 0: { cellWidth: 30 }, // Set width for the first column
-            // 1: { cellWidth: 30 }, // Set width for the second column
-            // Add more column styles as needed
-          },
-          didParseCell: (cellData) => {
-            const { row, column, cell, section, table } = cellData;
+          didParseCell: (data) => {
+            if (data.section === "body") {
+              data.cell.styles.visibility = "visible";
 
-            if (section === "body") {
-              console.log("table.body:", table.body);
-              console.log("row.index:", row.index);
-              console.log("Row2 object:", table.body[row.index]);
+              const redColumns = [1, 2, 3, 4];
+              if (redColumns.includes(data.column.index)) {
+                const row = sortedRows[data.row.index];
+                const original = parseFloat(
+                  String(
+                    row[
+                      `energia_${
+                        data.column.index === 1
+                          ? "del_mp"
+                          : data.column.index === 2
+                          ? "rec_mp"
+                          : data.column.index === 3
+                          ? "del_mr"
+                          : "rec_mr"
+                      }`
+                    ] || "0"
+                  ).replace(/,/g, "")
+                );
+                const updated = parseFloat(
+                  String(
+                    row[
+                      `energia_${
+                        data.column.index === 1
+                          ? "del_mp_new"
+                          : data.column.index === 2
+                          ? "rec_mp_new"
+                          : data.column.index === 3
+                          ? "del_mr_new"
+                          : "rec_mr_new"
+                      }`
+                    ] || "0"
+                  ).replace(/,/g, "")
+                );
 
-              if (
-                table.body &&
-                table.body[row.index] &&
-                table.body[row.index].cells &&
-                table.body[row.index].cells[0] &&
-                table.body[row.index].cells[0].text
-              ) {
-                const currentRowFechaString =
-                  table.body[row.index].cells[0].text[0];
-                console.log("currentRowFechaString:", currentRowFechaString);
-
-                const editedRow = rowsToEdit.find((editedRow) => {
-                  if (editedRow.fecha.length !== currentRowFechaString.length) {
-                    return false;
-                  }
-                  for (let i = 0; i < editedRow.fecha.length; i++) {
-                    if (editedRow.fecha[i] !== currentRowFechaString[i]) {
-                      return false;
-                    }
-                  }
-                  return true;
-                });
-
-                console.log("editedRow:", editedRow);
-
-                const redTextColumns = [1, 2, 3, 4];
-                if (redTextColumns.includes(column.index)) {
-                  if (editedRow) {
-                    let originalValue, newValue;
-
-                    switch (column.index) {
-                      case 1:
-                        originalValue = parseFloat(
-                          String(editedRow.energia_del_mp).replace(/,/g, "")
-                        );
-                        newValue = parseFloat(
-                          String(editedRow.energia_del_mp_new).replace(/,/g, "")
-                        );
-                        break;
-                      case 2:
-                        originalValue = parseFloat(
-                          String(editedRow.energia_rec_mp).replace(/,/g, "")
-                        );
-                        newValue = parseFloat(
-                          String(editedRow.energia_rec_mp_new).replace(/,/g, "")
-                        );
-                        break;
-                      case 3:
-                        originalValue = parseFloat(
-                          String(editedRow.energia_del_mr).replace(/,/g, "")
-                        );
-                        newValue = parseFloat(
-                          String(editedRow.energia_del_mr_new).replace(/,/g, "")
-                        );
-                        break;
-                      case 4:
-                        originalValue = parseFloat(
-                          String(editedRow.energia_rec_mr).replace(/,/g, "")
-                        );
-                        newValue = parseFloat(
-                          String(editedRow.energia_rec_mr_new).replace(/,/g, "")
-                        );
-                        break;
-                      default:
-                        break;
-                    }
-
-                    if (originalValue !== newValue) {
-                      cell.styles.textColor = [255, 0, 0]; // Red text if values are different
-                    } else {
-                      cell.styles.textColor = [60, 60, 60]; // Black text if values are the same
-                    }
-                  } else {
-                    cell.styles.textColor = [60, 60, 60]; // Black text if no editedRow found
-                  }
+                if (original !== updated) {
+                  data.cell.styles.textColor = [255, 0, 0];
                 }
-              } else {
-                console.log("Skipping row due to undefined data.");
               }
             }
           },
+          willDrawCell: (data) => {
+            if (
+              data.row.index === 0 ||
+              data.row.index === sortedRows.length - 1
+            ) {
+              data.cell.styles.fillColor = [255, 255, 255];
+            }
+            return true;
+          },
         });
 
-        // Add space after the table
-        const finalY = doc.lastAutoTable.finalY + 30;
+        const finalY = doc.lastAutoTable.finalY + 35;
+        if (finalY + 15 > doc.internal.pageSize.height) {
+          doc.addPage();
+          // For new page case
+          if (approvedReport) {
+            try {
+              const imgUrl = `${window.location.origin}/Firma_Jefe_Medicion.png`;
+              const imgData = await fetch(imgUrl).then((res) => res.blob());
+              const base64data = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.readAsDataURL(imgData);
+              });
+              // Add image (20mm width, auto height, positioned above line)
+              doc.addImage(base64data, "PNG", 78, 13, 55, 30); // x, y, width, height
+            } catch (error) {
+              console.warn("Could not load approval stamp:", error);
+            }
+          }
 
-        // Add signature line
-        doc.setDrawColor(0);
-        doc.line(70, finalY, 140, finalY);
-
-        // Add name below signature line
-        doc.setFont("times", "bold");
-        doc.setFontSize(10);
-        doc.text("Ing. Cristobal Padilla", 105, finalY + 6, { align: "center" });
-
-        // Add position below name
-        doc.setFont("times", "normal");
-        doc.text("Jefe de Medición Comercial", 105, finalY + 14, { align: "center" });
+          doc.line(70, 40, 140, 40);
+          doc.setFont("times", "bold");
+          doc.text("Ing. Cristobal Padilla", 105, 46, { align: "center" });
+          doc.setFont("times", "normal");
+          doc.text("Jefe de Medición Comercial", 105, 52, { align: "center" });
+        } else {
+          // For same page case
+          doc.setDrawColor(0);
+          if (approvedReport) {
+            try {
+              const imgUrl = `${window.location.origin}/Firma_Jefe_Medicion.png`;
+              const imgData = await fetch(imgUrl).then((res) => res.blob());
+              const base64data = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.readAsDataURL(imgData);
+              });
+              // Add image (20mm width, centered above line)
+              doc.addImage(base64data, "PNG", 78, finalY - 27, 55, 30); // x, y, width, height
+            } catch (error) {
+              console.warn("Could not load approval stamp:", error);
+            }
+          }
+          doc.line(70, finalY, 140, finalY);
+          doc.setFont("times", "bold");
+          doc.text("Ing. Cristobal Padilla", 105, finalY + 6, {
+            align: "center",
+          });
+          doc.setFont("times", "normal");
+          doc.text("Jefe de Medición Comercial", 105, finalY + 12, {
+            align: "center",
+          });
+        }
 
         const pdfBlob = doc.output("blob");
-        console.log("pdf file at create pdfReport: ", pdfBlob);
-        getPdfFile(pdfBlob);
-        const url = URL.createObjectURL(pdfBlob);
-        setPdfUrl(url);
-      };
+        // getPdfFile(pdfBlob);
+        setPdfUrl(URL.createObjectURL(pdfBlob));
+      } catch (error) {
+        console.error("PDF generation failed:", error);
+      }
     };
 
     generatePdf();
-  }, []);
+
+    return () => {
+      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+    };
+  }, [formData, rowsToEdit, userData]);
 
   return (
-    <div style={styles.container}>
-      <div style={styles.pdfWrapper}>
+    <div style={{ textAlign: "center", marginTop: "50px" }}>
+      <div
+        style={{
+          marginTop: "20px",
+          display: "inline-block",
+          borderRadius: "10px",
+          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+          overflow: "hidden",
+          animation: "fadeIn 0.5s ease-in-out",
+          backgroundColor: "#ffffff",
+        }}
+      >
         {pdfUrl ? (
           <embed
             type="application/pdf"
             src={pdfUrl}
             title="PDF Viewer"
-            style={styles.pdf}
+            style={{ width: "60vw", height: "800px", border: "none" }}
           />
         ) : (
           <p>Loading PDF...</p>
@@ -352,45 +384,5 @@ function CreatePdfReport({ formData, rowsToEdit, getPdfFile }) {
     </div>
   );
 }
-
-const styles = {
-  container: {
-    textAlign: "center",
-    marginTop: "50px",
-  },
-  pdfWrapper: {
-    marginTop: "20px",
-    display: "inline-block",
-    borderRadius: "10px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-    overflow: "hidden",
-    animation: "fadeIn 0.5s ease-in-out",
-    backgroundColor: "#ffffff", // Set a light background color
-  },
-  pdf: {
-    width: "60vw",
-    height: "800px",
-    border: "none",
-  },
-};
-
-// CSS for transitions
-const globalStyles = `
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-`;
-
-// Inject global styles
-const styleTag = document.createElement("style");
-styleTag.innerHTML = globalStyles;
-document.head.appendChild(styleTag);
 
 export default CreatePdfReport;

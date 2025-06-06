@@ -21,8 +21,8 @@ empty_energy_meters = []
 hoy = datetime.now().replace(second=0, microsecond=0).strftime('%Y-%m-%d %H:%M')
 
 # Obtiene la fecha actual y le resta la cantidad de dias que viene de node js
-# ayer = (datetime.now() - timedelta(days=days_back)).replace(second=0, microsecond=0).strftime('%Y-%m-%d %H:%M')
-ayer = (datetime.now() - timedelta(days=7)).replace(second=0, microsecond=0).strftime('%Y-%m-%d %H:%M')
+ayer = (datetime.now() - timedelta(days=days_back)).replace(second=0, microsecond=0).strftime('%Y-%m-%d %H:%M')
+#ayer = (datetime.now() - timedelta(days=3)).replace(second=0, microsecond=0).strftime('%Y-%m-%d %H:%M')
 
 
 # Se definen las fecha inicial y final y se convierten a datetime

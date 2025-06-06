@@ -63,6 +63,11 @@ export async function getReport(reportName) {
   return response;
 }
 
+export async function getSubstitutionReports() {
+  const response = await getData(`/substitutionReports`);
+  return response;
+}
+
 export async function getStatistics(data) {
   console.log("Data received at getStatistics: ", data);
   const response = await getData(`/statistics`, {}, data);
@@ -72,6 +77,11 @@ export async function getStatistics(data) {
 export async function getHourlyDemand(fecha) {
   const response = await getData(`/demanda_nacional`, {}, { fecha: fecha });
   console.log("Data received at getHourlyDemand: ", response);
+  return response;
+}
+export async function getHourlyGeneration(fecha) {
+  const response = await getData(`/generacion_horaria`, {}, { fecha: fecha });
+  console.log("Data received at getHourlyGeneration: ", response);
   return response;
 }
 

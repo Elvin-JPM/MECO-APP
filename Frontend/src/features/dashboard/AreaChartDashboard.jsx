@@ -25,7 +25,7 @@ const StyledChart = styled.div`
   height: 350px;
 `;
 
-function AreaChartDashboard({ title, profMP, profMR }) {
+function AreaChartDashboard({ title, profMP, profMR, tipoGrafico = "" }) {
   console.log("Prof mp: ", profMP);
   console.log("Prof mr: ", profMR);
 
@@ -33,6 +33,13 @@ function AreaChartDashboard({ title, profMP, profMR }) {
   const mergedData = profMP.map((itemMP) => {
     const matchingItem = profMR.find((itemMR) => itemMR.fecha === itemMP.fecha);
 
+    if (tipoGrafico === "demanda") {
+      return {
+        fecha: itemMP.fecha,
+        generacion: itemMP.dato_energia,
+        demanda: matchingItem ? matchingItem.dato_energia : 0,
+      };
+    }
     return {
       fecha: itemMP.fecha,
       kwh_mp: itemMP.dato_energia,
@@ -53,16 +60,24 @@ function AreaChartDashboard({ title, profMP, profMR }) {
           margin={{ top: 10, right: 30, left: 0, bottom: 10 }}
         >
           <defs>
-            {/* Gradient for MP */}
+            {/* Gradient for MP ... generacion*/}
             <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
               <stop
                 offset="5%"
-                stopColor="var(--color-institucional-rojo)"
-                stopOpacity={0.8}
+                stopColor={
+                  tipoGrafico === "demanda"
+                    ? "var(--color-institucional-amarillo)"
+                    : "var(--color-brand-600)"
+                }
+                stopOpacity={0.6}
               />
               <stop
                 offset="95%"
-                stopColor="var(--color-institucional-rojo)"
+                stopColor={
+                  tipoGrafico === "demanda"
+                    ? "var(--color-institucional-amarillo)"
+                    : "var(--color-institucional-amarillo)"
+                }
                 stopOpacity={0.2}
               />
             </linearGradient>
@@ -71,12 +86,20 @@ function AreaChartDashboard({ title, profMP, profMR }) {
             <linearGradient id="colorPv" x1="0" y1="0" x2="0" y2="1">
               <stop
                 offset="5%"
-                stopColor="var(--color-institucional-celeste)"
-                stopOpacity={0.8}
+                stopColor={
+                  tipoGrafico === "demanda"
+                    ? "var(--color-institucional-celeste)"
+                    : "var(--color-brand-600)"
+                }
+                stopOpacity={0.6}
               />
               <stop
                 offset="95%"
-                stopColor="var(--color-institucional-celeste)"
+                stopColor={
+                  tipoGrafico === "demanda"
+                    ? "var(--color-institucional-celeste)"
+                    : "var(--color-brand-600)"
+                }
                 stopOpacity={0.2}
               />
             </linearGradient>
@@ -98,7 +121,9 @@ function AreaChartDashboard({ title, profMP, profMR }) {
           {/* Y-Axis with Label */}
           <YAxis tick={{ fontSize: 12, fill: "var(--color-grey-800)" }}>
             <Label
-              value="Energía (kWh)"
+              value={
+                tipoGrafico === "demanda" ? "Potencia (KW)" : "Energía (kWh)"
+              }
               angle={-90}
               position="insideLeft"
               style={{ textAnchor: "middle" }}
@@ -119,18 +144,28 @@ function AreaChartDashboard({ title, profMP, profMR }) {
           {/* Area for MP */}
           <Area
             type="monotone"
-            dataKey="kwh_mp"
-            stroke="var(--color-red-600)"
-            fillOpacity={1}
+            dataKey={tipoGrafico === "demanda" ? "generacion" : "kwh_mp"}
+            stroke={
+              tipoGrafico === "demanda" ? "var(--color-institucional-amarillo)" : "var(--color-red-600)"
+            }
+            fillOpacity={0.9}
+            strokeWidth={2}
+            animationDuration={2000}
             fill="url(#colorUv)"
           />
 
           {/* Area for MR */}
           <Area
             type="monotone"
-            dataKey="kwh_mr"
-            stroke="var(--color-institucional-celeste)"
-            fillOpacity={1}
+            dataKey={tipoGrafico === "demanda" ? "demanda" : "kwh_mr"}
+            stroke={
+              tipoGrafico === "demanda"
+                ? "var(--color-institucional-celeste)"
+                : "var(--color-institucional-celeste)"
+            }
+            fillOpacity={0.8}
+            strokeWidth={2}
+            animationDuration={1800}
             fill="url(#colorPv)"
           />
         </AreaChart>

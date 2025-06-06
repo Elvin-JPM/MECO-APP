@@ -10,6 +10,7 @@ import { RxHamburgerMenu } from "react-icons/rx";
 import IconButton from "./IconButton";
 import { useState } from "react";
 import Menu from "./Menu";
+import Footer from "./Footer";
 
 const Main = styled.main`
   padding: 1.5rem 2.2rem 1rem 2.2rem;
@@ -93,6 +94,7 @@ function AppLayout() {
           <Outlet />
         </Main>
       </StyledAppLayout>
+      <Footer />
     </AppBody>
   );
 }
