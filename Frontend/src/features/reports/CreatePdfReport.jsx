@@ -168,20 +168,20 @@ function CreatePdfReport({ formData, rowsToEdit }) {
         doc.setFontSize(9);
         doc.setFont("times", "bold");
         doc.setFillColor(95, 208, 223);
-        const originalesWidth = doc.getTextWidth("VALORES ORIGINALES") + 40.7;
-        doc.rect(41.7, y - 4, originalesWidth - 0.5, 4, "F");
+        const originalesWidth = doc.getTextWidth("VALORES ORIGINALES") + 30;
+        doc.rect(45, y - 4, originalesWidth - 0.5, 4, "F");
         doc.text("VALORES ORIGINALES", 61, y - 1);
 
         doc.setFillColor(95, 208, 223);
-        const sustitucionWidth = doc.getTextWidth("VALORES SUSTITUCIÓN") + 38.2;
+        const sustitucionWidth = doc.getTextWidth("VALORES SUSTITUCIÓN") + 20;
         doc.rect(
-          41.3 + originalesWidth + 1.4,
+          65 + originalesWidth,
           y - 4,
           sustitucionWidth + 1.2,
           4,
           "F"
         );
-        doc.text("VALORES SUSTITUCIÓN", 45 + originalesWidth + 16, y - 1);
+        doc.text("VALORES SUSTITUCIÓN", 60 + originalesWidth + 16, y - 1);
 
         const headers = [
           [
@@ -271,7 +271,8 @@ function CreatePdfReport({ formData, rowsToEdit }) {
                   ).replace(/,/g, "")
                 );
 
-                if (original !== updated) {
+                if (original !== updated || updated == 0 && !row.or_del_mp) {
+                  data.cell.styles.fillColor = [255, 240, 240]; // Light red background
                   data.cell.styles.textColor = [255, 0, 0];
                 }
               }

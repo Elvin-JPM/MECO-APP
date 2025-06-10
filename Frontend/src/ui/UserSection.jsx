@@ -8,6 +8,7 @@ import Spinner from "./Spinner";
 import DarkModeToggle from "./DarkModeToggle";
 import IconButton from "./IconButton";
 import { FiLogOut } from "react-icons/fi";
+import { IoMdNotificationsOutline } from "react-icons/io";
 import { useState } from "react";
 import IconContainer from "./IconContainer";
 import Tooltip from "./Tooltip";
@@ -105,6 +106,30 @@ function UserSection() {
         <span>
           <p>Bienvenid@, {userData?.username}</p>
         </span>
+        <IconContainer
+          onMouseEnter={() => handleMouseEnter(3)}
+          onMouseLeave={handleMouseLeave}
+          onFocus={() => handleFocus(3)}
+          onBlur={handleBlur}
+        >
+          <IconButton>
+            <IoMdNotificationsOutline />
+          </IconButton>
+
+          <Tooltip
+            id={`tooltip-${3}`}
+            className="tooltip"
+            position="bottom"
+            bgColor={`linear-gradient(to bottom, #EB3349, #F45C43)`}
+            fontSize="12px"
+            padding="8px 12px"
+            isVisible={tooltipVisible === 3}
+            role="tooltip"
+            aria-hidden={tooltipVisible !== 3}
+          >
+            {"Notificaciones"}
+          </Tooltip>
+        </IconContainer>
         <IconContainer
           onMouseEnter={() => handleMouseEnter(1)}
           onMouseLeave={handleMouseLeave}

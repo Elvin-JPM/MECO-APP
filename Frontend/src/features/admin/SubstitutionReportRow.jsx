@@ -48,7 +48,11 @@ const PdfIcon = styled(BiSolidFilePdf)`
   color: ${(props) => props.$color || "var(--color-grey-600)"};
 `;
 
-function SubstitutionReportRow({ reportRow, iconColor = "var(--color-grey-600)" }) {
+function SubstitutionReportRow({
+  reportRow,
+  iconColor = "var(--color-grey-600)",
+  tipo,
+}) {
   const [showForm, setShowForm] = useState(false);
   const [showPdfReport, setShowPdfReport] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
@@ -115,8 +119,9 @@ function SubstitutionReportRow({ reportRow, iconColor = "var(--color-grey-600)" 
             {fechaActualizacion ? formatDate(fechaActualizacion) : "No editado"}
           </p>
           <p>Validado por: {validadoPor}</p>
-          {reportRow.filas_editadas !== null && (
-            (userData.username === "CPADILLA" || userData.username === "EPOSADAS") && (
+          {reportRow.filas_editadas !== null &&
+            (userData.username === "CPADILLA" ||
+              (userData.username === "EPOSADAS" && tipo === "unchecked")) && (
               <Button
                 variation="primary"
                 size="medium"
@@ -124,8 +129,7 @@ function SubstitutionReportRow({ reportRow, iconColor = "var(--color-grey-600)" 
               >
                 Aprobar Reporte
               </Button>
-            )
-          )}
+            )}
           {reportRow.filas_editadas === null ? (
             <EmptyDataSet>
               No hay datos para mostrar en el reporte.

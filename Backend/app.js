@@ -5,8 +5,9 @@ require("dotenv").config();
 const { initOracleDb, cleanup } = require("./db");
 const { initSqlServer } = require("./sqlServerConnection");
 const http = require("http");
-const socketIo = require("socket.io");
-const { pingDevice } = require("./utils/pingUtils"); // Import from utilities
+const {configureSocket} = require("./lib/configureSocket");
+const { pingDevice } = require("./utils/pingUtils");
+
 
 if (process.env.NODE_ENV === "development") {
   require("./pythonWorker.js");
@@ -21,20 +22,11 @@ const PORT =
 // Create HTTP server
 const server = http.createServer(app);
 
-// Initialize Socket.IO
-const io = socketIo(server, {
-  cors: {
-    origin: process.env.NODE_ENV === "production" ? "http://10.10.5.40" : "*",
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-  path: "/socket.io",
-  transports: ["websocket", "polling"],
-  pingTimeout: 60000,
-  pingInterval: 25000,
-  cookie: false,
-  serveClient: false,
-});
+// Configure Socket.IO
+const io = configureSocket(server);
+
+// Make io accesible in routes if needed
+app.set("io", io);
 
 // Middleware
 app.set("trust proxy", 1);
@@ -108,80 +100,6 @@ routes.forEach((routeName) => {
   } catch (err) {
     console.error(`Error loading route ${routeName}:`, err);
   }
-});
-
-// WebSocket Connection Handler
-io.on("connection", (socket) => {
-  // console.log(
-  //   `New connection: ${socket.id} from ${socket.handshake.headers.origin}`
-  // );
-
-  socket.on("error", (err) => {
-    console.error(`Socket error (${socket.id}):`, err);
-  });
-
-  socket.on("startPinging", async (ipAddresses) => {
-    console.log("Starting ping for IPs:", ipAddresses);
-
-    // Clear previous interval if exists
-    if (socket.pingIntervalId) {
-      clearInterval(socket.pingIntervalId);
-    }
-
-    const pingAndSendUpdates = async (ips) => {
-      for (const ip of ips) {
-        try {
-          const result = await pingDevice(ip);
-          // Ensure we're still connected before sending update
-          if (socket.connected) {
-            socket.emit("pingUpdate", {
-              ip,
-              success: result.success,
-              message: result.message,
-              timestamp: new Date().toISOString(),
-            });
-          }
-        } catch (error) {
-          if (socket.connected) {
-            socket.emit("pingUpdate", {
-              ip,
-              success: false,
-              message: `Error pinging ${ip}: ${error.message}`,
-              timestamp: new Date().toISOString(),
-            });
-          }
-        }
-      }
-    };
-
-    // Initial ping
-    await pingAndSendUpdates(ipAddresses);
-
-    // Set up periodic pinging with shorter interval
-    socket.pingIntervalId = setInterval(() => {
-      if (socket.connected) {
-        pingAndSendUpdates(ipAddresses);
-      } else {
-        clearInterval(socket.pingIntervalId);
-      }
-    }, 60000); // Ping every 60 seconds
-
-    // Clean up on disconnect
-    socket.once("disconnect", () => {
-      if (socket.pingIntervalId) {
-        clearInterval(socket.pingIntervalId);
-      }
-      console.log(`WebSocket disconnected: ${socket.id}`);
-    });
-  });
-
-  // Handle client disconnection
-  socket.on("disconnect", (reason) => {
-    console.log(`Client ${socket.id} disconnected: ${reason}`);
-    if (socket.pingIntervalId) {
-      clearInterval(socket.pingIntervalId);
-    }
-  });
 });
 
 // Health check endpoint

@@ -202,6 +202,7 @@ function SubstitutionReportsTable() {
                 reportRow={reportRow}
                 key={reportRow.id}
                 iconColor="var(--color-red-500)"
+                tipo="unchecked"
               ></SubstitutionReportRow>
             ))}
           </TableContent>
@@ -247,9 +248,10 @@ function SubstitutionReportsTable() {
           <TableContent>
             {paginatedCheckedReports.map((reportRow) => (
               <SubstitutionReportRow
-                reportRow={reportRow}
+                    reportRow={reportRow}
                     key={reportRow.id}
                     iconColor="var(--color-brand-700)"
+                    tipo="checked"
               ></SubstitutionReportRow>
             ))}
           </TableContent>
