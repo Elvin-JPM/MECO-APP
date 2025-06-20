@@ -5,9 +5,11 @@ require("dotenv").config();
 const { initOracleDb, cleanup } = require("./db");
 const { initSqlServer } = require("./sqlServerConnection");
 const http = require("http");
-const {configureSocket} = require("./lib/configureSocket");
+const { configureSocket } = require("./lib/configureSocket");
 const { pingDevice } = require("./utils/pingUtils");
+const { startPingWorker } = require("./pingWorker");
 
+startPingWorker();
 
 if (process.env.NODE_ENV === "development") {
   require("./pythonWorker.js");
@@ -90,6 +92,8 @@ const routes = [
   "getSubstitutionReportsRoute",
   "updateReportApprovedRoute",
   "getGeneracionNacionalHoraria",
+  "deleteReportRoute",
+  "getMeterConnectionTimeRoute",
 ];
 
 routes.forEach((routeName) => {

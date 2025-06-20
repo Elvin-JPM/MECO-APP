@@ -90,7 +90,10 @@ function SubstitutionForm({
       formDataBackend.append(key, value); // Add form data
     });
 
-    formDataBackend.append("validadoPor", userData.nombre || userData.username);
+    formDataBackend.append(
+      "validadoPor",
+      userData.fullName || userData.username
+    );
     // Adjuntar el nombre del reporte
     formDataBackend.append("nombreReporte", nombreReporte);
     formDataBackend.append("rowsToEdit", JSON.stringify(rowsToEdit));

@@ -116,3 +116,8 @@ export async function getSubstations() {
   const response = await getData("/substations");
   return response;
 }
+
+export async function getMetersCommStatusTime() {
+  const response = await getData("/metersConnectionTime");
+  return response;
+}

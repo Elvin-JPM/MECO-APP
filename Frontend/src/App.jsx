@@ -21,6 +21,8 @@ import { UserProvider } from "./features/authentication/UserProvider";
 import { DarkModeProvider } from "./context/DarkModeContext";
 import ActasPuntoMedicion from "./features/actas/ActasPuntoMedicion";
 import Admin from "./pages/Admin";
+import PlanVerificaciones from "./pages/PlanVerificaciones";
+import TablaEstadoComm from "./pages/TablaEstadoComm";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -50,9 +52,20 @@ function App() {
               <Route index element={<Navigate replace to="dashboard" />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="meters" element={<Meters />} />
-              <Route path="communications" element={<Communications />} />
+              <Route path="communications">
+                <Route index element={<Communications />} />
+                <Route path="status" element={<Communications />} />
+                <Route path="tiempo" element={<TablaEstadoComm />} />
+              </Route>
               <Route path="demanda" element={<Demanda />} />
-              <Route path="admin" element={<Admin />} />
+              <Route path="admin">
+                <Route index element={<Admin />} />
+                <Route path="validaciones" element={<Admin />} />
+                <Route
+                  path="plan_verificaciones"
+                  element={<PlanVerificaciones />}
+                />
+              </Route>
               <Route path="reports" element={<Reports />} />
               <Route path="locations" element={<Locations />} />
               <Route path="actas" element={<Actas />} />

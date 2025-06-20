@@ -174,13 +174,7 @@ function CreatePdfReport({ formData, rowsToEdit }) {
 
         doc.setFillColor(95, 208, 223);
         const sustitucionWidth = doc.getTextWidth("VALORES SUSTITUCIÓN") + 20;
-        doc.rect(
-          65 + originalesWidth,
-          y - 4,
-          sustitucionWidth + 1.2,
-          4,
-          "F"
-        );
+        doc.rect(65 + originalesWidth, y - 4, sustitucionWidth + 1.2, 4, "F");
         doc.text("VALORES SUSTITUCIÓN", 60 + originalesWidth + 16, y - 1);
 
         const headers = [
@@ -238,7 +232,46 @@ function CreatePdfReport({ formData, rowsToEdit }) {
               data.cell.styles.visibility = "visible";
 
               const redColumns = [1, 2, 3, 4];
-              if (redColumns.includes(data.column.index)) {
+              const greenColumns = [5, 6, 7, 8];
+              const greenBackground = [220, 255, 220]; // Light green background
+              if (greenColumns.includes(data.column.index)) {
+                const row = sortedRows[data.row.index];
+                const original = parseFloat(
+                  String(
+                    row[
+                      `energia_${
+                        data.column.index === 5
+                          ? "del_mp_new"
+                          : data.column.index === 6
+                          ? "rec_mp_new"
+                          : data.column.index === 7
+                          ? "del_mr_new"
+                          : "rec_mr_new"
+                      }`
+                    ] || "0"
+                  ).replace(/,/g, "")
+                );
+                const updated = parseFloat(
+                  String(
+                    row[
+                      `energia_${
+                        data.column.index === 5
+                          ? "del_mp"
+                          : data.column.index === 6
+                          ? "rec_mp"
+                          : data.column.index === 7 
+                          ? "del_mr"
+                          : "rec_mr"
+                      }`
+                    ] || "0"
+                  ).replace(/,/g, "")
+                );
+
+                if (original !== updated || updated === 0 && !row.or_del_mp) {
+                  data.cell.styles.fillColor = greenBackground;
+                  data.cell.styles.textColor = [0, 128, 0]; // Dark green text
+                }
+              } else if (redColumns.includes(data.column.index)) {
                 const row = sortedRows[data.row.index];
                 const original = parseFloat(
                   String(
@@ -271,7 +304,7 @@ function CreatePdfReport({ formData, rowsToEdit }) {
                   ).replace(/,/g, "")
                 );
 
-                if (original !== updated || updated == 0 && !row.or_del_mp) {
+                if (original !== updated || updated === 0 && !row.or_del_mp) {
                   data.cell.styles.fillColor = [255, 240, 240]; // Light red background
                   data.cell.styles.textColor = [255, 0, 0];
                 }

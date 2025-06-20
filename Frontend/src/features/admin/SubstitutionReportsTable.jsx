@@ -9,6 +9,8 @@ import PaginationWrapper from "../../ui/PaginationWrapper";
 import { getSubstitutionReports } from "../../services/getRequests";
 import SubstitutionReportRow from "./SubstitutionReportRow";
 import Heading from "../../ui/Heading";
+import { MdOutlineDeleteOutline } from "react-icons/md";
+
 
 const Table = styled.div`
   border: 1px solid var(--color-grey-200);
@@ -89,14 +91,18 @@ function SubstitutionReportsTable() {
       report.aprobado !== null &&
       report.aprobado !== undefined &&
       report.aprobado !== 0
-  );
+  ).sort((a, b) => {
+    return new Date(b.fechaCreacion) - new Date(a.fechaCreacion);
+  });
 
   const uncheckedReports = substitutionReports.filter(
     (report) =>
       report.aprobado === null ||
       report.aprobado === undefined ||
       report.aprobado === 0
-  );
+  ).sort((a, b) => {
+    return new Date(b.fechaCreacion) - new Date(a.fechaCreacion);
+  });
 
   // Pagination logic for checked reports
   const checkedTotalPages = Math.ceil(checkedReports.length / itemsPerPage);

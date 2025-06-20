@@ -9,7 +9,7 @@ from oracle_oda_connection import insert_datos, get_meters_data
 if len(sys.argv) > 1:
     days_back = int(sys.argv[1])  
 else:
-    days_back = 1  
+    days_back = 7 
 
 starting_time = datetime.now()
 
@@ -119,61 +119,120 @@ while current_time <= end_datetime:
 #### Funcion para rellenar los registros perdidos en los medidores
 #### Si el registro se ha perdido, se rellenara con cero (0) para luego ser editado desde la app
 def fill_lost_registers(accumulated_energy, meter_data):
-    energy_types = {
-        'KWH_DEL': 'del_active',
-        'KWH_REC': 'rec_active',
-        'KVARH_DEL': 'del_reactive',
-        'KVARH_REC': 'rec_reactive'
-    }
-    
-    # Filter non-zero energy data for each type
-    filtered_data = {
-        name: accumulated_energy[(accumulated_energy["TIPO_ENERGIA"] == etype) & 
-                                (accumulated_energy["DATO_ENERGIA"] != 0)]
-        for etype, name in energy_types.items()
-    }
-    
-    # Check if any energy type has missing dates
-    if any(len(list(data["FECHA"])) < len(time_list) for data in filtered_data.values()):
-        # Prepare data frames to insert for missing dates
-        dfs_to_insert = []
-        
-        for etype, name in energy_types.items():
-            # Get existing dates as strings
-            existing_dates = [fecha.strftime('%Y-%m-%d %H:%M') 
-                            for fecha in filtered_data[name]["FECHA"]]
+ 
+    ### Separando los tipos de energia para el medidor principal y respaldo
+    del_active_energy = accumulated_energy[(accumulated_energy["TIPO_ENERGIA"] == "KWH_DEL") & (accumulated_energy["DATO_ENERGIA"] != 0)]
+    rec_active_energy = accumulated_energy[(accumulated_energy["TIPO_ENERGIA"] == "KWH_REC") & (accumulated_energy["DATO_ENERGIA"] != 0)]
+    del_reactive_energy = accumulated_energy[(accumulated_energy["TIPO_ENERGIA"] == "KVARH_DEL") & (accumulated_energy["DATO_ENERGIA"] != 0)]
+    rec_reactive_energy = accumulated_energy[(accumulated_energy["TIPO_ENERGIA"] == "KVARH_REC") & (accumulated_energy["DATO_ENERGIA"] != 0)]
+
+    ### Si existe algun valor faltante se ejecutara todo este codigo, adjuntando las nuevas filas a accumulated_energy
+    ### Si no hay valores faltantes, entonces se retorna directamente accumulated_energy al final de la funcion
+    if len(list(del_active_energy["FECHA"])) < len(time_list) or \
+       len(list(rec_active_energy["FECHA"])) < len(time_list) or \
+       len(list(del_reactive_energy["FECHA"])) < len(time_list) or \
+       len(list(rec_reactive_energy["FECHA"])) < len(time_list):
+
+        ### Convirtiendo la columna Fecha de cada tipo de energia a string
+        del_active_fecha = [fecha.strftime('%Y-%m-%d %H:%M') for fecha in list(del_active_energy["FECHA"])]
+        rec_active_fecha = [fecha.strftime('%Y-%m-%d %H:%M') for fecha in list(rec_active_energy["FECHA"])]
+        del_reactive_fecha = [fecha.strftime('%Y-%m-%d %H:%M') for fecha in list(del_reactive_energy["FECHA"])]
+        rec_reactive_fecha = [fecha.strftime('%Y-%m-%d %H:%M') for fecha in list(rec_reactive_energy["FECHA"])]
+
+        ### Encontrando los valores faltantes y convirtiendolos a una lista de Timestamp como vienen de SQL Server 
+        ### La comparacion se hace entre time_list la cual es una variable global que se crea a partir de las variables start_date y end_date
+        ### Estas listas guardan las fechas que hubiesen tenido las filas que no existen actualmente en la tabla
+        del_active_values_to_insert =   list(pd.to_datetime([date_missing for date_missing in time_list if date_missing not in del_active_fecha], format='%Y-%m-%d %H:%M'))
+        rec_active_values_to_insert =   list(pd.to_datetime([date_missing for date_missing in time_list if date_missing not in rec_active_fecha], format='%Y-%m-%d %H:%M'))
+        del_reactive_values_to_insert = list(pd.to_datetime([date_missing for date_missing in time_list if date_missing not in del_reactive_fecha], format='%Y-%m-%d %H:%M'))
+        rec_reactive_values_to_insert = list(pd.to_datetime([date_missing for date_missing in time_list if date_missing not in rec_reactive_fecha], format='%Y-%m-%d %H:%M'))
+
+        # Crear las listas que se insertaran en cada dataframe
+        lists_to_insert_del_active = []
+        lists_to_insert_rec_active = []
+        lists_to_insert_del_reactive = []
+        lists_to_insert_rec_reactive = []
+
+        ### ENERGIA ACTIVA
+        for value_to_insert_del_active in del_active_values_to_insert:
+            data_to_insert_row = []
+            data_to_insert_row.append(value_to_insert_del_active) # Adjunta la fecha del registro faltante
+            data_to_insert_row.append(meter_data["description"])  # Adjunta la descripcion del registro faltante
+            data_to_insert_row.append(meter_data["id"])
+            data_to_insert_row.append(0)
+            data_to_insert_row.append("KWH_DEL")
+            data_to_insert_row.append(1)
+            data_to_insert_row.append(datetime.now())
+            data_to_insert_row.append("VI")
+            lists_to_insert_del_active.append(data_to_insert_row)
+
+        df_values_to_insert_del_active = pd.DataFrame(lists_to_insert_del_active, columns = accumulated_energy.columns)
+
+        for value_to_insert_rec_active in rec_active_values_to_insert:
+            data_to_insert_row = []
+            data_to_insert_row.append(value_to_insert_rec_active)
+            data_to_insert_row.append(meter_data["description"])
+            data_to_insert_row.append(meter_data["id"])
+            data_to_insert_row.append(0)
+            data_to_insert_row.append("KWH_REC")
+            data_to_insert_row.append(1)
+            data_to_insert_row.append(datetime.now())
+            data_to_insert_row.append("VI")
+            lists_to_insert_rec_active.append(data_to_insert_row)
+
+        df_values_to_insert_rec_active = pd.DataFrame(lists_to_insert_rec_active, columns = accumulated_energy.columns)
+
+        ### ENERGIA REACTIVA
+        for value_to_insert_del_reactive in del_reactive_values_to_insert:
+            data_to_insert_row = []
+            data_to_insert_row.append(value_to_insert_del_reactive)
+            data_to_insert_row.append(meter_data["description"])
+            data_to_insert_row.append(meter_data["id"])
+            data_to_insert_row.append(0)
+            data_to_insert_row.append("KVARH_DEL")
+            data_to_insert_row.append(1)
+            data_to_insert_row.append(datetime.now())
+            data_to_insert_row.append("VI")
+            lists_to_insert_del_reactive.append(data_to_insert_row)
+
+        df_values_to_insert_del_reactive = pd.DataFrame(lists_to_insert_del_reactive, columns = accumulated_energy.columns)
+
+        for value_to_insert_rec_reactive in rec_reactive_values_to_insert:
+            data_to_insert_row = []
+            data_to_insert_row.append(value_to_insert_rec_reactive)
+            data_to_insert_row.append(meter_data["description"])
+            data_to_insert_row.append(meter_data["id"])
+            data_to_insert_row.append(0)
+            data_to_insert_row.append("KVARH_REC")
+            data_to_insert_row.append(1)
+            data_to_insert_row.append(datetime.now())
+            data_to_insert_row.append("VI")
+            lists_to_insert_rec_reactive.append(data_to_insert_row)
+
+        df_values_to_insert_rec_reactive = pd.DataFrame(lists_to_insert_rec_reactive, columns = accumulated_energy.columns)
+        accumulated_energy = accumulated_energy[(accumulated_energy["DATO_ENERGIA"] != 0)]
+        dataframes = [
+            accumulated_energy, 
+            df_values_to_insert_del_active, 
+            df_values_to_insert_rec_active,
+            df_values_to_insert_del_reactive,
+            df_values_to_insert_rec_reactive
+        ]
+
+        # Filter out empty or all-NaN DataFrames
+        non_empty_dfs = [df for df in dataframes if not df.empty and not df.isna().all(axis=None)]
+
+        # Concatenate only the valid DataFrames
+        if non_empty_dfs:  # If there are valid DataFrames to concatenate
+            accumulated_energy = pd.concat(non_empty_dfs, ignore_index=True)
+        else:
+            accumulated_energy = pd.DataFrame()  # Create an empty DataFrame if all are empty
             
-            # Find missing dates
-            missing_dates = pd.to_datetime(
-                [date for date in time_list if date not in existing_dates],
-                format='%Y-%m-%d %H:%M'
-            )
-            
-            # Create DataFrame for missing dates
-            if not missing_dates.empty:
-                new_rows = [{
-                    'FECHA': date,
-                    'description': meter_data["description"],
-                    'id': meter_data["id"],
-                    'DATO_ENERGIA': 0,
-                    'TIPO_ENERGIA': etype,
-                    'ESTADO': 1,
-                    'FECHA_CREACION': datetime.now(),
-                    'USUARIO_CREACION': "VI"
-                } for date in missing_dates]
-                
-                dfs_to_insert.append(pd.DataFrame(new_rows))
-        
-        # Filter original data to exclude zero values
-        accumulated_energy = accumulated_energy[accumulated_energy["DATO_ENERGIA"] != 0]
-        
-        # Concatenate all DataFrames
-        if dfs_to_insert:
-            accumulated_energy = pd.concat(
-                [accumulated_energy] + dfs_to_insert,
-                ignore_index=True
-            )
-    
+        # print("Accumulated energy: ",accumulated_energy[(accumulated_energy["TIPO_ENERGIA"] == "KWH_REC")])
+    else:
+        #aqui debe ir el codigo que detecte cuando una valor de energia acumulada o recibida sea cero
+        #debe colocarlo como VI
+        pass
     print("Data to insert after filling: ", accumulated_energy)
     return accumulated_energy
 

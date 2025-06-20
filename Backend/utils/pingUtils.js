@@ -2,8 +2,11 @@ const { exec } = require("child_process");
 const { promisify } = require("util");
 const execAsync = promisify(exec);
 const net = require("net");
+const { getConnection } = require("../db");
+const { autoCommit } = require("oracledb");
 
 const pingDevice = async (ipAddress) => {
+  let connection;
   if (!net.isIP(ipAddress)) {
     return {
       success: false,
@@ -11,8 +14,20 @@ const pingDevice = async (ipAddress) => {
     };
   }
 
+  const query = `UPDATE MCAM_MEDIDORES 
+                   SET ESTADO_COM = :estadoCom, ULTIMO_INTENTO = :ultimo_intento, ULTIMO_INTENTO_INCORRECTO = :ultimo_intento_incorrecto
+                   WHERE IP = :ip                 
+    `;
+  const registroIncorrectoQuery = `UPDATE MCAM_MEDIDORES 
+    SET ESTADO_COM = :estadoCom, ULTIMO_INTENTO = :ultimo_intento
+    WHERE IP = :ip                 
+`;
+
+  const ultimoRegistroIncorrectoQuery = `SELECT ULTIMO_INTENTO_INCORRECTO FROM MCAM_MEDIDORES WHERE IP = :ip`;
+
   try {
     // Use platform-specific ping command
+    connection = await getConnection();
     const isWindows = process.platform === "win32";
     const pingCommand = isWindows
       ? `ping -n 1 -w 2000 ${ipAddress}`
@@ -37,6 +52,26 @@ const pingDevice = async (ipAddress) => {
       time = timeMatch ? parseFloat(timeMatch[1]) : null;
     }
 
+    console.log("Resultado de isSucces: ", isSuccess);
+
+    if (isSuccess) {
+      try {
+        await connection.execute(
+          query,
+          {
+            estadoCom: 1,
+            ultimo_intento: new Date(),
+            ultimo_intento_incorrecto: null,
+            ip: ipAddress,
+          },
+          { autoCommit: true }
+        );
+      } catch (dbError) {
+        console.error(`Database update failed for ${ipAddress}:`, dbError);
+        // Still return success=true for ping, but log DB failure
+      }
+    }
+
     return {
       success: isSuccess,
       message: isSuccess
@@ -46,6 +81,32 @@ const pingDevice = async (ipAddress) => {
     };
   } catch (error) {
     // console.error(`Ping error for ${ipAddress}:`, error);
+    const resultUltimoRegistroIncorrecto = await connection.execute(
+      ultimoRegistroIncorrectoQuery,
+      { ip: ipAddress }
+    );
+
+    const ultimoRegistroIncorrecto = resultUltimoRegistroIncorrecto.rows[0][0];
+    console.log("Ultimo registro incorrecto: ", ultimoRegistroIncorrecto);
+
+    if (!ultimoRegistroIncorrecto) {
+      await connection.execute(
+        query,
+        {
+          estadoCom: 0,
+          ultimo_intento: new Date(),
+          ultimo_intento_incorrecto: new Date(),
+          ip: ipAddress,
+        },
+        { autoCommit: true }
+      );
+    } else {
+      await connection.execute(
+        registroIncorrectoQuery,
+        { estadoCom: 0, ultimo_intento: new Date(), ip: ipAddress },
+        { autoCommit: true }
+      );
+    }
 
     // Check if the error is due to the host being down
     if (
@@ -74,6 +135,14 @@ const pingDevice = async (ipAddress) => {
       message: `Error pinging ${ipAddress}: ${error.message}`,
       time: null,
     };
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (closeError) {
+        console.error("Error closing connection: ", closeError);
+      }
+    }
   }
 };
 

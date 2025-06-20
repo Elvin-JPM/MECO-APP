@@ -15,6 +15,7 @@ import CreatePdfReport from "../reports/CreatePdfReport";
 import useApproveReport from "./useApproveReport";
 import EmptyDataSet from "../../ui/EmptyDataSet";
 import ConfirmationModal from "../../ui/ConfirmationModal";
+import useDeleteReport from "./useDeleteReport";
 
 const TableRow = styled.div`
   display: grid;
@@ -56,8 +57,12 @@ function SubstitutionReportRow({
   const [showForm, setShowForm] = useState(false);
   const [showPdfReport, setShowPdfReport] = useState(false);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [showDeleteConfirmationModal, setShowDeleteConfirmationModal] =
+    useState(false);
   const [approve, setApprove] = useState(false);
+  const [deleteReport, setDeleteReport] = useState(false);
   const { isApproving, approveReport } = useApproveReport();
+  const { isDeleting, deleteReport: deleteReportMutation } = useDeleteReport();
   const { userData } = useUser();
   const {
     nombreReporte,
@@ -72,6 +77,7 @@ function SubstitutionReportRow({
     setShowPdfReport((show) => !show);
   }
 
+  // Se ejecuta cuando se aprueba el reporte
   useEffect(() => {
     if (approve) {
       // Logic to handle report approval
@@ -80,6 +86,16 @@ function SubstitutionReportRow({
       setApprove(false); // Reset approval state
     }
   }, [approve, approveReport, reportRow]);
+
+  // Se ejecuta cuando se elimina el reporte
+  useEffect(() => {
+    if (deleteReport) {
+      // Logic to handle report deletion
+      console.log("Report deleted:", reportRow);
+      deleteReportMutation(reportRow.id);
+      setDeleteReport(false); // Reset deletion state
+    }
+  }, [deleteReport, deleteReportMutation, reportRow]);
 
   return (
     <>
@@ -121,15 +137,35 @@ function SubstitutionReportRow({
           <p>Validado por: {validadoPor}</p>
           {reportRow.filas_editadas !== null &&
             (userData.username === "CPADILLA" ||
-              (userData.username === "EPOSADAS" && tipo === "unchecked")) && (
+              userData.username === "EPOSADAS") &&
+            (tipo === "unchecked" ? (
+              <>
+                <ButtonArray>
+                  <Button
+                    variation="primary"
+                    size="medium"
+                    onClick={() => setShowConfirmationModal(true)}
+                  >
+                    Aprobar Reporte
+                  </Button>
+                  <Button
+                    variation="danger"
+                    size="medium"
+                    onClick={() => setShowDeleteConfirmationModal(true)}
+                  >
+                    Borrar Reporte
+                  </Button>
+                </ButtonArray>
+              </>
+            ) : (
               <Button
-                variation="primary"
+                variation="danger"
                 size="medium"
-                onClick={() => setShowConfirmationModal(true)}
+                onClick={() => setShowDeleteConfirmationModal(true)}
               >
-                Aprobar Reporte
+                Borrar Reporte
               </Button>
-            )}
+            ))}
           {reportRow.filas_editadas === null ? (
             <EmptyDataSet>
               No hay datos para mostrar en el reporte.
@@ -152,6 +188,22 @@ function SubstitutionReportRow({
             setShowPdfReport(false);
           }}
           confirmationText="¿Estás seguro de que deseas aprobar este reporte?"
+        />
+      )}
+      {showDeleteConfirmationModal && (
+        <ConfirmationModal
+          onClose={() => setShowDeleteConfirmationModal(false)}
+          onConfirm={() => {
+            // Logic to delete the report
+            setDeleteReport(true);
+            console.log("Report deleted:", reportRow);
+            setShowDeleteConfirmationModal(false);
+            setShowPdfReport(false);
+            
+          }}
+          confirmText="Borrar Reporte"
+          confirmationType="delete"
+          confirmationText="¿Estás seguro de que deseas eliminar este reporte?"
         />
       )}
     </>

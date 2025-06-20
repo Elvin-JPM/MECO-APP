@@ -80,11 +80,20 @@ const CancelButton = styled(ActionButton)`
 `;
 
 const ConfirmButton = styled(ActionButton)`
-  background-color: var(--color-brand-600);
-  color: var(--color-brand-50);
+  // if confirmationType is "confirm", use brand colors
+  // if confirmationType is "danger", use red colors
+  background-color: ${(props) =>
+    props.confirmationType === "confirm"
+      ? "var(--color-brand-600)"
+      : "var(--color-red-400)"};
+
+  color: var(--color-grey-900);
 
   &:hover {
-    background-color: var(--color-brand-700);
+    background-color: ${(props) =>
+      props.confirmationType === "confirm"
+        ? "var(--color-brand-700)"
+        : "var(--color-red-500)"};
   }
 `;
 
@@ -94,6 +103,7 @@ function ConfirmationModal({
   confirmationText = "Confirmar acción",
   confirmText = "Confirmar",
   cancelText = "Cancelar",
+  confirmationType = "confirm",
 }) {
   // Lock scroll when modal opens
   useEffect(() => {
@@ -134,7 +144,12 @@ function ConfirmationModal({
           <ConfirmationText>{confirmationText}</ConfirmationText>
           <ButtonGroup>
             <CancelButton onClick={onClose}>{cancelText}</CancelButton>
-            <ConfirmButton onClick={onConfirm}>{confirmText}</ConfirmButton>
+            <ConfirmButton
+              confirmationType={confirmationType}
+              onClick={onConfirm}
+            >
+              {confirmText}
+            </ConfirmButton>
           </ButtonGroup>
         </ConfirmationBox>
       </FullScreenOverlay>

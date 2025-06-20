@@ -8,6 +8,7 @@ const ButtonArray = styled.div`
   gap: 0.6rem;
   width: 2rem;
   height: 3rem;
+  margin-top: 1.2rem;
 
   @media (max-width: 810px) {
     gap: 0.1rem;

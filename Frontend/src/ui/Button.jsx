@@ -74,11 +74,13 @@ const variations = {
     }
   `,
   danger: css`
-    color: var(--color-red-100);
-    background-color: var(--color-institucional-rojo);
+    color: var(--color-grey-700);
+    background-color: var(--color-red-400);
+    font-weight: 600;
+    font-size: 1.8rem;
 
     &:hover {
-      background-color: var(--color-institucional-rojo);
+      background-color: var(--color-red-300);
     }
   `,
 
@@ -114,32 +116,30 @@ const variations = {
 };
 
 const Button = styled.button.attrs((props) => ({
-  title: props.tooltip, // Adds the tooltip text as a `title` attribute (optional)
+  title: props.tooltip,
 }))`
   display: flex;
   justify-content: center;
   align-items: center;
-  //color: var(--color-grey-900);
   border-radius: var(--border-radius-lg);
   border: 1px solid var(--color-grey-400);
   box-shadow: var(--shadow-md);
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  position: relative; // Required for positioning the tooltip
+  transition: all 0.2s ease; // Consolidated transition
+  position: relative;
 
   ${(props) => sizes[props.size]}
   ${(props) => variations[props.variation]}
   ${(props) => IconColors[props.color]}
 
-
   /* Tooltip styles */
   &::after {
     content: attr(data-tooltip);
     position: absolute;
-    bottom: calc(100% + 8px); /* Position the tooltip above the button */
+    bottom: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%);
     background-color: var(--color-grey-800);
-    color: var(--color-grey-800);
+    color: white; // Fixed color contrast
     padding: 0.4rem 0.8rem;
     font-size: 1.2rem;
     border-radius: var(--border-radius-sm);
@@ -147,18 +147,23 @@ const Button = styled.button.attrs((props) => ({
     white-space: nowrap;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition: all 0.2s ease;
   }
 
   &:hover {
-    opacity: 0.8;
-    transform: scale(0.98);
+    transform: scale(0.99); // More subtle scaling
+    translate: 0 1px; // Slight upward movement
+    box-shadow: var(--shadow-sm); // Optional: reduce shadow on hover
+  }
+
+  &:active {
+    transform: scale(0.96); // Pressed state
   }
 
   &:focus {
     outline: none;
+    box-shadow: 0 0 0 2px var(--color-primary-500); // Better for accessibility
   }
-  
 `;
 
 Button.defaultProps = {

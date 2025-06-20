@@ -37,7 +37,7 @@ push_with_retry() {
 
 # Build Docker images (always pulling latest base images)
 echo "Building images..."
-docker compose build --no-cache --pull
+docker compose build --pull
 
 # Tag backend
 echo "Tagging backend..."

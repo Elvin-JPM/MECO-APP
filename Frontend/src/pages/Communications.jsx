@@ -1,7 +1,7 @@
 import Heading from "../ui/Heading";
 import styled from "styled-components";
 import { useQuery } from "@tanstack/react-query";
-import { getMetersInfo } from "../services/getRequests";
+import { getMetersCommStatusTime } from "../services/getRequests";
 import Spinner from "../ui/Spinner";
 import ComCard from "../features/comunications/ComCard";
 import Input from "../ui/Input";
@@ -67,18 +67,19 @@ function Communications() {
   const [isDisabledNameSearch, setIsDisabledNameSearch] = useState(false);
   const [isDisabledIpSearch, setIsDisabledIpSearch] = useState(false);
   let filteredGroupedMeters = [];
-  const { isLoading, data: metersInfo } = useQuery({
-    queryKey: ["meters_info"],
-    queryFn: () => getMetersInfo(),
+
+  const { isLoading, data: metersCommStatusTimeData } = useQuery({
+    queryKey: ["meterCommStatusTime"],
+    queryFn: () => getMetersCommStatusTime(),
     keepPreviousData: true,
+    refetchInterval: 300000, // 5 minutes as fallback
+    refetchIntervalInBackground: true,
   });
 
   if (isLoading) return <Spinner />;
-  console.log(metersInfo);
 
-  let groupedMeters = groupMetersByMeasurementPoint(metersInfo.data);
-  groupedMeters = sortGroupedMetersByFirstDescription(groupedMeters); // Sort by first description
-  console.log("Medidores agrupados: ", groupedMeters);
+  let groupedMeters = groupMetersByMeasurementPoint(metersCommStatusTimeData);
+  groupedMeters = sortGroupedMetersByFirstDescription(groupedMeters);
 
   // Handle search input change
   const handleSearchChange = (event) => {
@@ -117,7 +118,6 @@ function Communications() {
 
   let metersToDisplay = filteredGroupedMeters;
 
-  console.log("Medidores filtrados: ", metersToDisplay);
   return (
     <>
       <Heading>ESTADO DE COMUNICACIÓN CON LOS MEDIDORES</Heading>

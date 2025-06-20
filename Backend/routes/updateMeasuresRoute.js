@@ -90,8 +90,8 @@ router.put("/updateMeasures", async (req, res) => {
             DATO_ENERGIA = :energia_del_mp_new
             ${
               parseFloat(rowToEdit.energia_del_mp) !== energia_del_mp_new ||
-              (Number(parseFloat(rowToEdit.energia_del_mp)) === 0) &
-                (Number(energia_del_mp_new) === 0) ||
+              // (Number(parseFloat(rowToEdit.energia_del_mp)) === 0) &
+              //   (Number(energia_del_mp_new) === 0) ||
               rowToEdit.filaValidadaCompleta
                 ? ", ORIGEN = 'VS', REPORTE_VALIDACION = :reportName"
                 : ""
@@ -105,8 +105,8 @@ router.put("/updateMeasures", async (req, res) => {
             DATO_ENERGIA = :energia_rec_mp_new
             ${
               parseFloat(rowToEdit.energia_rec_mp) !== energia_rec_mp_new ||
-              (Number(parseFloat(rowToEdit.energia_rec_mp)) === 0) &
-                (Number(energia_rec_mp_new) === 0) ||
+              // (Number(parseFloat(rowToEdit.energia_rec_mp)) === 0) &
+              //   (Number(energia_rec_mp_new) === 0) ||
               rowToEdit.filaValidadaCompleta
                 ? ", ORIGEN = 'VS', REPORTE_VALIDACION = :reportName"
                 : ""
@@ -157,8 +157,8 @@ router.put("/updateMeasures", async (req, res) => {
       DATO_ENERGIA = :energia_del_mr_new
       ${
         parseFloat(rowToEdit.energia_del_mr) !== energia_del_mr_new ||
-        (Number(parseFloat(rowToEdit.energia_del_mr)) === 0) &
-          (Number(energia_del_mr_new) === 0) ||
+        // (Number(parseFloat(rowToEdit.energia_del_mr)) === 0) &
+        //   (Number(energia_del_mr_new) === 0) ||
         rowToEdit.filaValidadaCompleta
           ? ", ORIGEN = 'VS', REPORTE_VALIDACION = :reportName"
           : ""
@@ -173,8 +173,8 @@ router.put("/updateMeasures", async (req, res) => {
       ${
         parseFloat(rowToEdit.energia_rec_mr) !==
           parseFloat(energia_rec_mr_new) ||
-        (Number(parseFloat(rowToEdit.energia_rec_mr)) === 0) &
-          (Number(energia_rec_mr_new) === 0) ||
+        // (Number(parseFloat(rowToEdit.energia_rec_mr)) === 0) &
+        //   (Number(energia_rec_mr_new) === 0) ||
         rowToEdit.filaValidadaCompleta
           ? ", ORIGEN = 'VS', REPORTE_VALIDACION = :reportName"
           : ""
@@ -196,8 +196,8 @@ router.put("/updateMeasures", async (req, res) => {
 
       if (
         parseFloat(rowToEdit.energia_del_mr) !== energia_del_mr_new ||
-        (Number(parseFloat(rowToEdit.energia_del_mr)) === 0) &
-          (Number(energia_del_mr_new) === 0) ||
+        // (Number(parseFloat(rowToEdit.energia_del_mr)) === 0) &
+        //   (Number(energia_del_mr_new) === 0) ||
         rowToEdit.filaValidadaCompleta
       ) {
         bindParamsRespaldo.reportName = reportName;
@@ -205,8 +205,8 @@ router.put("/updateMeasures", async (req, res) => {
 
       if (
         parseFloat(rowToEdit.energia_rec_mr) !== energia_rec_mr_new ||
-        (Number(parseFloat(rowToEdit.energia_rec_mr)) === 0) &
-          (Number(energia_rec_mr_new) === 0) ||
+        // (Number(parseFloat(rowToEdit.energia_rec_mr)) === 0) &
+        //   (Number(energia_rec_mr_new) === 0) ||
         rowToEdit.filaValidadaCompleta
       ) {
         bindParamsRespaldo.reportName = reportName;
